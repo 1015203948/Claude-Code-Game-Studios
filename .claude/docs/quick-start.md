@@ -75,6 +75,7 @@ Ask yourself: "What department would handle this in a real studio?"
 
 | Command | What it does |
 |---------|-------------|
+| `/start` | First-time onboarding — asks where you are, guides you to the right workflow |
 | `/design-review` | Reviews a design document |
 | `/code-review` | Reviews code for quality and architecture |
 | `/playtest-report` | Creates or analyzes playtest feedback |
@@ -145,12 +146,15 @@ Templates are in `.claude/docs/templates/`:
 
 ## First Steps for a New Project
 
+**Don't know where to begin?** Run `/start`. It asks where you are and routes
+you to the right workflow. No assumptions about your game, engine, or experience level.
+
+If you already know what you need, jump directly to the relevant path:
+
 ### Path A: "I have no idea what to build"
 
-Start from zero — the system will guide you through the entire process:
-
-1. **Discover your game** — Run `/brainstorm` (or `/brainstorm open`)
-   - Guided creative exploration: what excites you, what you've played, your constraints
+1. **Run `/start`** (or `/brainstorm open`) — guided creative exploration:
+   what excites you, what you've played, your constraints
    - Generates 3 concepts, helps you pick one, defines core loop and pillars
    - Produces a game concept document and recommends an engine
 2. **Set up the engine** — Run `/setup-engine` (uses the brainstorm recommendation)
@@ -186,6 +190,16 @@ If you have a concept but don't know which engine fits:
    an engine based on your answers
 2. Follow Path B from step 2 onward
 
+### Path D: "I have an existing project"
+
+If you have design docs, prototypes, or code already:
+
+1. **Run `/start`** (or `/project-stage-detect`) — analyzes what exists,
+   identifies gaps, and recommends next steps
+2. **Configure engine if needed** — Run `/setup-engine` if not yet configured
+3. **Validate phase readiness** — Run `/gate-check` to see where you stand
+4. **Plan the next sprint** — Run `/sprint-plan new`
+
 ## File Structure Reference
 
 ```
@@ -193,7 +207,7 @@ CLAUDE.md                          -- Master config (read this first, ~60 lines)
 .claude/
   settings.json                    -- Claude Code hooks and project settings
   agents/                          -- 48 agent definitions (YAML frontmatter)
-  skills/                          -- 34 slash command definitions (YAML frontmatter)
+  skills/                          -- 35 slash command definitions (YAML frontmatter)
   hooks/                           -- 8 hook scripts (.sh) wired by settings.json
   rules/                           -- 11 path-specific rule files
   docs/

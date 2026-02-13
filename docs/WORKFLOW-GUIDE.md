@@ -3,7 +3,7 @@
 > **How to go from zero to a shipped game using the Agent Architecture.**
 >
 > This guide walks you through every phase of game development using the
-> 48-agent system, 34 slash commands, and automated hooks. It assumes you
+> 48-agent system, 35 slash commands, and automated hooks. It assumes you
 > have Claude Code installed and are working from the project root.
 
 ---
@@ -47,7 +47,19 @@ git clone <repo-url> my-game
 cd my-game
 ```
 
-### Step 0.2: Choose Your Engine
+### Step 0.2: Run /start (Recommended for New Users)
+
+If you're new to the project or don't yet know what game you're building:
+
+```
+/start
+```
+
+This guided onboarding asks where you are (no idea, vague idea, clear concept,
+existing work) and routes you to the right phase. Skip this if you already have
+a game concept and engine decision.
+
+### Step 0.3: Choose Your Engine
 
 Run `/setup-engine` in Claude Code. This is the single most important
 configuration step -- it tells every agent what engine, language, and toolchain
@@ -145,9 +157,12 @@ production/           # Sprint plans, milestones, releases
 You go from "no idea" or "vague idea" to a structured game concept document.
 This is where you figure out **what** you're making.
 
+> **Tip:** If you ran `/start` in Phase 0 and chose Path A or B, you're already
+> here. `/start` routes you to `/brainstorm` automatically.
+
 ### Step 1.1: Brainstorm With `/brainstorm`
 
-This is your starting point. Run the brainstorm skill:
+This is your starting point if you skipped `/start`. Run the brainstorm skill:
 
 ```
 /brainstorm
@@ -1673,6 +1688,7 @@ conflicts go to `producer`.
 
 | Stage | Commands |
 |-------|----------|
+| **Onboarding** | `/start` |
 | **Ideation** | `/brainstorm` |
 | **Design** | `/design-review`, `/architecture-decision` |
 | **Sprint** | `/sprint-plan`, `/estimate`, `/scope-check`, `/retrospective` |
@@ -1690,7 +1706,8 @@ conflicts go to `producer`.
 ### Workflow 1: "I just started and have no game idea"
 
 ```
-1. /brainstorm
+1. /start (asks where you are, routes you to the right workflow)
+   — or /brainstorm if you prefer to jump straight to ideation
 2. Pick the best concept from the brainstorm output
 3. Create a game concept doc (templates/game-concept.md)
 4. Define game pillars (templates/game-pillars.md)

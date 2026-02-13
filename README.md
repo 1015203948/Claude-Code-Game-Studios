@@ -1,6 +1,6 @@
 # Claude Code Game Studios
 
-A production-ready [Claude Code](https://docs.anthropic.com/en/docs/claude-code) project template that turns a single AI session into a full game development studio. 48 specialized agents, 34 workflow skills, and a complete coordination system — all wired into Claude Code's native agent architecture.
+A production-ready [Claude Code](https://docs.anthropic.com/en/docs/claude-code) project template that turns a single AI session into a full game development studio. 48 specialized agents, 35 workflow skills, and a complete coordination system — all wired into Claude Code's native agent architecture.
 
 Clone the repo, open Claude Code, and start building your game with a team of AI specialists that mirrors a real studio hierarchy: directors, department leads, and domain experts working together with defined roles, delegation rules, and quality gates.
 
@@ -9,7 +9,7 @@ Clone the repo, open Claude Code, and start building your game with a team of AI
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 48 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
-| **Skills** | 34 | Slash commands for common workflows (`/sprint-plan`, `/code-review`, `/brainstorm`, etc.) |
+| **Skills** | 35 | Slash commands for common workflows (`/start`, `/sprint-plan`, `/code-review`, `/brainstorm`, etc.) |
 | **Hooks** | 8 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit, and gap detection |
 | **Rules** | 11 | Path-scoped coding standards enforced when editing gameplay, engine, AI, UI, network code, and more |
 | **Templates** | 28 | Document templates for GDDs, ADRs, sprint plans, economy models, faction design, and more |
@@ -50,7 +50,7 @@ The template includes agent sets for all three major engines. Use the set that m
 
 ## Slash Commands
 
-Type `/` in Claude Code to access all 34 skills:
+Type `/` in Claude Code to access all 35 skills:
 
 **Reviews & Analysis**
 `/design-review` `/code-review` `/balance-check` `/asset-audit` `/scope-check` `/perf-profile` `/tech-debt`
@@ -59,7 +59,7 @@ Type `/` in Claude Code to access all 34 skills:
 `/sprint-plan` `/milestone-review` `/estimate` `/retrospective` `/bug-report`
 
 **Project Management**
-`/project-stage-detect` `/reverse-document` `/gate-check`
+`/start` `/project-stage-detect` `/reverse-document` `/gate-check`
 
 **Release**
 `/release-checklist` `/launch-checklist` `/changelog` `/patch-notes` `/hotfix`
@@ -88,33 +88,18 @@ All hooks fail gracefully if optional tools are missing — nothing breaks, you 
    cd my-game
    ```
 
-2. **Configure your engine** — run `/setup-engine` in Claude Code (or manually edit `CLAUDE.md`):
-
-   ```bash
-   /setup-engine godot 4.6
-   ```
-
-   This pins the engine, populates reference docs, and creates your technical preferences file.
-
-3. **Open Claude Code** and start working:
+2. **Open Claude Code** and start a session:
    ```bash
    claude
    ```
 
-4. **Try a slash command** to see the system in action:
-   ```
-   /brainstorm roguelike
-   ```
+3. **Run `/start`** — the system asks where you are (no idea, vague concept,
+   clear design, existing work) and guides you to the right workflow. No assumptions.
 
-### First Steps for a New Game
-
-1. Run `/setup-engine` to configure your engine and technical preferences
-2. Run `/brainstorm` to develop your game concept
-3. Create game pillars with the `creative-director` agent
-4. Record your architecture decisions with `/architecture-decision`
-5. Plan your first sprint with `/sprint-plan new`
-6. Prototype the core loop with `/prototype`
-7. Start building
+   Or jump directly to a specific skill if you already know what you need:
+   - `/brainstorm` — explore game ideas from scratch
+   - `/setup-engine godot 4.6` — configure your engine if you already know
+   - `/project-stage-detect` — analyze an existing project
 
 ## Project Structure
 
@@ -123,7 +108,7 @@ CLAUDE.md                           # Master configuration
 .claude/
   settings.json                     # Hooks, permissions, safety rules
   agents/                           # 48 agent definitions (markdown + YAML frontmatter)
-  skills/                           # 34 slash commands (subdirectory per skill)
+  skills/                           # 35 slash commands (subdirectory per skill)
   hooks/                            # 8 hook scripts (bash, cross-platform)
   rules/                            # 11 path-scoped coding standards
   docs/
@@ -164,7 +149,7 @@ Agents follow a structured delegation model:
 | `validate-push.sh` | `git push` | Warns on pushes to protected branches |
 | `validate-assets.sh` | File writes in `assets/` | Validates naming conventions and JSON structure |
 | `session-start.sh` | Session open | Loads sprint context and recent git activity |
-| `detect-gaps.sh` | Session open | Detects missing documentation when code/prototypes exist, suggests `/reverse-document` or `/project-stage-detect` |
+| `detect-gaps.sh` | Session open | Detects fresh projects (suggests `/start`) and missing documentation when code/prototypes exist |
 | `pre-compact.sh` | Context compression | Preserves session progress notes |
 | `session-stop.sh` | Session close | Logs accomplishments |
 | `log-agent.sh` | Agent spawned | Audit trail of all subagent invocations |

@@ -9,6 +9,40 @@ set +e
 
 echo "=== Checking for Documentation Gaps ==="
 
+# --- Check 0: Fresh project detection (suggests /start) ---
+FRESH_PROJECT=true
+
+# Check if engine is configured
+if [ -f ".claude/docs/technical-preferences.md" ]; then
+  ENGINE_LINE=$(grep -E "^\- \*\*Engine\*\*:" .claude/docs/technical-preferences.md 2>/dev/null)
+  if echo "$ENGINE_LINE" | grep -qv "TO BE CONFIGURED" 2>/dev/null; then
+    FRESH_PROJECT=false
+  fi
+fi
+
+# Check if game concept exists
+if [ -f "design/gdd/game-concept.md" ]; then
+  FRESH_PROJECT=false
+fi
+
+# Check if source code exists
+if [ -d "src" ]; then
+  SRC_CHECK=$(find src -type f \( -name "*.gd" -o -name "*.cs" -o -name "*.cpp" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.rs" -o -name "*.py" -o -name "*.js" -o -name "*.ts" \) 2>/dev/null | head -1)
+  if [ -n "$SRC_CHECK" ]; then
+    FRESH_PROJECT=false
+  fi
+fi
+
+if [ "$FRESH_PROJECT" = true ]; then
+  echo ""
+  echo "🚀 NEW PROJECT: No engine configured, no game concept, no source code."
+  echo "   This looks like a fresh start! Run: /start"
+  echo ""
+  echo "💡 To get a comprehensive project analysis, run: /project-stage-detect"
+  echo "==================================="
+  exit 0
+fi
+
 # --- Check 1: Substantial codebase but sparse design docs ---
 if [ -d "src" ]; then
   # Count source files (cross-platform, handles Windows paths)
