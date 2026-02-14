@@ -14,6 +14,10 @@ Desktop.ini
 .claude/docs/UPGRADE-PLAN.md
 production/session-logs/
 
+# === Internal Planning (not for public) ===
+docs/IMPROVEMENTS-PROPOSAL.md
+docs/MULTI-STAGE-DOCUMENT-WORKFLOW.md
+
 # === Build Output ===
 build/
 builds/
