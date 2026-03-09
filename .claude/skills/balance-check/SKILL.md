@@ -4,6 +4,8 @@ description: "Analyzes game balance data files, formulas, and configuration to i
 argument-hint: "[system-name|path-to-data-file]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
+context: fork
+agent: Explore
 ---
 
 When this skill is invoked:

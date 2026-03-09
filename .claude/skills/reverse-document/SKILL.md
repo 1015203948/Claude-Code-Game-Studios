@@ -4,6 +4,8 @@ description: "Generate design or architecture documents from existing implementa
 argument-hint: "<type> <path> (e.g., 'design src/gameplay/combat' or 'architecture src/core')"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
+context: fork
+agent: Explore
 ---
 
 # Reverse Documentation

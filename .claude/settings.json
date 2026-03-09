@@ -113,6 +113,18 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/log-agent-stop.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

@@ -4,6 +4,8 @@ description: "Audits game assets for compliance with naming conventions, file si
 argument-hint: "[category|all]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
+context: fork
+agent: Explore
 ---
 
 When this skill is invoked:

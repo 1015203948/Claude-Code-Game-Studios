@@ -4,6 +4,8 @@ description: "Reviews a game design document for completeness, internal consiste
 argument-hint: "[path-to-design-doc]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
+context: fork
+agent: Explore
 ---
 
 When this skill is invoked:

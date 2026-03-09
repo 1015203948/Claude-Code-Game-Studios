@@ -4,6 +4,8 @@ description: "Automatically analyze project state, detect stage, identify gaps, 
 argument-hint: "[optional: role filter like 'programmer' or 'designer']"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
+context: fork
+agent: Explore
 ---
 
 # Project Stage Detection
