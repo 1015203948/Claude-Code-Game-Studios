@@ -3,7 +3,7 @@
 > **How to go from zero to a shipped game using the Agent Architecture.**
 >
 > This guide walks you through every phase of game development using the
-> 48-agent system, 36 slash commands, and automated hooks. It assumes you
+> 48-agent system, 37 slash commands, and automated hooks. It assumes you
 > have Claude Code installed and are working from the project root.
 
 ---
@@ -257,7 +257,7 @@ gets coded yet -- this is pure design and architecture.
 Before writing individual GDDs, enumerate all the systems your game needs:
 
 ```
-/design-systems map
+/map-systems
 ```
 
 This creates `design/gdd/systems-index.md` — a master tracking document that:
@@ -270,11 +270,18 @@ This creates `design/gdd/systems-index.md` — a master tracking document that:
 Then design each system in dependency order:
 
 ```
-/design-systems next
+/map-systems next
 ```
 
-This picks the highest-priority undesigned system and guides you through creating
-its GDD. Each completed GDD goes through `/design-review` before the next starts.
+This picks the highest-priority undesigned system and hands off to `/design-system`,
+which guides you through creating its GDD section by section. Each completed GDD
+goes through `/design-review` before the next starts.
+
+You can also write a specific system's GDD directly:
+
+```
+/design-system combat-system
+```
 
 ### Step 2.2: Create the Game Design Document (GDD)
 
@@ -1714,7 +1721,7 @@ conflicts go to `producer`.
 |-------|----------|
 | **Onboarding** | `/start` |
 | **Ideation** | `/brainstorm` |
-| **Design** | `/design-systems`, `/design-review`, `/architecture-decision` |
+| **Design** | `/map-systems`, `/design-system`, `/design-review`, `/architecture-decision` |
 | **Sprint** | `/sprint-plan`, `/estimate`, `/scope-check`, `/retrospective` |
 | **Implementation** | `/code-review`, `/prototype`, `/tech-debt` |
 | **Testing** | `/balance-check`, `/playtest-report`, `/perf-profile` |
@@ -1736,7 +1743,8 @@ conflicts go to `producer`.
 3. Create a game concept doc (templates/game-concept.md)
 4. Define game pillars (templates/game-pillars.md)
 5. /design-review on your concept doc
-6. Start creating GDDs for each system
+6. /map-systems to decompose concept into systems with dependencies and priorities
+7. /design-system to author per-system GDDs (guided, section-by-section)
 ```
 
 ### Workflow 2: "I have a design and want to start coding"

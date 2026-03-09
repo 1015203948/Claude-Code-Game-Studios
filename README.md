@@ -3,14 +3,14 @@
   <p align="center">
     Turn a single Claude Code session into a full game development studio.
     <br />
-    48 agents. 36 workflows. One coordinated AI team.
+    48 agents. 37 workflows. One coordinated AI team.
   </p>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <a href=".claude/agents"><img src="https://img.shields.io/badge/agents-48-blueviolet" alt="48 Agents"></a>
-  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-36-green" alt="36 Skills"></a>
+  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-37-green" alt="37 Skills"></a>
   <a href=".claude/hooks"><img src="https://img.shields.io/badge/hooks-8-orange" alt="8 Hooks"></a>
   <a href=".claude/rules"><img src="https://img.shields.io/badge/rules-11-red" alt="11 Rules"></a>
   <a href="https://docs.anthropic.com/en/docs/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-f5f5f5?logo=anthropic" alt="Built for Claude Code"></a>
@@ -35,6 +35,7 @@ The result: you still make every decision, but now you have a team that asks the
 - [Studio Hierarchy](#studio-hierarchy)
 - [Slash Commands](#slash-commands)
 - [Getting Started](#getting-started)
+- [Upgrading](#upgrading)
 - [Project Structure](#project-structure)
 - [How It Works](#how-it-works)
 - [Design Philosophy](#design-philosophy)
@@ -50,10 +51,10 @@ The result: you still make every decision, but now you have a team that asks the
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 48 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
-| **Skills** | 36 | Slash commands for common workflows (`/start`, `/sprint-plan`, `/code-review`, `/brainstorm`, etc.) |
+| **Skills** | 37 | Slash commands for common workflows (`/start`, `/sprint-plan`, `/code-review`, `/brainstorm`, etc.) |
 | **Hooks** | 8 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit, and gap detection |
 | **Rules** | 11 | Path-scoped coding standards enforced when editing gameplay, engine, AI, UI, network code, and more |
-| **Templates** | 28 | Document templates for GDDs, ADRs, sprint plans, economy models, faction design, and more |
+| **Templates** | 29 | Document templates for GDDs, ADRs, sprint plans, economy models, faction design, and more |
 
 ## Studio Hierarchy
 
@@ -91,7 +92,7 @@ The template includes agent sets for all three major engines. Use the set that m
 
 ## Slash Commands
 
-Type `/` in Claude Code to access all 36 skills:
+Type `/` in Claude Code to access all 37 skills:
 
 **Reviews & Analysis**
 `/design-review` `/code-review` `/balance-check` `/asset-audit` `/scope-check` `/perf-profile` `/tech-debt`
@@ -100,7 +101,7 @@ Type `/` in Claude Code to access all 36 skills:
 `/sprint-plan` `/milestone-review` `/estimate` `/retrospective` `/bug-report`
 
 **Project Management**
-`/start` `/project-stage-detect` `/reverse-document` `/gate-check` `/design-systems`
+`/start` `/project-stage-detect` `/reverse-document` `/gate-check` `/map-systems` `/design-system`
 
 **Release**
 `/release-checklist` `/launch-checklist` `/changelog` `/patch-notes` `/hotfix`
@@ -142,6 +143,12 @@ All hooks fail gracefully if optional tools are missing — nothing breaks, you 
    - `/setup-engine godot 4.6` — configure your engine if you already know
    - `/project-stage-detect` — analyze an existing project
 
+## Upgrading
+
+Already using an older version of this template? See [UPGRADING.md](UPGRADING.md)
+for step-by-step migration instructions, a breakdown of what changed between
+versions, and which files are safe to overwrite vs. which need a manual merge.
+
 ## Project Structure
 
 ```
@@ -149,7 +156,7 @@ CLAUDE.md                           # Master configuration
 .claude/
   settings.json                     # Hooks, permissions, safety rules
   agents/                           # 48 agent definitions (markdown + YAML frontmatter)
-  skills/                           # 36 slash commands (subdirectory per skill)
+  skills/                           # 37 slash commands (subdirectory per skill)
   hooks/                            # 8 hook scripts (bash, cross-platform)
   rules/                            # 11 path-scoped coding standards
   docs/

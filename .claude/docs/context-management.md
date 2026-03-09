@@ -20,6 +20,24 @@ after each significant milestone:
 The state file should contain: current task, progress checklist, key decisions
 made, files being worked on, and open questions.
 
+### Status Line Block (Production+ only)
+
+When the project is in Production, Polish, or Release stage, include a structured
+status block in `active.md` that the status line script can parse:
+
+```markdown
+<!-- STATUS -->
+Epic: Combat System
+Feature: Melee Combat
+Task: Implement hitbox detection
+<!-- /STATUS -->
+```
+
+- All three fields (Epic, Feature, Task) are optional — include only what applies
+- Update this block when switching focus areas
+- The status line displays it as a breadcrumb: `Combat System > Melee Combat > Hitboxes`
+- Remove or empty the block when no active work focus exists
+
 After any disruption (compaction, crash, `/clear`), read the state file first.
 
 ### Incremental File Writing
