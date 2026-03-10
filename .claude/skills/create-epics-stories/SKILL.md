@@ -1,0 +1,300 @@
+---
+name: create-epics-stories
+description: "Translate approved GDDs + architecture + ADRs into implementable epics and stories. Each story embeds the GDD requirement it satisfies, the ADR governing implementation, acceptance criteria, engine compatibility notes, and control manifest rules. Programmers need nothing else to implement a story correctly."
+argument-hint: "[system-name | layer: foundation|core|feature|presentation | all]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write
+context: fork
+agent: technical-director
+---
+
+# Create Epics & Stories
+
+This skill translates the approved design and architecture into implementable
+work units. Each **epic** maps to one architectural module. Each **story** is a
+single implementable behaviour — small enough for one session, self-contained,
+and fully traceable to the GDD requirement it satisfies and the ADR that governs
+how to implement it.
+
+**Output:** `production/epics/[epic-slug]/`
+
+**When to run:** After `/architecture-review` passes and `/create-control-manifest`
+has been run. All MVP-tier GDDs should be complete and reviewed.
+
+---
+
+## 1. Parse Arguments
+
+**Modes:**
+- `/create-epics-stories all` — process all systems in layer order
+- `/create-epics-stories layer: foundation` — process Foundation layer only
+- `/create-epics-stories [system-name]` — process one specific system
+- No argument — ask the user which mode to use
+
+If no argument, use `AskUserQuestion`:
+- "What would you like to create epics for?"
+  - Options: "All systems (Foundation → Presentation)", "Foundation layer only",
+    "Core layer only", "A specific system", "Feature + Presentation layers"
+
+---
+
+## 2. Load All Inputs
+
+Read everything before generating any output:
+
+### Design Documents
+- `design/gdd/systems-index.md` — authoritative system list, layers, status
+- All GDDs in `design/gdd/` — read every file with "Approved" or "Designed" status
+- For each GDD, extract:
+  - System name and layer (from systems-index.md)
+  - All acceptance criteria (these become story acceptance criteria)
+  - All technical requirements (these trace to ADR coverage)
+  - Dependencies on other systems
+
+### Architecture Documents
+- `docs/architecture/architecture.md` — module ownership and API boundaries
+- All Accepted ADRs in `docs/architecture/adr-*.md` — read "GDD Requirements
+  Addressed", "Implementation Guidelines", "Engine Compatibility", and
+  "ADR Dependencies" sections
+- `docs/architecture/control-manifest.md` if it exists — extract layer-specific
+  rules to embed in stories
+
+### Engine Reference
+- `docs/engine-reference/[engine]/VERSION.md` — engine name + version + risk levels
+
+Report: "Loaded [N] GDDs, [M] ADRs, control manifest: [exists/missing],
+engine: [name + version]."
+
+---
+
+## 3. Determine Processing Order
+
+Process systems in dependency-safe layer order:
+1. **Foundation** (no dependencies)
+2. **Core** (depends on Foundation)
+3. **Feature** (depends on Core)
+4. **Presentation** (depends on Feature + Core)
+
+Within each layer, process systems in the order they appear in systems-index.md.
+
+For each system, determine the corresponding epic:
+- Epic = one architectural module from `architecture.md` that implements this system
+- If a system doesn't map cleanly to a single module, present options to the user
+
+---
+
+## 4. For Each System: Define the Epic
+
+Present to the user before creating stories:
+
+```
+## Epic [N]: [System Name]
+
+**Layer**: [Foundation / Core / Feature / Presentation]
+**GDD**: design/gdd/[filename].md
+**Architecture Module**: [module name from architecture.md]
+**GDD Requirements Traced by ADRs**: [list TR-IDs that have ADR coverage]
+**Untraceable Requirements**: [list TR-IDs with no ADR — these need ADRs first]
+**Governing ADRs**: [ADR-NNNN, ADR-MMMM, ...]
+**Engine Risk**: [LOW/MEDIUM/HIGH — highest risk among governing ADRs]
+```
+
+Ask: "Shall I break Epic [N]: [name] into stories?"
+- Options: "Yes, break it down", "Skip this epic", "Pause — I need to write ADRs first"
+
+If there are untraced requirements (no ADR covers them), warn:
+> "⚠️  [N] requirements in [system] have no ADR. Stories for these cannot embed
+> implementation guidance. Consider running `/architecture-decision` first, or
+> I can create stories with a placeholder note to add ADR guidance later."
+
+---
+
+## 5. Break Each Epic into Stories
+
+For each epic, decompose the GDD's acceptance criteria into stories:
+
+**Story sizing rules:**
+- One story = one implementable behaviour from the GDD
+- Small enough to complete in a single focused session (~2-4 hours of focused work)
+- Self-contained — no story depends on in-progress work from another story in
+  the same epic (stories within an epic run sequentially; they can depend on
+  previous stories being DONE, not in-progress)
+
+**Story identification process:**
+1. Read every acceptance criterion in the GDD
+2. Group related criteria that require the same core implementation
+3. Each group = one story
+4. Order stories within the epic: foundation behaviour first, edge cases last
+
+For each story, map:
+- **GDD requirement**: Which specific acceptance criterion does this satisfy?
+- **TR-ID**: The technical requirement ID (from `/architecture-review` traceability matrix, if run)
+- **Governing ADR**: Which Accepted ADR tells the programmer how to implement this?
+- **Engine risk**: Inherited from the ADR's Knowledge Risk field
+- **Control manifest rules**: Which layer rules apply?
+
+---
+
+## 6. Generate Story Files
+
+For each story, produce a story file embedding full context:
+
+```markdown
+# Story [NNN]: [title]
+
+> **Epic**: [epic name]
+> **Status**: Ready
+> **Layer**: [Foundation / Core / Feature / Presentation]
+
+## Context
+
+**GDD**: `design/gdd/[filename].md`
+**Requirement**: TR-[GDD]-[NNN]: [requirement text from GDD]
+
+**ADR Governing Implementation**: [ADR-NNNN: title]
+**ADR Decision Summary**: [1-2 sentence summary of what the ADR decided]
+
+**Engine**: [name + version] | **Risk**: [LOW / MEDIUM / HIGH]
+**Engine Notes**: [relevant text from the ADR's Engine Compatibility section,
+especially Post-Cutoff APIs Used and Verification Required fields]
+
+**Control Manifest Rules (this layer)**:
+- Required: [relevant required pattern from manifest]
+- Forbidden: [relevant forbidden approach from manifest]
+- Guardrail: [relevant performance guardrail]
+
+---
+
+## Acceptance Criteria
+
+*From GDD `design/gdd/[filename].md`, scoped to this story:*
+
+- [ ] [criterion 1 — directly from GDD, scoped to this story's behaviour]
+- [ ] [criterion 2]
+- [ ] [performance criterion if applicable]
+
+---
+
+## Implementation Notes
+
+*Derived from ADR-NNNN Implementation Guidelines:*
+
+[Specific guidance for the programmer. This should be the ADR's Implementation
+Guidelines section, filtered to what's relevant for this story. Do not
+paraphrase in ways that change meaning.]
+
+---
+
+## Out of Scope
+
+*These are handled by neighbouring stories — do not implement here:*
+
+- [Story NNN+1]: [what it handles]
+- [Other epic story]: [what it handles]
+
+This boundary prevents scope creep and keeps stories independently reviewable.
+
+---
+
+## Dependencies
+
+- Depends on: [Story NNN-1 must be DONE, or "None"]
+- Unlocks: [Story NNN+1, or "None"]
+```
+
+---
+
+## 7. Approval Before Writing
+
+For each epic, after all stories are drafted, present a summary:
+
+```
+Epic [N]: [name]
+Stories: [N total]
+  Story 001: [title] — [1-line summary]
+  Story 002: [title] — [1-line summary]
+  ...
+```
+
+Ask: "May I write these [N] stories and the epic index to
+`production/epics/[epic-slug]/`?"
+
+---
+
+## 8. Write Output Files
+
+After approval, write:
+
+### Story files
+`production/epics/[epic-slug]/story-[NNN]-[slug].md`
+
+### Epic index
+`production/epics/[epic-slug]/EPIC.md`:
+
+```markdown
+# Epic: [name]
+
+> **Layer**: [Foundation / Core / Feature / Presentation]
+> **GDD**: design/gdd/[filename].md
+> **Status**: Ready
+> **Stories**: [N total]
+
+## Overview
+
+[1 paragraph describing what this epic implements]
+
+## Stories
+
+| # | Story | Status | ADR |
+|---|-------|--------|-----|
+| 001 | [title] | Ready | ADR-NNNN |
+| 002 | [title] | Ready | ADR-MMMM |
+
+## Definition of Done
+
+This epic is complete when:
+- All stories are implemented and reviewed
+- All acceptance criteria from [GDD filename] are passing
+- No Foundation or Core layer stories have open blockers
+```
+
+### Master epics index
+`production/epics/index.md` (create or update):
+
+```markdown
+# Epics Index
+
+Last Updated: [date]
+Engine: [name + version]
+
+| Epic | Layer | System | Stories | Status |
+|------|-------|--------|---------|--------|
+| [name] | Foundation | [system] | [N] | Ready |
+```
+
+---
+
+## 9. Gate-Check Integration
+
+After writing all epics for the requested scope, remind the user:
+
+- **Foundation + Core complete**: Pre-Production → Production gate requires
+  Foundation and Core layer epics. Run `/gate-check production` to validate.
+- **All layers complete**: Full epic coverage achieved. The sprint plan can now
+  reference real story file paths instead of GDD references.
+
+---
+
+## Collaborative Protocol
+
+1. **Load silently** — read all inputs before presenting the first epic
+2. **One epic at a time** — present each epic before creating stories; don't
+   batch all epics and ask once
+3. **Warn on gaps** — flag untraced requirements before proceeding; let the user
+   decide whether to pause for ADRs or proceed with placeholders
+4. **Ask before writing** — per-epic approval before writing story files
+5. **No invention** — all acceptance criteria come from GDDs; all implementation
+   notes come from ADRs; all rules come from the control manifest. Never invent
+   requirements or rules that don't trace to a source document.
+6. **Preserve exact quotes** — when embedding GDD requirements and ADR guidelines,
+   quote them exactly; do not paraphrase in ways that change meaning

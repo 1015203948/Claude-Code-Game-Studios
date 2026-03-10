@@ -1,0 +1,384 @@
+---
+name: architecture-review
+description: "Validates completeness and consistency of the project architecture against all GDDs. Builds a traceability matrix mapping every GDD technical requirement to ADRs, identifies coverage gaps, detects cross-ADR conflicts, verifies engine compatibility consistency across all decisions, and produces a PASS/CONCERNS/FAIL verdict. The architecture equivalent of /design-review."
+argument-hint: "[focus: full | coverage | consistency | engine | single-gdd path/to/gdd.md]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write
+context: fork
+agent: technical-director
+---
+
+# Architecture Review
+
+The architecture review validates that the complete body of architectural decisions
+covers all game design requirements, is internally consistent, and correctly targets
+the project's pinned engine version. It is the quality gate between Technical Setup
+and Pre-Production.
+
+**Argument modes:**
+- **No argument / `full`**: Full review — all phases
+- **`coverage`**: Traceability only — which GDD requirements have no ADR
+- **`consistency`**: Cross-ADR conflict detection only
+- **`engine`**: Engine compatibility audit only
+- **`single-gdd [path]`**: Review architecture coverage for one specific GDD
+
+---
+
+## Phase 1: Load Everything
+
+Read all inputs before analysis:
+
+### Design Documents
+- All GDDs in `design/gdd/` — read every file completely
+- `design/gdd/systems-index.md` — the authoritative list of systems
+
+### Architecture Documents
+- All ADRs in `docs/architecture/` — read every file completely
+- `docs/architecture/architecture.md` if it exists
+
+### Engine Reference
+- `docs/engine-reference/[engine]/VERSION.md`
+- `docs/engine-reference/[engine]/breaking-changes.md`
+- `docs/engine-reference/[engine]/deprecated-apis.md`
+- All files in `docs/engine-reference/[engine]/modules/`
+
+### Project Standards
+- `.claude/docs/technical-preferences.md`
+
+Report a count: "Loaded [N] GDDs, [M] ADRs, engine: [name + version]."
+
+---
+
+## Phase 2: Extract Technical Requirements from Every GDD
+
+For each GDD, read it and extract all **technical requirements** — things the
+architecture must provide for the system to work. A technical requirement is any
+statement that implies a specific architectural decision.
+
+Categories to extract:
+
+| Category | Example |
+|----------|---------|
+| **Data structures** | "Each entity has health, max health, status effects" → needs a component/data schema |
+| **Performance constraints** | "Collision detection must run at 60fps with 200 entities" → physics budget ADR |
+| **Engine capability** | "Inverse kinematics for character animation" → IK system ADR |
+| **Cross-system communication** | "Damage system notifies UI and audio simultaneously" → event/signal architecture ADR |
+| **State persistence** | "Player progress persists between sessions" → save system ADR |
+| **Threading/timing** | "AI decisions happen off the main thread" → concurrency ADR |
+| **Platform requirements** | "Supports keyboard, gamepad, touch" → input system ADR |
+
+For each GDD, produce a structured list:
+
+```
+GDD: [filename]
+System: [system name]
+Technical Requirements:
+  TR-[GDD]-001: [requirement text] → Domain: [Physics/Rendering/etc]
+  TR-[GDD]-002: [requirement text] → Domain: [...]
+```
+
+This becomes the **requirements baseline** — the complete set of what the
+architecture must cover.
+
+---
+
+## Phase 3: Build the Traceability Matrix
+
+For each technical requirement extracted in Phase 2, search the ADRs:
+
+1. Read every ADR's "GDD Requirements Addressed" section
+2. Check if it explicitly references the requirement or its GDD
+3. Check if the ADR's decision text implicitly covers the requirement
+4. Mark coverage status:
+
+| Status | Meaning |
+|--------|---------|
+| ✅ **Covered** | An ADR explicitly addresses this requirement |
+| ⚠️ **Partial** | An ADR partially covers this, or coverage is ambiguous |
+| ❌ **Gap** | No ADR addresses this requirement |
+
+Build the full matrix:
+
+```
+## Traceability Matrix
+
+| Requirement ID | GDD | System | Requirement | ADR Coverage | Status |
+|---------------|-----|--------|-------------|--------------|--------|
+| TR-combat-001 | combat.md | Combat | Hitbox detection < 1 frame | ADR-0003 | ✅ |
+| TR-combat-002 | combat.md | Combat | Combo window timing | — | ❌ GAP |
+| TR-inventory-001 | inventory.md | Inventory | Persistent item storage | ADR-0005 | ✅ |
+```
+
+Count the totals: X covered, Y partial, Z gaps.
+
+---
+
+## Phase 4: Cross-ADR Conflict Detection
+
+Compare every ADR against every other ADR to detect contradictions. A conflict
+exists when:
+
+- **Data ownership conflict**: Two ADRs claim exclusive ownership of the same data
+- **Integration contract conflict**: ADR-A assumes System X has interface Y, but
+  ADR-B defines System X with a different interface
+- **Performance budget conflict**: ADR-A allocates N ms to physics, ADR-B allocates
+  N ms to AI, together they exceed the total frame budget
+- **Dependency cycle**: ADR-A says System X initialises before Y; ADR-B says Y
+  initialises before X
+- **Architecture pattern conflict**: ADR-A uses event-driven communication for a
+  subsystem; ADR-B uses direct function calls to the same subsystem
+- **State management conflict**: Two ADRs define authority over the same game state
+  (e.g. both Combat ADR and Character ADR claim to own the health value)
+
+For each conflict found:
+
+```
+## Conflict: [ADR-NNNN] vs [ADR-MMMM]
+Type: [Data ownership / Integration / Performance / Dependency / Pattern / State]
+ADR-NNNN claims: [...]
+ADR-MMMM claims: [...]
+Impact: [What breaks if both are implemented as written]
+Resolution options:
+  1. [Option A]
+  2. [Option B]
+```
+
+### ADR Dependency Ordering
+
+After conflict detection, analyse the dependency graph across all ADRs:
+
+1. **Collect all `Depends On` fields** from every ADR's "ADR Dependencies" section
+2. **Topological sort**: Determine the correct implementation order — ADRs with no
+   dependencies come first (Foundation), ADRs that depend on those come next, etc.
+3. **Flag unresolved dependencies**: If ADR-A's "Depends On" field references an ADR
+   that is still `Proposed` or does not exist, flag it:
+   ```
+   ⚠️  ADR-0005 depends on ADR-0002 — but ADR-0002 is still Proposed.
+       ADR-0005 cannot be safely implemented until ADR-0002 is Accepted.
+   ```
+4. **Cycle detection**: If ADR-A depends on ADR-B and ADR-B depends on ADR-A (directly
+   or transitively), flag it as a `DEPENDENCY CYCLE`:
+   ```
+   🔴 DEPENDENCY CYCLE: ADR-0003 → ADR-0006 → ADR-0003
+      This cycle must be broken before either can be implemented.
+   ```
+5. **Output recommended implementation order**:
+   ```
+   ### Recommended ADR Implementation Order (topologically sorted)
+   Foundation (no dependencies):
+     1. ADR-0001: [title]
+     2. ADR-0003: [title]
+   Depends on Foundation:
+     3. ADR-0002: [title] (requires ADR-0001)
+     4. ADR-0005: [title] (requires ADR-0003)
+   Feature layer:
+     5. ADR-0004: [title] (requires ADR-0002, ADR-0005)
+   ```
+
+---
+
+## Phase 5: Engine Compatibility Cross-Check
+
+Across all ADRs, check for engine consistency:
+
+### Version Consistency
+- Do all ADRs that mention an engine version agree on the same version?
+- If any ADR was written for an older engine version, flag it as potentially stale
+
+### Post-Cutoff API Consistency
+- Collect all "Post-Cutoff APIs Used" fields from all ADRs
+- For each, verify against the relevant module reference doc
+- Check that no two ADRs make contradictory assumptions about the same post-cutoff API
+
+### Deprecated API Check
+- Grep all ADRs for API names listed in `deprecated-apis.md`
+- Flag any ADR referencing a deprecated API
+
+### Missing Engine Compatibility Sections
+- List all ADRs that are missing the Engine Compatibility section entirely
+- These are blind spots — their engine assumptions are unknown
+
+Output format:
+```
+### Engine Audit Results
+Engine: [name + version]
+ADRs with Engine Compatibility section: X / Y total
+
+Deprecated API References:
+  - ADR-0002: uses [deprecated API] — deprecated since [version]
+
+Stale Version References:
+  - ADR-0001: written for [older version] — current project version is [version]
+
+Post-Cutoff API Conflicts:
+  - ADR-0004 and ADR-0007 both use [API] with incompatible assumptions
+```
+
+---
+
+## Phase 5b: Design Revision Flags (Architecture → GDD Feedback)
+
+For each **HIGH RISK engine finding** from Phase 5, check whether any GDD makes an
+assumption that the verified engine reality contradicts.
+
+Specific cases to check:
+
+1. **Post-cutoff API behaviour differs from training-data assumptions**: If an ADR
+   records a verified API behaviour that differs from the default LLM assumption,
+   check all GDDs that reference the related system. Look for design rules written
+   around the old (assumed) behaviour.
+
+2. **Known engine limitations in ADRs**: If an ADR records a known engine limitation
+   (e.g. "Jolt ignores HingeJoint3D damp", "D3D12 is now the default backend"), check
+   GDDs that design mechanics around the affected feature.
+
+3. **Deprecated API conflicts**: If Phase 5 flagged a deprecated API used in an ADR,
+   check whether any GDD contains mechanics that assume the deprecated API's behaviour.
+
+For each conflict found, record it in the GDD Revision Flags table:
+
+```
+### GDD Revision Flags (Architecture → Design Feedback)
+These GDD assumptions conflict with verified engine behaviour or accepted ADRs.
+The GDD should be revised before its system enters implementation.
+
+| GDD | Assumption | Reality (from ADR/engine-reference) | Action |
+|-----|-----------|--------------------------------------|--------|
+| combat.md | "Use HingeJoint3D damp for weapon recoil" | Jolt ignores damp — ADR-0003 | Revise GDD |
+```
+
+If no revision flags are found, write: "No GDD revision flags — all GDD assumptions
+are consistent with verified engine behaviour."
+
+Ask: "Should I flag these GDDs for revision in the systems index?"
+- If yes: update the relevant systems' Status field to "Needs Revision (Architecture Feedback)"
+  and note the specific conflict in a comment. Ask for approval before writing.
+
+---
+
+## Phase 6: Architecture Document Coverage
+
+If `docs/architecture/architecture.md` exists, validate it against GDDs:
+
+- Does every system from `systems-index.md` appear in the architecture layers?
+- Does the data flow section cover all cross-system communication defined in GDDs?
+- Do the API boundaries support all integration requirements from GDDs?
+- Are there systems in the architecture doc that have no corresponding GDD
+  (orphaned architecture)?
+
+---
+
+## Phase 7: Output the Review Report
+
+```
+## Architecture Review Report
+Date: [date]
+Engine: [name + version]
+GDDs Reviewed: [N]
+ADRs Reviewed: [M]
+
+---
+
+### Traceability Summary
+Total requirements: [N]
+✅ Covered: [X]
+⚠️ Partial: [Y]
+❌ Gaps: [Z]
+
+### Coverage Gaps (no ADR exists)
+For each gap:
+  ❌ TR-[id]: [GDD] → [system] → [requirement]
+     Suggested ADR: "/architecture-decision [suggested title]"
+     Domain: [Physics/Rendering/etc]
+     Engine Risk: [LOW/MEDIUM/HIGH]
+
+### Cross-ADR Conflicts
+[List all conflicts from Phase 4]
+
+### ADR Dependency Order
+[Topologically sorted implementation order from Phase 4 — dependency ordering section]
+[Unresolved dependencies and cycles if any]
+
+### GDD Revision Flags
+[GDD assumptions that conflict with verified engine behaviour — from Phase 5b]
+[Or: "None — all GDD assumptions consistent with verified engine behaviour"]
+
+### Engine Compatibility Issues
+[List all engine issues from Phase 5]
+
+### Architecture Document Coverage
+[List missing systems and orphaned architecture from Phase 6]
+
+---
+
+### Verdict: [PASS / CONCERNS / FAIL]
+
+PASS: All requirements covered, no conflicts, engine consistent
+CONCERNS: Some gaps or partial coverage, but no blocking conflicts
+FAIL: Critical gaps (Foundation/Core layer requirements uncovered),
+      or blocking cross-ADR conflicts detected
+
+### Blocking Issues (must resolve before PASS)
+[List items that must be resolved — FAIL verdict only]
+
+### Required ADRs
+[Prioritised list of ADRs to create, most foundational first]
+```
+
+---
+
+## Phase 8: Write and Update Traceability Index
+
+Ask: "May I write this review to `docs/architecture/architecture-review-[date].md`?"
+
+Also ask: "May I update `docs/architecture/architecture-traceability.md` with the
+current matrix? This is the living index that future reviews update incrementally."
+
+The traceability index format:
+
+```markdown
+# Architecture Traceability Index
+Last Updated: [date]
+Engine: [name + version]
+
+## Coverage Summary
+- Total requirements: [N]
+- Covered: [X] ([%])
+- Partial: [Y]
+- Gaps: [Z]
+
+## Full Matrix
+[Complete traceability matrix from Phase 3]
+
+## Known Gaps
+[All ❌ items with suggested ADRs]
+
+## Superseded Requirements
+[Requirements whose GDD was changed after the ADR was written]
+```
+
+---
+
+## Phase 9: Handoff
+
+After completing the review:
+
+1. **Immediate actions**: List the top 3 ADRs to create (highest-impact gaps first,
+   Foundation layer before Feature layer)
+2. **Gate guidance**: "When all blocking issues are resolved, run `/gate-check
+   pre-production` to advance"
+3. **Rerun trigger**: "Re-run `/architecture-review` after each new ADR is written
+   to verify coverage improves"
+
+---
+
+## Collaborative Protocol
+
+1. **Read silently** — do not narrate every file read
+2. **Show the matrix** — present the full traceability matrix before asking for
+   anything; let the user see the state
+3. **Don't guess** — if a requirement is ambiguous, ask: "Is [X] a technical
+   requirement or a design preference?"
+4. **Ask before writing** — always confirm before writing the report file
+5. **Non-blocking** — the verdict is advisory; the user decides whether to continue
+   despite CONCERNS or even FAIL findings

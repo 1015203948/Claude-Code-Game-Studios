@@ -74,6 +74,71 @@ If any upstream dependencies are undesigned, warn:
 > its interface. Consider designing it first, or we can define the expected
 > contract and flag it as provisional."
 
+### 2e: Technical Feasibility Pre-Check
+
+Before asking the user to begin designing, load engine context and surface any
+constraints or knowledge gaps that will shape the design.
+
+**Step 1 — Determine the engine domain for this system:**
+Map the system's category (from systems-index.md) to an engine domain:
+
+| System Category | Engine Domain |
+|----------------|--------------|
+| Combat, physics, collision | Physics |
+| Rendering, visual effects, shaders | Rendering |
+| UI, HUD, menus | UI |
+| Audio, sound, music | Audio |
+| AI, pathfinding, behavior trees | Navigation / Scripting |
+| Animation, IK, rigs | Animation |
+| Networking, multiplayer, sync | Networking |
+| Input, controls, keybinding | Input |
+| Save/load, persistence, data | Core |
+| Dialogue, quests, narrative | Scripting |
+
+**Step 2 — Read engine context (if available):**
+- Read `.claude/docs/technical-preferences.md` to identify the engine and version
+- If engine is configured, read `docs/engine-reference/[engine]/VERSION.md`
+- Read `docs/engine-reference/[engine]/modules/[domain].md` if it exists
+- Read `docs/engine-reference/[engine]/breaking-changes.md` for domain-relevant entries
+- Glob `docs/architecture/adr-*.md` and read any ADRs whose domain matches
+  (check the Engine Compatibility table's "Domain" field)
+
+**Step 3 — Present the Feasibility Brief:**
+
+If engine reference docs exist, present before starting design:
+
+```
+## Technical Feasibility Brief: [System Name]
+Engine: [name + version]
+Domain: [domain]
+
+### Known Engine Capabilities (verified for [version])
+- [capability relevant to this system]
+- [capability 2]
+
+### Engine Constraints That Will Shape This Design
+- [constraint from engine-reference or existing ADR]
+
+### Knowledge Gaps (verify before committing to these)
+- [post-cutoff feature this design might rely on — mark HIGH/MEDIUM risk]
+
+### Existing ADRs That Constrain This System
+- ADR-XXXX: [decision summary] — means [implication for this GDD]
+  (or "None yet")
+```
+
+If no engine reference docs exist (engine not yet configured), show a short note:
+> "No engine configured yet — skipping technical feasibility check. Run
+> `/setup-engine` before moving to architecture if you haven't already."
+
+**Step 4 — Ask before proceeding:**
+
+Use `AskUserQuestion`:
+- "Any constraints to add before we begin, or shall we proceed with these noted?"
+  - Options: "Proceed with these noted", "Add a constraint first", "I need to check the engine docs — pause here"
+
+---
+
 Use `AskUserQuestion`:
 - "Ready to start designing [system-name]?"
   - Options: "Yes, let's go", "Show me more context first", "Design a dependency first"

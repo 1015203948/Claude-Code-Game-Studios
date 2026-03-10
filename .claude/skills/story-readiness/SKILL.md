@@ -1,0 +1,222 @@
+---
+name: story-readiness
+description: "Validate that a story file is implementation-ready. Checks for embedded GDD requirements, ADR references, engine notes, clear acceptance criteria, and no open design questions. Produces READY / NEEDS WORK / BLOCKED verdict with specific gaps."
+argument-hint: "[story-file-path or 'all' or 'sprint']"
+user-invocable: true
+allowed-tools: Read, Glob, Grep
+context: fork
+---
+
+# Story Readiness
+
+This skill validates that a story file contains everything a developer needs
+to begin implementation — no mid-sprint design interruptions, no guessing,
+no ambiguous acceptance criteria. Run it before assigning a story.
+
+**This skill is read-only.** It never edits story files. It reports findings
+and asks whether the user wants help filling gaps.
+
+**Output:** Verdict per story (READY / NEEDS WORK / BLOCKED) with a specific
+gap list for each non-ready story.
+
+---
+
+## 1. Parse Arguments
+
+- **Specific path** (e.g., `/story-readiness production/epics/combat/story-001-basic-attack.md`):
+  validate that single story file.
+- **`sprint`**: read the current sprint plan from `production/sprints/` (most
+  recent file), extract every story path it references, validate each one.
+- **`all`**: glob `production/epics/**/*.md`, exclude `EPIC.md` index files,
+  validate every story file found.
+- **No argument**: ask the user which scope to validate.
+
+If no argument is given, use `AskUserQuestion`:
+- "What would you like to validate?"
+  - Options: "A specific story file", "All stories in the current sprint",
+    "All stories in production/epics/", "Stories for a specific epic"
+
+Report the scope before proceeding: "Validating [N] story files."
+
+---
+
+## 2. Load Supporting Context
+
+Before checking any stories, load reference documents once (not per-story):
+
+- `design/gdd/systems-index.md` — to know which systems have approved GDDs
+- `docs/architecture/control-manifest.md` — to know which manifest rules exist
+  (if the file does not exist, note it as missing once; do not re-flag per story)
+- The current sprint file (if scope is `sprint`) — to identify Must Have /
+  Should Have priority for escalation decisions
+
+---
+
+## 3. Story Readiness Checklist
+
+For each story file, evaluate every item below. A story is READY only if all
+items pass or are explicitly marked N/A with a stated reason.
+
+### Design Completeness
+
+- [ ] **GDD requirement referenced**: The story includes a `design/gdd/` path
+  and quotes or links a specific requirement, acceptance criterion, or rule from
+  that GDD — not just the GDD filename. A link to the document without tracing
+  to a specific requirement does not pass.
+- [ ] **Requirement is self-contained**: The acceptance criteria in the story
+  are understandable without opening the GDD. A developer should not need to
+  read a separate document to understand what DONE means.
+- [ ] **Acceptance criteria are testable**: Each criterion is a specific,
+  observable condition — not "implement X" or "the system works correctly".
+  Bad example: "Implement the jump mechanic." Good example: "Jump reaches
+  max height of 5 units within 0.3 seconds when jump is held."
+- [ ] **No acceptance criteria require judgment calls**: Criteria like
+  "feels responsive" or "looks good" are not testable without a defined
+  benchmark. These must be replaced with specific observable conditions or
+  playtest protocols.
+
+### Architecture Completeness
+
+- [ ] **ADR referenced or N/A stated**: The story references at least one
+  Accepted ADR, OR explicitly states "No ADR applies" with a brief reason.
+  A story with no ADR reference and no explicit N/A note fails this check.
+- [ ] **Engine notes present**: For any post-cutoff engine API this story
+  is likely to touch, implementation notes or a verification requirement are
+  included. If the story clearly does not touch engine APIs (e.g., it is a
+  pure data/config change), "N/A — no engine API involved" is acceptable.
+- [ ] **Control manifest rules noted**: Relevant layer rules from the control
+  manifest are referenced, OR "N/A — manifest not yet created" is stated.
+  This item auto-passes if `docs/architecture/control-manifest.md` does not
+  exist yet (do not penalize stories written before the manifest was created).
+
+### Scope Clarity
+
+- [ ] **Estimate present**: The story includes a size estimate (hours,
+  points, or a t-shirt size). A story with no estimate cannot be planned.
+- [ ] **In-scope / Out-of-scope boundary stated**: The story states what
+  it does NOT include, either in an explicit Out of Scope section or in
+  language that makes the boundary unambiguous. Without this, scope creep
+  during implementation is likely.
+- [ ] **Story dependencies listed**: If this story depends on other stories
+  being DONE first, those story IDs are listed. If there are no dependencies,
+  "None" is explicitly stated (not just omitted).
+
+### Open Questions
+
+- [ ] **No unresolved design questions**: The story does not contain text
+  flagged as "UNRESOLVED", "TBD", "TODO", "?", or equivalent markers in
+  any acceptance criterion, implementation note, or rule statement.
+- [ ] **Dependency stories are not in DRAFT**: For each story listed as a
+  dependency, check if the file exists and does not have a DRAFT status. A
+  story that depends on a DRAFT or missing story is BLOCKED, not just
+  NEEDS WORK.
+
+### Definition of Done
+
+- [ ] **At least 3 testable acceptance criteria**: Fewer than 3 suggests
+  the story is either trivially small (should it be a story?) or under-specified.
+- [ ] **Performance budget noted if applicable**: If this story touches any
+  part of the gameplay loop, rendering, or physics, a performance budget or
+  a "no performance impact expected — [reason]" note is present.
+- [ ] **Test strategy noted**: The story states whether verification is by
+  unit test, manual test, or playtest. "Acceptance criteria verified by
+  [test type]" is sufficient.
+
+---
+
+## 4. Verdict Assignment
+
+Assign one of three verdicts per story:
+
+**READY** — All checklist items pass or have explicit N/A justifications.
+The story can be assigned immediately.
+
+**NEEDS WORK** — One or more checklist items fail, but all dependency stories
+exist and are not DRAFT. The story can be fixed before assignment.
+
+**BLOCKED** — One or more dependency stories are missing or in DRAFT state,
+OR a critical design question (flagged UNRESOLVED in a criterion or rule) has
+no owner. The story cannot be assigned until the blocker is resolved. Note:
+a story that is BLOCKED may also have NEEDS WORK items — list both.
+
+---
+
+## 5. Output Format
+
+### Single story output
+
+```
+## Story Readiness: [story title]
+File: [path]
+Verdict: [READY / NEEDS WORK / BLOCKED]
+
+### Passing Checks (N/[total])
+[list passing items briefly]
+
+### Gaps
+- [Checklist item]: [exact description of what is missing or wrong]
+  Fix: [specific text needed to resolve this gap]
+
+### Blockers (if BLOCKED)
+- [What is blocking]: [story ID or design question that must resolve first]
+```
+
+### Multiple story aggregate output
+
+```
+## Story Readiness Summary — [scope] — [date]
+
+Ready:      [N] stories
+Needs Work: [N] stories
+Blocked:    [N] stories
+
+### Ready Stories
+- [story title] ([path])
+
+### Needs Work
+- [story title]: [primary gap — one line]
+- [story title]: [primary gap — one line]
+
+### Blocked Stories
+- [story title]: Blocked by [story ID / design question]
+
+---
+[Full detail for each non-ready story follows, using the single-story format]
+```
+
+### Sprint escalation
+
+If the scope is `sprint` and any Must Have stories are NEEDS WORK or BLOCKED,
+add a prominent warning at the top of the output:
+
+```
+WARNING: [N] Must Have stories are not implementation-ready.
+[List them with their primary gap or blocker.]
+Resolve these before the sprint begins or replan with `/sprint-plan update`.
+```
+
+---
+
+## 6. Collaborative Protocol
+
+This skill is read-only. It never proposes edits or asks to write files.
+
+After reporting findings, offer:
+
+"Would you like help filling in the gaps for any of these stories? I can
+draft the missing sections for your approval."
+
+If the user says yes for a specific story, draft only the missing sections
+in conversation. Do not use Write or Edit tools — the user (or
+`/create-epics-stories`) handles writing.
+
+**Redirect rules:**
+- If a story file does not exist at all: "This story file is missing entirely.
+  Run `/create-epics-stories [system-name]` to generate it from the GDD and ADR."
+- If a story has no GDD reference and the work appears small: "This story has
+  no GDD reference. If the change is small (under ~4 hours), run
+  `/quick-design [description]` to create a Quick Design Spec, then reference
+  that spec in the story."
+- If a story's scope has grown beyond its original sizing: "This story appears
+  to have expanded in scope. Consider splitting it or escalating to the producer
+  before implementation begins."

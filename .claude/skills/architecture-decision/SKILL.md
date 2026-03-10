@@ -8,15 +8,97 @@ allowed-tools: Read, Glob, Grep, Write
 
 When this skill is invoked:
 
-1. **Determine the next ADR number** by scanning `docs/architecture/` for
-   existing ADRs.
+## 0. Load Engine Context (ALWAYS FIRST)
 
-2. **Gather context** by reading related code and existing ADRs.
+Before doing anything else, establish the engine environment:
 
-3. **Guide the user through the decision** by asking clarifying questions if
-   the title alone is not sufficient.
+1. Read `docs/engine-reference/[engine]/VERSION.md` to get:
+   - Engine name and version
+   - LLM knowledge cutoff date
+   - Post-cutoff version risk levels (LOW / MEDIUM / HIGH)
 
-4. **Generate the ADR** following this format:
+2. Identify the **domain** of this architecture decision from the title or
+   user description. Common domains: Physics, Rendering, UI, Audio, Navigation,
+   Animation, Networking, Core, Input, Scripting.
+
+3. Read the corresponding module reference if it exists:
+   `docs/engine-reference/[engine]/modules/[domain].md`
+
+4. Read `docs/engine-reference/[engine]/breaking-changes.md` — flag any
+   changes in the relevant domain that post-date the LLM's training cutoff.
+
+5. Read `docs/engine-reference/[engine]/deprecated-apis.md` — flag any APIs
+   in the relevant domain that should not be used.
+
+6. **Display a knowledge gap warning** before proceeding if the domain carries
+   MEDIUM or HIGH risk:
+
+   ```
+   ⚠️  ENGINE KNOWLEDGE GAP WARNING
+   Engine: [name + version]
+   Domain: [domain]
+   Risk Level: HIGH — This version is post-LLM-cutoff.
+
+   Key changes verified from engine-reference docs:
+   - [Change 1 relevant to this domain]
+   - [Change 2]
+
+   This ADR will be cross-referenced against the engine reference library.
+   Proceed with verified information only — do NOT rely solely on training data.
+   ```
+
+   If no engine has been configured yet, prompt: "No engine is configured.
+   Run `/setup-engine` first, or tell me which engine you are using."
+
+---
+
+## 1. Determine the next ADR number
+
+Scan `docs/architecture/` for existing ADRs to find the next number.
+
+---
+
+## 2. Gather context
+
+Read related code, existing ADRs, and relevant GDDs from `design/gdd/`.
+
+---
+
+## 3. Guide the decision collaboratively
+
+Ask clarifying questions if the title alone is not sufficient. For each major
+section, present 2-4 options with pros/cons before drafting. Do not generate
+the ADR until the key decision is confirmed by the user.
+
+Key questions to ask:
+- What problem are we solving? What breaks if we don't decide this now?
+- What constraints apply (engine version, platform, performance budget)?
+- What alternatives have you already considered?
+- Which post-cutoff engine features (if any) does this decision depend on?
+- **Which GDD systems motivated this decision?** For each, what specific
+  requirement (rule, formula, performance constraint, integration point) in
+  that GDD cannot be satisfied without this architectural decision?
+
+If the decision is foundational (no GDD drives it directly), ask:
+- Which GDD systems will this decision constrain or enable?
+
+This GDD linkage becomes a mandatory "GDD Requirements Addressed" section
+in the ADR. Do not skip it.
+
+**Does this ADR have ordering constraints?** Ask:
+- Does this decision depend on any other ADR that isn't yet Accepted? (If
+  so, this ADR cannot be safely implemented until that one is resolved.)
+- Does accepting this ADR unlock or unblock any other pending decisions?
+- Does this ADR block any specific epic or story from starting?
+
+Record the answers in the **ADR Dependencies** section. If no ordering
+constraints exist, write "None" in each field.
+
+---
+
+## 4. Generate the ADR
+
+Following this format:
 
 ```markdown
 # ADR-[NNNN]: [Title]
@@ -26,6 +108,26 @@ When this skill is invoked:
 
 ## Date
 [Date of decision]
+
+## Engine Compatibility
+
+| Field | Value |
+|-------|-------|
+| **Engine** | [e.g. Godot 4.6] |
+| **Domain** | [Physics / Rendering / UI / Audio / Navigation / Animation / Networking / Core / Input] |
+| **Knowledge Risk** | [LOW / MEDIUM / HIGH — from VERSION.md] |
+| **References Consulted** | [List engine-reference docs read, e.g. `docs/engine-reference/godot/modules/physics.md`] |
+| **Post-Cutoff APIs Used** | [Any APIs from post-LLM-cutoff versions this decision depends on, or "None"] |
+| **Verification Required** | [Specific behaviours to test before shipping, or "None"] |
+
+## ADR Dependencies
+
+| Field | Value |
+|-------|-------|
+| **Depends On** | [ADR-NNNN (must be Accepted before this can be implemented), or "None"] |
+| **Enables** | [ADR-NNNN (this ADR unlocks that decision), or "None"] |
+| **Blocks** | [Epic/Story name — cannot start until this ADR is Accepted, or "None"] |
+| **Ordering Note** | [Any sequencing constraint that isn't captured above] |
 
 ## Context
 
