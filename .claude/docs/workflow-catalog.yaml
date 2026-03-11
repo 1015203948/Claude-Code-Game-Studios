@@ -1,0 +1,295 @@
+# Workflow Catalog
+# Used by /help to determine where a user is and what comes next.
+#
+# Artifact checks:
+#   glob: file glob pattern — complete if ≥1 file matches (or min_count)
+#   pattern: text pattern that must appear in the file (checked after glob)
+#   min_count: minimum matching files required (default: 1)
+#   note: human-readable fallback when completion can't be auto-detected
+#
+# required: true → blocks progression to next phase (shown as REQUIRED)
+# required: false → optional enhancement (shown as OPTIONAL)
+# repeatable: true → runs multiple times (one per system, story, etc.)
+
+phases:
+
+  concept:
+    label: "Concept"
+    description: "Develop your game idea into a documented concept"
+    next_phase: systems-design
+    steps:
+      - id: brainstorm
+        name: "Brainstorm"
+        command: /brainstorm
+        required: false
+        description: "Explore the game concept using MDA, verb-first, and player psychology frameworks"
+
+      - id: engine-setup
+        name: "Engine Setup"
+        command: /setup-engine
+        required: true
+        artifact:
+          glob: ".claude/docs/technical-preferences.md"
+          pattern: "Engine: [^[]"
+        description: "Configure engine, pin version, set naming conventions and performance budgets"
+
+      - id: game-concept
+        name: "Game Concept Document"
+        command: /brainstorm
+        required: true
+        artifact:
+          glob: "design/gdd/game-concept.md"
+        description: "Formalize concept with pillars, MDA analysis, and scope tiers"
+
+      - id: design-review-concept
+        name: "Concept Review"
+        command: /design-review
+        required: false
+        description: "Validate the game concept (recommended before proceeding)"
+
+      - id: map-systems
+        name: "Systems Map"
+        command: /map-systems
+        required: true
+        artifact:
+          glob: "design/gdd/systems-index.md"
+        description: "Decompose concept into systems with dependency ordering and priority tiers"
+
+  systems-design:
+    label: "Systems Design"
+    description: "Author a GDD for each system in the systems index"
+    next_phase: technical-setup
+    steps:
+      - id: design-system
+        name: "System GDDs"
+        command: /design-system
+        required: true
+        repeatable: true
+        artifact:
+          note: "Check design/gdd/systems-index.md — each MVP system needs Status: Approved"
+        description: "Author per-system GDDs (guided, section-by-section). Run once per system."
+
+      - id: design-review
+        name: "Per-System Design Review"
+        command: /design-review
+        required: true
+        repeatable: true
+        description: "Validate each GDD (8 required sections, no MAJOR REVISION verdict). Run per system."
+
+      - id: review-all-gdds
+        name: "Cross-GDD Review"
+        command: /review-all-gdds
+        required: true
+        artifact:
+          glob: "design/gdd/gdd-cross-review-*.md"
+        description: "Holistic consistency check + design theory review across all GDDs simultaneously"
+
+  technical-setup:
+    label: "Technical Setup"
+    description: "Architecture decisions, UX foundations, engine validation"
+    next_phase: pre-production
+    steps:
+      - id: create-architecture
+        name: "Architecture Document"
+        command: /create-architecture
+        required: true
+        artifact:
+          glob: "docs/architecture/architecture.md"
+        description: "Author the master architecture document covering all systems"
+
+      - id: architecture-decision
+        name: "Architecture Decisions (ADRs)"
+        command: /architecture-decision
+        required: true
+        repeatable: true
+        artifact:
+          glob: "docs/architecture/adr-*.md"
+          min_count: 3
+        description: "Document key technical decisions as ADRs. Minimum 3 Foundation-layer ADRs required."
+
+      - id: architecture-review
+        name: "Architecture Review"
+        command: /architecture-review
+        required: true
+        artifact:
+          glob: "docs/architecture/architecture-review-*.md"
+        description: "Validate completeness, dependency ordering, engine compatibility"
+
+      - id: control-manifest
+        name: "Control Manifest"
+        command: /create-control-manifest
+        required: true
+        artifact:
+          glob: "docs/architecture/control-manifest.md"
+        description: "Flat programmer rules sheet generated from all Accepted ADRs"
+
+      - id: accessibility-doc
+        name: "Accessibility Requirements"
+        required: true
+        artifact:
+          glob: "design/accessibility-requirements.md"
+        description: "Commit accessibility tier (Basic/Standard/Comprehensive/Exemplary) and feature matrix"
+
+      - id: ux-design
+        name: "UX Specs (key screens)"
+        command: /ux-design
+        required: true
+        repeatable: true
+        artifact:
+          glob: "design/ux/*.md"
+          min_count: 1
+        description: "Author UX specs for main menu, core gameplay HUD, and pause screen"
+
+      - id: ux-review
+        name: "UX Review"
+        command: /ux-review
+        required: true
+        description: "Validate all key screen UX specs for accessibility and GDD alignment"
+
+  pre-production:
+    label: "Pre-Production"
+    description: "Prototype the core mechanic, define stories, validate fun"
+    next_phase: production
+    steps:
+      - id: prototype
+        name: "Prototype"
+        command: /prototype
+        required: true
+        artifact:
+          glob: "prototypes/*/README.md"
+          min_count: 1
+        description: "Build throwaway prototypes in isolated worktree to validate core mechanic"
+
+      - id: create-epics-stories
+        name: "Epics and Stories"
+        command: /create-epics-stories
+        required: true
+        artifact:
+          glob: "production/stories/*.md"
+          min_count: 1
+        description: "Break GDDs + ADRs + control manifest into implementable story files"
+
+      - id: sprint-plan
+        name: "First Sprint Plan"
+        command: /sprint-plan
+        required: true
+        artifact:
+          glob: "production/sprints/sprint-*.md"
+          min_count: 1
+        description: "Plan the first sprint with prioritized stories from epics"
+
+      - id: vertical-slice
+        name: "Vertical Slice (playtested)"
+        required: true
+        artifact:
+          glob: "production/playtests/*.md"
+          min_count: 1
+        description: "Playable end-to-end core loop, playtested with ≥3 sessions. HARD GATE."
+
+  production:
+    label: "Production"
+    description: "Sprint-based feature development — pick, implement, close stories"
+    next_phase: polish
+    steps:
+      - id: sprint-plan
+        name: "Sprint Plan"
+        command: /sprint-plan
+        required: true
+        repeatable: true
+        artifact:
+          glob: "production/sprints/sprint-*.md"
+        description: "Plan the current sprint with prioritized, ready stories"
+
+      - id: story-readiness
+        name: "Story Readiness Check"
+        command: /story-readiness
+        required: false
+        description: "Validate a story is implementation-ready before a developer picks it up"
+
+      - id: implement
+        name: "Implement Stories"
+        required: true
+        repeatable: true
+        artifact:
+          note: "Check src/ for active code and production/stories/ for In Progress stories"
+        description: "Pick the next ready story and implement it. Then run /story-done."
+
+      - id: story-done
+        name: "Story Done Review"
+        command: /story-done
+        required: true
+        repeatable: true
+        description: "Verify all acceptance criteria, check GDD/ADR deviations, close the story"
+
+      - id: sprint-status
+        name: "Sprint Status"
+        command: /sprint-status
+        required: false
+        description: "Quick 30-line snapshot of sprint progress without a full report"
+
+  polish:
+    label: "Polish"
+    description: "Performance, balance, playtesting, bug fixing"
+    next_phase: release
+    steps:
+      - id: perf-profile
+        name: "Performance Profile"
+        command: /perf-profile
+        required: false
+        description: "Profile and optimize CPU/GPU/memory bottlenecks"
+
+      - id: balance-check
+        name: "Balance Check"
+        command: /balance-check
+        required: false
+        description: "Analyze game balance formulas and data for outliers and broken progressions"
+
+      - id: asset-audit
+        name: "Asset Audit"
+        command: /asset-audit
+        required: false
+        description: "Verify naming conventions, file format standards, and size budgets"
+
+      - id: playtest-polish
+        name: "Playtest Sessions (×3)"
+        command: /playtest-report
+        required: true
+        artifact:
+          glob: "production/playtests/*.md"
+          min_count: 3
+        description: "Cover: new player experience, mid-game systems, difficulty curve"
+
+      - id: team-polish
+        name: "Polish Team Pass"
+        command: /team-polish
+        required: true
+        description: "Coordinated polish pass across performance, audio, visual, and UX"
+
+  release:
+    label: "Release"
+    description: "Launch preparation, certification, and ship"
+    next_phase: null
+    steps:
+      - id: release-checklist
+        name: "Release Checklist"
+        command: /release-checklist
+        required: true
+        description: "Pre-release validation across all departments: code, content, store, legal"
+
+      - id: patch-notes
+        name: "Patch Notes"
+        command: /patch-notes
+        required: false
+        description: "Generate player-facing patch notes from git history and sprint data"
+
+      - id: changelog
+        name: "Changelog"
+        command: /changelog
+        required: false
+        description: "Auto-generate internal changelog from commits, sprints, and design docs"
+
+      - id: launch-checklist
+        name: "Launch Checklist"
+        command: /launch-checklist
+        required: true
+        description: "Final launch readiness — last gate before shipping to players"

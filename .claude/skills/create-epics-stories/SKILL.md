@@ -57,12 +57,20 @@ Read everything before generating any output:
   Addressed", "Implementation Guidelines", "Engine Compatibility", and
   "ADR Dependencies" sections
 - `docs/architecture/control-manifest.md` if it exists — extract layer-specific
-  rules to embed in stories
+  rules to embed in stories; also extract the `Manifest Version:` date from the
+  header block (this gets embedded in every story)
+
+### TR Registry
+- `docs/architecture/tr-registry.yaml` if it exists — read all active entries,
+  indexed by `id`. Used to resolve TR-IDs for each GDD requirement. If the
+  registry does not exist, note it once; stories will use `TR-[system]-???`
+  placeholders with a warning.
 
 ### Engine Reference
 - `docs/engine-reference/[engine]/VERSION.md` — engine name + version + risk levels
 
 Report: "Loaded [N] GDDs, [M] ADRs, control manifest: [exists/missing],
+manifest version: [date or N/A], TR registry: [N entries or missing],
 engine: [name + version]."
 
 ---
@@ -128,8 +136,17 @@ For each epic, decompose the GDD's acceptance criteria into stories:
 
 For each story, map:
 - **GDD requirement**: Which specific acceptance criterion does this satisfy?
-- **TR-ID**: The technical requirement ID (from `/architecture-review` traceability matrix, if run)
-- **Governing ADR**: Which Accepted ADR tells the programmer how to implement this?
+- **TR-ID**: Look up the matching entry in `tr-registry.yaml` by normalizing the
+  requirement text (lowercase, trimmed). Use the stable ID from the registry.
+  If no matching entry exists, note `TR-[system]-???` and warn the user to run
+  `/architecture-review` to register the ID before this story is assigned.
+- **Governing ADR**: Which ADR tells the programmer how to implement this?
+  **Important — ADR status gate**: check the ADR's `Status:` field.
+  - If `Status: Accepted` → embed normally.
+  - If `Status: Proposed` → set story `Status: Blocked` and note:
+    `BLOCKED: ADR-NNNN is still Proposed — story cannot be safely implemented
+    until the ADR is Accepted. Run /architecture-decision to advance it.`
+  - Do not embed implementation guidance from a Proposed ADR.
 - **Engine risk**: Inherited from the ADR's Knowledge Risk field
 - **Control manifest rules**: Which layer rules apply?
 
@@ -145,11 +162,13 @@ For each story, produce a story file embedding full context:
 > **Epic**: [epic name]
 > **Status**: Ready
 > **Layer**: [Foundation / Core / Feature / Presentation]
+> **Manifest Version**: [date from control-manifest.md header — or "N/A" if manifest not yet created]
 
 ## Context
 
 **GDD**: `design/gdd/[filename].md`
-**Requirement**: TR-[GDD]-[NNN]: [requirement text from GDD]
+**Requirement**: `TR-[system]-NNN`
+*(Requirement text is stored in `docs/architecture/tr-registry.yaml` — look up by ID at review time)*
 
 **ADR Governing Implementation**: [ADR-NNNN: title]
 **ADR Decision Summary**: [1-2 sentence summary of what the ADR decided]
@@ -296,5 +315,10 @@ After writing all epics for the requested scope, remind the user:
 5. **No invention** — all acceptance criteria come from GDDs; all implementation
    notes come from ADRs; all rules come from the control manifest. Never invent
    requirements or rules that don't trace to a source document.
-6. **Preserve exact quotes** — when embedding GDD requirements and ADR guidelines,
-   quote them exactly; do not paraphrase in ways that change meaning
+6. **Reference by TR-ID, not by quote** — embed the stable `TR-[system]-NNN` ID
+   in the story, not the GDD requirement text. The text lives in the registry and
+   is read fresh at review time. This prevents false deviation flags when GDD
+   wording is clarified after the story was written.
+7. **Never embed Proposed ADRs** — if the governing ADR is Proposed, set the
+   story status to Blocked. Embedding implementation guidance from an unaccepted
+   ADR creates silent risk when the ADR changes.

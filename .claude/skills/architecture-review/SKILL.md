@@ -51,6 +51,27 @@ Report a count: "Loaded [N] GDDs, [M] ADRs, engine: [name + version]."
 
 ## Phase 2: Extract Technical Requirements from Every GDD
 
+### Pre-load the TR Registry
+
+Before extracting any requirements, read `docs/architecture/tr-registry.yaml`
+if it exists. Index existing entries by `id` and by normalized `requirement`
+text (lowercase, trimmed). This prevents ID renumbering across review runs.
+
+For each requirement you extract, the matching rule is:
+1. **Exact/near match** to an existing registry entry for the same system →
+   reuse that entry's TR-ID unchanged. Update the `requirement` text in the
+   registry only if the GDD wording changed (same intent, clearer phrasing) —
+   add a `revised: [date]` field.
+2. **No match** → assign a new ID: next available `TR-[system]-NNN` for that
+   system, starting from the highest existing sequence + 1.
+3. **Ambiguous** (partial match, intent unclear) → ask the user:
+   > "Does '[new requirement text]' refer to the same requirement as
+   > `TR-[system]-NNN: [existing text]'`, or is it a new requirement?"
+   User answers: "Same requirement" (reuse ID) or "New requirement" (new ID).
+
+For any requirement with `status: deprecated` in the registry — skip it.
+It was removed from the GDD intentionally.
+
 For each GDD, read it and extract all **technical requirements** — things the
 architecture must provide for the system to work. A technical requirement is any
 statement that implies a specific architectural decision.
@@ -251,8 +272,11 @@ If no revision flags are found, write: "No GDD revision flags — all GDD assump
 are consistent with verified engine behaviour."
 
 Ask: "Should I flag these GDDs for revision in the systems index?"
-- If yes: update the relevant systems' Status field to "Needs Revision (Architecture Feedback)"
-  and note the specific conflict in a comment. Ask for approval before writing.
+- If yes: update the relevant systems' Status field to "Needs Revision"
+  and add a short inline note in the adjacent Notes/Description column explaining the conflict.
+  Ask for approval before writing.
+  (Do NOT use parentheticals like "Needs Revision (Architecture Feedback)" — other skills
+  match the exact string "Needs Revision" and parentheticals break that match.)
 
 ---
 
@@ -333,6 +357,23 @@ Ask: "May I write this review to `docs/architecture/architecture-review-[date].m
 
 Also ask: "May I update `docs/architecture/architecture-traceability.md` with the
 current matrix? This is the living index that future reviews update incrementally."
+
+### TR Registry Update
+
+Also ask: "May I update `docs/architecture/tr-registry.yaml` with new requirement
+IDs from this review?"
+
+If yes:
+- **Append** any new TR-IDs that weren't in the registry before this review
+- **Update** `requirement` text and `revised` date for any entries whose GDD
+  wording changed (ID stays the same)
+- **Mark** `status: deprecated` for any registry entries whose GDD requirement
+  no longer exists (confirm with user before marking deprecated)
+- **Never** renumber or delete existing entries
+- Update the `last_updated` and `version` fields at the top
+
+This ensures all future story files can reference stable TR-IDs that persist
+across every subsequent architecture review.
 
 The traceability index format:
 

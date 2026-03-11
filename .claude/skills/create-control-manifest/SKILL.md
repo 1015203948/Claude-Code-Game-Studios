@@ -128,8 +128,14 @@ Format:
 
 > **Engine**: [name + version]
 > **Last Updated**: [date]
+> **Manifest Version**: [date]
 > **ADRs Covered**: [ADR-NNNN, ADR-MMMM, ...]
 > **Status**: [Active — regenerate with `/create-control-manifest update` when ADRs change]
+
+`Manifest Version` is the date this manifest was generated. Story files embed
+this date when created. `/story-readiness` compares a story's embedded version
+to this field to detect stories written against stale rules. Always matches
+`Last Updated` — they are the same date, serving different consumers.
 
 This manifest is a programmer's quick-reference extracted from all Accepted ADRs,
 technical preferences, and engine reference docs. For the reasoning behind each

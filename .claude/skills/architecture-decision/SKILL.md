@@ -8,6 +8,53 @@ allowed-tools: Read, Glob, Grep, Write
 
 When this skill is invoked:
 
+## 0. Parse Arguments — Detect Retrofit Mode
+
+**If the argument starts with `retrofit` followed by a file path**
+(e.g., `/architecture-decision retrofit docs/architecture/adr-0001-event-system.md`):
+
+Enter **retrofit mode**:
+
+1. Read the existing ADR file completely.
+2. Identify which template sections are present by scanning headings:
+   - `## Status` — **BLOCKING if missing**: `/story-readiness` cannot check ADR acceptance
+   - `## ADR Dependencies` — HIGH if missing: dependency ordering breaks
+   - `## Engine Compatibility` — HIGH if missing: post-cutoff risk unknown
+   - `## GDD Requirements Addressed` — MEDIUM if missing: traceability lost
+3. Present to the user:
+   ```
+   ## Retrofit: [ADR title]
+   File: [path]
+
+   Sections already present (will not be touched):
+   ✓ Status: [current value, or "MISSING — will add"]
+   ✓ [section]
+
+   Missing sections to add:
+   ✗ Status — BLOCKING (stories cannot validate ADR acceptance without this)
+   ✗ ADR Dependencies — HIGH
+   ✗ Engine Compatibility — HIGH
+   ```
+4. Ask: "Shall I add the [N] missing sections? I will not modify any existing content."
+5. If yes:
+   - For **Status**: ask the user — "What is the current status of this decision?"
+     Options: "Proposed", "Accepted", "Deprecated", "Superseded by ADR-XXXX"
+   - For **ADR Dependencies**: ask — "Does this decision depend on any other ADR?
+     Does it enable or block any other ADR or epic?" Accept "None" for each field.
+   - For **Engine Compatibility**: read the engine reference docs (same as Step 0 below)
+     and ask the user to confirm the domain. Then generate the table with verified data.
+   - For **GDD Requirements Addressed**: ask — "Which GDD systems motivated this decision?
+     What specific requirement in each GDD does this ADR address?"
+   - Append each missing section to the ADR file using the Edit tool.
+   - **Never modify any existing section.** Only append or fill absent sections.
+6. After adding all missing sections, update the ADR's `## Date` field if it is absent.
+7. Suggest: "Run `/architecture-review` to re-validate coverage now that this ADR
+   has its Status and Dependencies fields."
+
+If NOT in retrofit mode, proceed to Step 0 below (normal ADR authoring).
+
+---
+
 ## 0. Load Engine Context (ALWAYS FIRST)
 
 Before doing anything else, establish the engine environment:

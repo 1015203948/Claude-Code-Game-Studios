@@ -51,7 +51,14 @@ found — burndown assessment skipped."
 
 ## 3. Scan Story Status
 
-For each story or task referenced in the sprint plan:
+**First: check for `production/sprint-status.yaml`.**
+
+If it exists, read it directly — it is the authoritative source of truth.
+Extract status for each story from the `status` field. No markdown scanning needed.
+Use its `sprint`, `goal`, `start`, `end` fields instead of re-parsing the sprint plan.
+
+**If `sprint-status.yaml` does not exist** (legacy sprint or first-time setup),
+fall back to markdown scanning:
 
 1. If the entry references a story file path, check if the file exists.
    Read the file and scan for status markers: DONE, COMPLETE, IN PROGRESS,
@@ -60,6 +67,9 @@ For each story or task referenced in the sprint plan:
    sprint plan itself for status markers next to that entry.
 3. If no status marker is found, classify as NOT STARTED.
 4. If a file is referenced but does not exist, classify as MISSING and note it.
+
+When using the fallback, add a note at the bottom of the output:
+"⚠ No `sprint-status.yaml` found — status inferred from markdown. Run `/sprint-plan update` to generate one."
 
 Optionally (fast check only — do not do a deep scan): grep `src/` for a
 directory or file name that matches the story's system slug to check for

@@ -403,7 +403,9 @@ If any GDDs are flagged for revision:
 
 Ask: "Should I update the systems index to mark these GDDs as needing revision?"
 - If yes: for each flagged GDD, update its Status field in systems-index.md
-  to "Needs Revision (Cross-GDD Review)" with a short note on why.
+  to "Needs Revision" with a short note in the adjacent Notes/Description column.
+  (Do NOT append parentheticals to the status value — other skills match "Needs Revision"
+  as an exact string and parentheticals break that match.)
   Ask approval before writing.
 
 ---

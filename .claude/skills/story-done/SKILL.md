@@ -40,7 +40,8 @@ read that file directly.
 Read the full story file. Extract and hold in context:
 
 - **Story name and ID**
-- **GDD Requirement ID(s)** referenced
+- **GDD Requirement TR-ID(s)** referenced (e.g., `TR-combat-001`)
+- **Manifest Version** embedded in the story header (e.g., `2026-03-10`)
 - **ADR reference(s)** referenced
 - **Acceptance Criteria** — the complete list (every checkbox item)
 - **Implementation files** — files listed under "files to create/modify"
@@ -49,9 +50,15 @@ Read the full story file. Extract and hold in context:
 - **Estimated vs actual scope** — if an estimate was noted
 
 Also read:
+- `docs/architecture/tr-registry.yaml` — look up each TR-ID in the story.
+  Read the *current* `requirement` text from the registry entry. This is the
+  source of truth for what the GDD required — do not use any requirement text
+  that may be quoted inline in the story (it may be stale).
 - The referenced GDD section — just the acceptance criteria and key rules, not
-  the full document
+  the full document. Use this to cross-check the registry text is still accurate.
 - The referenced ADR(s) — just the Decision and Consequences sections
+- `docs/architecture/control-manifest.md` header — extract the current
+  `Manifest Version:` date (used in Phase 4 staleness check)
 
 ---
 
@@ -96,19 +103,29 @@ Compare the implementation against the design documents.
 
 Run these checks automatically:
 
-1. **GDD rules check**: Read the GDD section referenced in the story. `Grep` the
-   implemented files for key function names, data structures, or class names
-   mentioned in the GDD. If the GDD specifies a formula, check for recognizable
-   variable names from that formula.
+1. **GDD rules check**: Using the current requirement text from `tr-registry.yaml`
+   (looked up by the story's TR-ID), check that the implementation reflects what
+   the GDD actually requires now — not what it required when the story was written.
+   `Grep` the implemented files for key function names, data structures, or class
+   names mentioned in the current GDD section.
 
-2. **ADR constraints check**: Read the referenced ADR's Decision section. Check
+2. **Manifest version staleness check**: Compare the `Manifest Version:` date
+   embedded in the story header against the `Manifest Version:` date in the
+   current `docs/architecture/control-manifest.md` header.
+   - If they match → pass silently.
+   - If the story's version is older → flag as ADVISORY:
+     `ADVISORY: Story was written against manifest v[story-date]; current manifest
+     is v[current-date]. New rules may apply. Run /story-readiness to check.`
+   - If control-manifest.md does not exist → skip this check.
+
+3. **ADR constraints check**: Read the referenced ADR's Decision section. Check
    for forbidden patterns from `docs/architecture/control-manifest.md` (if it
    exists). `Grep` for patterns explicitly forbidden in the ADR.
 
-3. **Hardcoded values check**: `Grep` the implemented files for numeric literals
+4. **Hardcoded values check**: `Grep` the implemented files for numeric literals
    in gameplay logic that should be in data files.
 
-4. **Scope check**: Did the implementation touch files outside the story's stated
+5. **Scope check**: Did the implementation touch files outside the story's stated
    scope? (files not listed in "files to create/modify")
 
 For each deviation found, categorize:
@@ -200,6 +217,12 @@ If yes, edit the story file:
 
 3. If advisory deviations exist, ask: "Should I log these as tech debt in
    `docs/tech-debt-register.md`?"
+
+4. **Update `production/sprint-status.yaml`** (if it exists):
+   - Find the entry matching this story's file path or ID
+   - Set `status: done` and `completed: [today's date]`
+   - Update the top-level `updated` field
+   - This is a silent update — no extra approval needed (already approved in step above)
 
 ---
 

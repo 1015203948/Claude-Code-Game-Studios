@@ -47,6 +47,14 @@ Before checking any stories, load reference documents once (not per-story):
 - `design/gdd/systems-index.md` — to know which systems have approved GDDs
 - `docs/architecture/control-manifest.md` — to know which manifest rules exist
   (if the file does not exist, note it as missing once; do not re-flag per story)
+  Also extract the `Manifest Version:` date from the header block if the file exists.
+- `docs/architecture/tr-registry.yaml` — index all entries by `id`. Used to
+  validate TR-IDs in stories. If the file does not exist, note it once; TR-ID
+  checks will auto-pass for all stories (registry predates stories, so missing
+  registry means stories are from before TR tracking was introduced).
+- All ADR status fields — for each unique ADR referenced across the stories being
+  checked, read the ADR file and note its `Status:` field. Cache these so you
+  don't re-read the same ADR for every story.
 - The current sprint file (if scope is `sprint`) — to identify Must Have /
   Should Have priority for escalation decisions
 
@@ -77,9 +85,34 @@ items pass or are explicitly marked N/A with a stated reason.
 
 ### Architecture Completeness
 
-- [ ] **ADR referenced or N/A stated**: The story references at least one
-  Accepted ADR, OR explicitly states "No ADR applies" with a brief reason.
+- [ ] **ADR referenced or N/A stated**: The story references at least one ADR,
+  OR explicitly states "No ADR applies" with a brief reason.
   A story with no ADR reference and no explicit N/A note fails this check.
+- [ ] **ADR is Accepted (not Proposed)**: For each referenced ADR, check its
+  `Status:` field using the cached ADR statuses loaded in Section 2.
+  - If `Status: Accepted` → pass.
+  - If `Status: Proposed` → **BLOCKED**: the ADR may change before it is accepted,
+    and the story's implementation guidance could be wrong.
+    Fix: `BLOCKED: ADR-NNNN is Proposed — wait for acceptance before implementing.`
+  - If the ADR file does not exist → **BLOCKED**: referenced ADR is missing.
+  - Auto-pass if story has an explicit "No ADR applies" N/A note.
+- [ ] **TR-ID is valid and active**: If the story contains a `TR-[system]-NNN`
+  reference, look it up in the TR registry loaded in Section 2.
+  - If the ID exists and `status: active` → pass.
+  - If the ID exists and `status: deprecated` or `status: superseded-by: ...` →
+    NEEDS WORK: the requirement was removed or replaced.
+    Fix: update the story to reference the current requirement ID or remove if no longer applicable.
+  - If the ID does not exist in the registry → NEEDS WORK: ID was not registered
+    (story may predate registry, or registry needs an `/architecture-review` run).
+  - Auto-pass if the story has no TR-ID reference OR if the registry does not exist.
+- [ ] **Manifest version is current**: If the story has a `Manifest Version:` date
+  in its header AND `docs/architecture/control-manifest.md` exists:
+  - If story version matches current manifest `Manifest Version:` → pass.
+  - If story version is older than current manifest → NEEDS WORK: new rules may
+    apply. Fix: review changed manifest rules, update story if any forbidden/required
+    entries changed, then update the story's `Manifest Version:` to current.
+  - Auto-pass if either the story has no `Manifest Version:` field OR the manifest
+    does not exist.
 - [ ] **Engine notes present**: For any post-cutoff engine API this story
   is likely to touch, implementation notes or a verification requirement are
   included. If the story clearly does not touch engine APIs (e.g., it is a

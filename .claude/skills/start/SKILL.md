@@ -118,19 +118,43 @@ The user knows what they want to make but hasn't documented it.
 
 #### If D: Existing work
 
-The user has artifacts already. Figure out what exists and what's missing.
+The user has artifacts already. Two questions matter: what phase are they in,
+and are their existing artifacts in a format the template's skills can use.
 
 1. Share what you found in Step 1 (now it's relevant):
    - "I can see you have [X source files / Y design docs / Z prototypes]..."
    - "Your engine is [configured as X / not yet configured]..."
-2. Recommend running `/project-stage-detect` for a full analysis
-3. If the engine isn't configured, note that `/setup-engine` should come first
-4. Show the recommended path:
-   - `/project-stage-detect` — full gap analysis
-   - `/setup-engine` — if not configured
-   - `/design-system` — if systems index exists but GDDs are incomplete
+
+2. **Distinguish two sub-cases based on what exists:**
+
+   **Sub-case D1 — Artifacts exist but engine is not configured / very early stage**
+   (game concept exists but no GDDs or ADRs):
+   - This is close to a greenfield project. Route normally:
+   - Recommend `/setup-engine` first if engine not configured
+   - Then `/project-stage-detect` for a gap inventory
+   - Then pick up the normal pipeline from the detected phase
+
+   **Sub-case D2 — GDDs, ADRs, or stories already exist** (non-trivial existing work):
+   - The project needs a format compliance check, not just an existence check.
+   - Explain the distinction clearly:
+     > "Having files isn't the same as the template's skills being able to use them.
+     > GDDs might be missing required sections. ADRs might lack Status fields that
+     > story validation depends on. `/adopt` checks this specifically."
+   - Recommend this two-step path:
+     1. `/project-stage-detect` — understand what phase and what's missing entirely
+     2. `/adopt` — audit whether existing artifacts are in the right internal format,
+        and get a numbered migration plan to bring them up to standard
+   - Note: `/adopt` is what produces the actionable "what to fix" plan. After that,
+     existing skills handle each fix: `/design-system retrofit`, `/architecture-decision retrofit`, etc.
+
+3. Show the recommended path for D2:
+   - `/project-stage-detect` — phase detection + existence gaps
+   - `/adopt` — **format compliance audit + migration plan** (the key brownfield tool)
+   - `/setup-engine` — if engine not configured
+   - `/design-system retrofit [path]` — fill missing GDD sections
+   - `/architecture-decision retrofit [path]` — add missing ADR sections
+   - `/architecture-review` — bootstrap the TR requirement registry
    - `/gate-check` — validate readiness for next phase
-   - `/sprint-plan` — organize the work
 
 ---
 

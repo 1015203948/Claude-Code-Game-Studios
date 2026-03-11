@@ -10,13 +10,45 @@ When this skill is invoked:
 
 ## 1. Parse Arguments & Validate
 
-A system name argument is **required**. If missing, fail with:
+A system name or retrofit path is **required**. If missing, fail with:
 > "Usage: `/design-system <system-name>` — e.g., `/design-system combat-system`
+> Or to fill gaps in an existing GDD: `/design-system retrofit design/gdd/combat-system.md`
 > Run `/map-systems` first to create the systems index, then use this skill
 > to write individual system GDDs."
 
-Normalize the system name to kebab-case for the filename (e.g., "combat system"
-becomes `combat-system`).
+**Detect retrofit mode:**
+If the argument starts with `retrofit` or the argument is a file path to an
+existing `.md` file in `design/gdd/`, enter **retrofit mode**:
+
+1. Read the existing GDD file.
+2. Identify which of the 8 required sections are present (scan for section headings).
+   Required sections: Overview, Player Fantasy, Detailed Design/Rules, Formulas,
+   Edge Cases, Dependencies, Tuning Knobs, Acceptance Criteria.
+3. Identify which sections contain only placeholder text (`[To be designed]` or
+   equivalent — blank, a single line, or obviously incomplete).
+4. Present to the user before doing anything:
+   ```
+   ## Retrofit: [System Name]
+   File: design/gdd/[filename].md
+
+   Sections already written (will not be touched):
+   ✓ [section name]
+   ✓ [section name]
+
+   Missing or incomplete sections (will be authored):
+   ✗ [section name] — missing
+   ✗ [section name] — placeholder only
+   ```
+5. Ask: "Shall I fill the [N] missing sections? I will not modify any existing content."
+6. If yes: proceed to **Phase 2 (Gather Context)** as normal, but in **Phase 3**
+   skip creating the skeleton (file already exists) and in **Phase 4** skip
+   sections that are already complete. Only run the section cycle for missing/
+   incomplete sections.
+7. **Never overwrite existing section content.** Use Edit tool to replace only
+   `[To be designed]` placeholders or empty section bodies.
+
+If NOT in retrofit mode, normalize the system name to kebab-case for the
+filename (e.g., "combat system" becomes `combat-system`).
 
 ---
 
