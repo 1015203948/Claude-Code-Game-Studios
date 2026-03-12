@@ -76,31 +76,50 @@ Ask yourself: "What department would handle this in a real studio?"
 | Command | What it does |
 |---------|-------------|
 | `/start` | First-time onboarding — asks where you are, guides you to the right workflow |
-| `/design-review` | Reviews a design document |
-| `/code-review` | Reviews code for quality and architecture |
-| `/playtest-report` | Creates or analyzes playtest feedback |
-| `/balance-check` | Analyzes game balance data |
-| `/sprint-plan` | Creates or updates sprint plans |
-| `/architecture-decision` | Creates an ADR |
-| `/asset-audit` | Audits assets for compliance |
-| `/milestone-review` | Reviews milestone progress |
-| `/onboard` | Generates onboarding docs for a role |
-| `/prototype` | Scaffolds a throwaway prototype |
-| `/release-checklist` | Validates pre-release checklist |
-| `/changelog` | Generates changelog from git history |
-| `/retrospective` | Runs sprint/milestone retrospective |
-| `/estimate` | Produces structured effort estimates |
-| `/hotfix` | Emergency fix with audit trail |
-| `/tech-debt` | Scan, track, and prioritize tech debt |
-| `/scope-check` | Detect scope creep against plan |
-| `/localize` | Localization scan, extract, validate |
-| `/perf-profile` | Performance profiling and bottleneck ID |
-| `/gate-check` | Validate phase readiness (PASS/CONCERNS/FAIL) |
+| `/help` | Context-aware "what do I do next?" — reads your current phase and artifacts |
 | `/project-stage-detect` | Analyze project state, detect stage, identify gaps |
-| `/reverse-document` | Generate design/architecture docs from existing code |
 | `/setup-engine` | Configure engine + version, populate reference docs |
+| `/adopt` | Brownfield audit and migration plan for existing projects |
+| `/brainstorm` | Guided game concept ideation from scratch |
 | `/map-systems` | Decompose concept into systems, map dependencies, guide per-system GDDs |
 | `/design-system` | Guided, section-by-section GDD authoring for a single game system |
+| `/quick-design` | Lightweight spec for small changes — tuning, tweaks, minor additions |
+| `/review-all-gdds` | Cross-GDD consistency and game design theory review |
+| `/propagate-design-change` | Find ADRs and stories affected by a GDD change |
+| `/ux-design` | Author UX specs (screen/flow, HUD, interaction patterns) |
+| `/ux-review` | Validate UX specs for accessibility and GDD alignment |
+| `/create-architecture` | Master architecture document for the game |
+| `/architecture-decision` | Creates an ADR |
+| `/architecture-review` | Validate all ADRs, dependency ordering, GDD traceability |
+| `/create-control-manifest` | Flat programmer rules sheet from Accepted ADRs |
+| `/create-epics-stories` | Break GDDs + ADRs into implementable story files |
+| `/sprint-plan` | Creates or updates sprint plans |
+| `/sprint-status` | Quick 30-line sprint snapshot |
+| `/story-readiness` | Validate a story is implementation-ready before pickup |
+| `/story-done` | End-of-story completion review — verifies acceptance criteria |
+| `/estimate` | Produces structured effort estimates |
+| `/design-review` | Reviews a design document |
+| `/code-review` | Reviews code for quality and architecture |
+| `/balance-check` | Analyzes game balance data |
+| `/asset-audit` | Audits assets for compliance |
+| `/content-audit` | GDD-specified content vs. implemented — find gaps |
+| `/scope-check` | Detect scope creep against plan |
+| `/perf-profile` | Performance profiling and bottleneck ID |
+| `/tech-debt` | Scan, track, and prioritize tech debt |
+| `/gate-check` | Validate phase readiness (PASS/CONCERNS/FAIL) |
+| `/reverse-document` | Generate design/architecture docs from existing code |
+| `/milestone-review` | Reviews milestone progress |
+| `/retrospective` | Runs sprint/milestone retrospective |
+| `/bug-report` | Structured bug report creation |
+| `/playtest-report` | Creates or analyzes playtest feedback |
+| `/onboard` | Generates onboarding docs for a role |
+| `/release-checklist` | Validates pre-release checklist |
+| `/launch-checklist` | Complete launch readiness validation |
+| `/changelog` | Generates changelog from git history |
+| `/patch-notes` | Generate player-facing patch notes |
+| `/hotfix` | Emergency fix with audit trail |
+| `/prototype` | Scaffolds a throwaway prototype |
+| `/localize` | Localization scan, extract, validate |
 | `/team-combat` | Orchestrate full combat team pipeline |
 | `/team-narrative` | Orchestrate full narrative team pipeline |
 | `/team-ui` | Orchestrate full UI team pipeline |
@@ -108,9 +127,6 @@ Ask yourself: "What department would handle this in a real studio?"
 | `/team-polish` | Orchestrate full polish team pipeline |
 | `/team-audio` | Orchestrate full audio team pipeline |
 | `/team-level` | Orchestrate full level creation pipeline |
-| `/launch-checklist` | Complete launch readiness validation |
-| `/patch-notes` | Generate player-facing patch notes |
-| `/brainstorm` | Guided game concept ideation from scratch |
 
 ### 4. Use Templates for New Documents
 
@@ -118,6 +134,7 @@ Templates are in `.claude/docs/templates/`:
 
 - `game-design-document.md` -- for new mechanics and systems
 - `architecture-decision-record.md` -- for technical decisions
+- `architecture-traceability.md` -- maps GDD requirements to ADRs to story IDs
 - `risk-register-entry.md` -- for new risks
 - `narrative-character-sheet.md` -- for new characters
 - `test-plan.md` -- for feature test plans
@@ -142,6 +159,18 @@ Templates are in `.claude/docs/templates/`:
 - `design-doc-from-implementation.md` -- for reverse-documenting existing code into GDDs
 - `architecture-doc-from-code.md` -- for reverse-documenting code into architecture docs
 - `concept-doc-from-prototype.md` -- for reverse-documenting prototypes into concept docs
+- `ux-spec.md` -- for per-screen UX specifications (layout zones, states, events)
+- `hud-design.md` -- for whole-game HUD philosophy, zones, and element specs
+- `accessibility-requirements.md` -- for project-wide accessibility tier and feature matrix
+- `interaction-pattern-library.md` -- for standard UI controls and game-specific patterns
+- `player-journey.md` -- for 6-phase emotional arc and retention hooks by time scale
+- `difficulty-curve.md` -- for difficulty axes, onboarding ramp, and cross-system interactions
+
+Also in `.claude/docs/templates/collaborative-protocols/` (used by agents, not typically edited directly):
+
+- `design-agent-protocol.md` -- question-options-draft-approval cycle for design agents
+- `implementation-agent-protocol.md` -- story pickup through /story-done cycle for programming agents
+- `leadership-agent-protocol.md` -- cross-department delegation and escalation for director-tier agents
 
 ### 5. Follow the Coordination Rules
 
@@ -208,9 +237,12 @@ If you have design docs, prototypes, or code already:
 
 1. **Run `/start`** (or `/project-stage-detect`) — analyzes what exists,
    identifies gaps, and recommends next steps
-2. **Configure engine if needed** — Run `/setup-engine` if not yet configured
-3. **Validate phase readiness** — Run `/gate-check` to see where you stand
-4. **Plan the next sprint** — Run `/sprint-plan new`
+2. **Run `/adopt`** if you have existing GDDs, ADRs, or stories — audits
+   internal format compliance and builds a numbered migration plan to fill gaps
+   without overwriting your existing work
+3. **Configure engine if needed** — Run `/setup-engine` if not yet configured
+4. **Validate phase readiness** — Run `/gate-check` to see where you stand
+5. **Plan the next sprint** — Run `/sprint-plan new`
 
 ## File Structure Reference
 

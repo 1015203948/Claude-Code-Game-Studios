@@ -1316,11 +1316,17 @@ Reads existing code and generates GDD-format design documentation from it.
 | Godot-specific help | `godot-specialist` | 3 |
 | GDScript-specific help | `godot-gdscript-specialist` | 3 |
 | Godot shader help | `godot-shader-specialist` | 3 |
+| GDExtension modules | `godot-gdextension-specialist` | 3 |
 | Unity-specific help | `unity-specialist` | 3 |
-| Unity C# help | `unity-csharp-specialist` | 3 |
+| Unity DOTS/ECS | `unity-dots-specialist` | 3 |
+| Unity shaders/VFX | `unity-shader-specialist` | 3 |
+| Unity Addressables | `unity-addressables-specialist` | 3 |
+| Unity UI Toolkit | `unity-ui-specialist` | 3 |
 | Unreal-specific help | `unreal-specialist` | 3 |
-| Unreal Blueprint help | `unreal-blueprint-specialist` | 3 |
-| Unreal C++ help | `unreal-cpp-specialist` | 3 |
+| Unreal GAS | `ue-gas-specialist` | 3 |
+| Unreal Blueprints | `ue-blueprint-specialist` | 3 |
+| Unreal replication | `ue-replication-specialist` | 3 |
+| Unreal UMG/CommonUI | `ue-umg-specialist` | 3 |
 
 ### Agent Hierarchy
 
@@ -1431,13 +1437,12 @@ conflicts go to `producer`.
 | `/patch-notes` | Player-facing patch notes | 7 |
 | `/hotfix` | Emergency fix workflow | 7+ |
 
-#### Creative (3)
+#### Creative (2)
 
 | Command | Purpose | Phase |
 |---------|---------|-------|
 | `/prototype` | Throwaway prototype in isolated worktree | 4 |
 | `/localize` | String extraction and validation | 6-7 |
-| `/onboard` | Onboard new team member | Any |
 
 #### Team Orchestration (7)
 
