@@ -75,3 +75,35 @@ When invoked with `new`, generate this template:
 When invoked with `analyze`, read the raw notes, cross-reference with existing
 design documents, and fill in the template above with structured findings.
 Flag any playtest observations that conflict with design intent.
+
+After generating or analyzing a report, run the **Action Routing** phase:
+
+**Action Routing**
+
+Categorize all findings from the report into the four buckets below (a single
+finding may appear in more than one bucket if appropriate):
+
+- **Design changes needed** — fun issues, player confusion, broken mechanics,
+  observations that conflict with the GDD's intended experience
+- **Balance adjustments** — numbers feel wrong, difficulty too spiked or too
+  flat, economy or progression feedback
+- **Bug reports** — clear implementation defects that are reproducible
+- **Polish items** — not blocking progress, but friction or feel issues noted
+  for later
+
+Present the categorized list, then provide the routing guidance for each
+non-empty bucket:
+
+- **Design changes:** "These findings suggest GDD revisions. Run
+  `/propagate-design-change [path]` on the affected design document to find
+  downstream impacts before making changes."
+- **Balance adjustments:** "Run `/balance-check [system]` to verify the full
+  balance picture before tuning individual values."
+- **Bugs:** "Use `/bug-report` to formally track these so they are not lost
+  between sessions."
+- **Polish items:** "No immediate action required. Consider adding these to the
+  polish backlog in `production/` when the team reaches that phase."
+
+Finally, ask:
+
+> "Which category would you like to act on first?"

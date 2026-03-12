@@ -84,6 +84,27 @@ When this skill is invoked:
 
 5. **Output the report** with a summary: top 3 hotspots, estimated headroom vs budget, and recommended next action.
 
+6. **Scope & Timeline Decision** — activate this phase only if any hotspot has Fix Effort rated M or L.
+
+   Present a summary of the significant-effort items:
+
+   > "The following optimizations require significant effort: [list titles and effort ratings from the Hotspots table]"
+
+   For each M/L item, ask the user to choose one of:
+
+   - **A) Implement the optimization** (estimated effort: [S/M/L] — proceed with fix now or schedule it)
+   - **B) Reduce feature scope to avoid the bottleneck** (run `/scope-check [feature]` to analyze the trade-offs)
+   - **C) Accept the performance hit and defer to Polish phase** (log it as a known issue)
+   - **D) Escalate to technical-director for an architectural decision** (the bottleneck warrants an ADR)
+
+   For choice B, remind the user:
+   > "Run `/scope-check [feature]` to see what simplifications are available without sacrificing player experience."
+
+   For choice D, note:
+   > "A bottleneck requiring architectural change should become a new Architecture Decision Record. Run `/architecture-decision` to capture the decision and its trade-offs."
+
+   If multiple items are deferred to Polish (choice C), record them in the report under a `### Deferred to Polish` section so they are not lost.
+
 ### Rules
 - Never optimize without measuring first — gut feelings about performance are unreliable
 - Recommendations must include estimated impact — "make it faster" is not actionable

@@ -142,6 +142,14 @@ Initialize each story from the sprint plan's task tables:
 For `update`: read the existing `sprint-status.yaml`, carry over statuses for
 stories that haven't changed, add new stories, remove dropped ones.
 
+### Scope Reminder
+
+After presenting the sprint plan, add:
+
+> **Scope check:** If this sprint includes stories added beyond the original epic scope, run `/scope-check [epic]` to detect scope creep before implementation begins.
+
+When reviewing stories during selection (step 3 above), note any stories that appear outside the original epic goals. If any are uncertain, flag them inline: "Are these stories within the original epic scope? If unsure, `/scope-check` can verify."
+
 ### Agent Consultation
 
 For comprehensive sprint planning, consider consulting:

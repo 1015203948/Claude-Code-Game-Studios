@@ -144,6 +144,22 @@ items pass or are explicitly marked N/A with a stated reason.
   story that depends on a DRAFT or missing story is BLOCKED, not just
   NEEDS WORK.
 
+### Asset References Check
+
+- [ ] **Referenced assets exist**: Scan the story text for asset path patterns
+  (paths containing `assets/`, or file extensions `.png`, `.jpg`, `.svg`,
+  `.wav`, `.ogg`, `.mp3`, `.glb`, `.gltf`, `.tres`, `.tscn`, `.res`).
+  - For each asset path found: use Glob to check whether the file exists.
+  - If any referenced asset does not exist: **NEEDS WORK** — note the missing
+    path(s). (The story references assets that have not been created yet.
+    Either remove the reference, create a placeholder, or mark it as an
+    explicit dependency on an asset creation story.)
+  - If all referenced assets exist: note "Referenced assets verified:
+    [count] found."
+  - If no asset paths are referenced in the story: note "No asset references
+    found in story — skipping asset check." This item auto-passes.
+  - This is an existence-only check. Do not validate file format or content.
+
 ### Definition of Done
 
 - [ ] **At least 3 testable acceptance criteria**: Fewer than 3 suggests

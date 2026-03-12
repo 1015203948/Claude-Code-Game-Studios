@@ -95,6 +95,44 @@ options: "Yes — passes", "No — fails", "Not tested yet"
 - Criteria that require a full game build to test (end-to-end gameplay scenarios)
 - Mark as: `DEFERRED — requires playtest session`
 
+### Test-Criterion Traceability
+
+After completing the pass/fail/deferred check above, map each acceptance
+criterion to the test that covers it:
+
+For each acceptance criterion in the story:
+
+1. Ask: is there a test — unit, integration, or confirmed manual playtest — that
+   directly verifies this criterion?
+   - **Unit test**: check `tests/unit/` for a test file or function name that
+     matches the criterion's subject (use `Glob` and `Grep`)
+   - **Integration test**: check `tests/integration/` similarly
+   - **Manual confirmation**: if the criterion was verified via `AskUserQuestion`
+     above with a "Yes — passes" answer, count that as a manual test
+
+2. Produce a traceability table:
+
+```
+| Criterion | Test | Status |
+|-----------|------|--------|
+| AC-1: [criterion text] | tests/unit/test_foo.gd::test_bar | COVERED |
+| AC-2: [criterion text] | Manual playtest confirmation | COVERED |
+| AC-3: [criterion text] | — | UNTESTED |
+```
+
+3. Apply these escalation rules:
+
+   - If **>50% of criteria are UNTESTED**: escalate to **BLOCKING** — test
+     coverage is insufficient to confirm the story is actually done. The verdict
+     in Phase 6 cannot be COMPLETE until coverage improves.
+   - If **some (≤50%) criteria are UNTESTED**: remain ADVISORY — does not block
+     completion, but must appear in Completion Notes.
+   - If **all criteria are COVERED**: no action needed beyond including the
+     table in the report.
+
+4. For any ADVISORY untested criteria, add to the Completion Notes in Phase 7:
+   `"Untested criteria: [AC-N list]. Recommend adding tests in a follow-up story."`
+
 ---
 
 ## Phase 4: Check for Deviations
@@ -174,6 +212,13 @@ Before updating any files, present the full report:
 - [x] [Criterion 2] — confirmed
 - [ ] [Criterion 3] — FAILS: [reason]
 - [?] [Criterion 4] — DEFERRED: requires playtest
+
+### Test-Criterion Traceability
+| Criterion | Test | Status |
+|-----------|------|--------|
+| AC-1: [text] | [test file::test name] | COVERED |
+| AC-2: [text] | Manual confirmation | COVERED |
+| AC-3: [text] | — | UNTESTED |
 
 ### Deviations
 [NONE] OR:

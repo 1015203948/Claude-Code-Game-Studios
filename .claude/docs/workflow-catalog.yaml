@@ -221,6 +221,16 @@ phases:
         repeatable: true
         description: "Verify all acceptance criteria, check GDD/ADR deviations, close the story"
 
+      - id: scope-check
+        name: "Scope Check"
+        command: /scope-check
+        required: false
+        repeatable: true
+        artifact:
+          glob: "production/sprints/sprint-*.md"
+          note: "Run when stories are added mid-sprint, or before sprint retrospectives"
+        description: "Detect scope creep by comparing current sprint scope to original epic scope. Run (a) when stories are added mid-sprint, or (b) before sprint retrospectives."
+
       - id: sprint-status
         name: "Sprint Status"
         command: /sprint-status
