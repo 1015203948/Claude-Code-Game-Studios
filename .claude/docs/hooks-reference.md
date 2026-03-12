@@ -11,7 +11,8 @@ Hooks are configured in `.claude/settings.json` and fire automatically:
 | `detect-gaps.sh` | SessionStart | Session begins | Detects fresh projects (suggests /start) and missing documentation when code/prototypes exist, suggests /reverse-document or /project-stage-detect |
 | `pre-compact.sh` | PreCompact | Context compression | Dumps session state (active.md, modified files, WIP design docs) into conversation before compaction so it survives summarization |
 | `session-stop.sh` | Stop | Session ends | Summarizes accomplishments and updates session log |
-| `log-agent.sh` | SubagentStart | Agent spawned | Audit trail of all subagent invocations with timestamps |
+| `log-agent.sh` | SubagentStart | Agent spawned | Audit trail start — logs subagent invocation with timestamp |
+| `log-agent-stop.sh` | SubagentStop | Agent stops | Audit trail stop — completes subagent record |
 
 Hook reference documentation: `.claude/docs/hooks-reference/`
 Hook input schema documentation: `.claude/docs/hooks-reference/hook-input-schemas.md`

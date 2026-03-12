@@ -14,6 +14,7 @@ Or check `README.md` for the version badge.
 ## Table of Contents
 
 - [Upgrade Strategies](#upgrade-strategies)
+- [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
 - [v0.1.0 → v0.2.0](#v010--v020)
 
@@ -74,6 +75,162 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 2. Copy the files listed under **"Safe to overwrite"** directly.
 3. For files under **"Merge carefully"**, open both versions side-by-side
    and manually merge the structural changes while keeping your content.
+
+---
+
+## v0.3.0 → v0.4.0
+
+**Released:** 2026-03-09
+**Commit range:** `b1cad29..HEAD`
+**Key themes:** Full UX/UI pipeline, complete story lifecycle, brownfield adoption, pipeline integrity, 15 new skills
+
+### What Changed
+
+| Category | Changes |
+|----------|---------|
+| **New skills (15)** | `/ux-design`, `/ux-review`, `/help`, `/quick-design`, `/review-all-gdds`, `/story-readiness`, `/story-done`, `/sprint-status`, `/adopt`, `/create-architecture`, `/create-control-manifest`, `/create-epics-stories`, `/propagate-design-change`, `/content-audit`, `/architecture-review` |
+| **New hook** | `log-agent-stop.sh` — completes agent audit trail (stop event to match start) |
+| **New templates (8)** | `ux-spec.md`, `hud-design.md`, `accessibility-requirements.md`, `interaction-pattern-library.md`, `player-journey.md`, `difficulty-curve.md`, and 2 adoption plan templates |
+| **New infrastructure** | `workflow-catalog.yaml` (7-phase pipeline, read by `/help`), `docs/architecture/tr-registry.yaml` (stable TR-IDs), `production/sprint-status.yaml` schema |
+| **Skill updates** | `/gate-check` — 3 gates now require UX artifacts; Pre-Production gate requires vertical slice (HARD gate) |
+| **Skill updates** | `/sprint-plan` — writes `sprint-status.yaml`; `/sprint-status` reads it |
+| **Skill updates** | `/story-done` — 8-phase completion review, updates story file, surfaces next ready story |
+| **Skill updates** | `/design-review` — removed architecture gap check (wrong stage) |
+| **Skill updates** | `/team-ui` — full UX pipeline (ux-design → ux-review → team phases) |
+| **Agent updates** | 14 specialist agents — `memory: project` added |
+| **Agent updates** | `prototyper` — `isolation: worktree` (throwaway work in isolated git branch) |
+| **Pipeline integrity** | TR-ID stability, manifest versioning, ADR status gates, TR-ID reference not quote |
+| **GDD template** | `## Game Feel` section added (input responsiveness, animation targets, impact moments) |
+
+---
+
+### Files: Safe to Overwrite
+
+**New files to add:**
+```
+.claude/skills/ux-design/SKILL.md
+.claude/skills/ux-review/SKILL.md
+.claude/skills/help/SKILL.md
+.claude/skills/quick-design/SKILL.md
+.claude/skills/review-all-gdds/SKILL.md
+.claude/skills/story-readiness/SKILL.md
+.claude/skills/story-done/SKILL.md
+.claude/skills/sprint-status/SKILL.md
+.claude/skills/adopt/SKILL.md
+.claude/skills/create-architecture/SKILL.md
+.claude/skills/create-control-manifest/SKILL.md
+.claude/skills/create-epics-stories/SKILL.md
+.claude/skills/propagate-design-change/SKILL.md
+.claude/skills/content-audit/SKILL.md
+.claude/skills/architecture-review/SKILL.md
+.claude/hooks/log-agent-stop.sh
+.claude/docs/workflow-catalog.yaml
+.claude/docs/templates/ux-spec.md
+.claude/docs/templates/hud-design.md
+.claude/docs/templates/accessibility-requirements.md
+.claude/docs/templates/interaction-pattern-library.md
+.claude/docs/templates/player-journey.md
+.claude/docs/templates/difficulty-curve.md
+```
+
+**Existing files to overwrite (no user content):**
+```
+.claude/skills/gate-check/SKILL.md
+.claude/skills/sprint-plan/SKILL.md
+.claude/skills/sprint-status/SKILL.md
+.claude/skills/design-review/SKILL.md
+.claude/skills/team-ui/SKILL.md
+.claude/skills/story-readiness/SKILL.md
+.claude/skills/story-done/SKILL.md
+.claude/docs/templates/game-design-document.md    ← adds Game Feel section
+README.md
+docs/WORKFLOW-GUIDE.md
+UPGRADING.md
+```
+
+**Agent files to overwrite** (if you haven't written custom prompts into them):
+```
+.claude/agents/prototyper.md         ← adds isolation: worktree
+.claude/agents/art-director.md       ← adds memory: project
+.claude/agents/audio-director.md     ← adds memory: project
+.claude/agents/economy-designer.md   ← adds memory: project
+.claude/agents/game-designer.md      ← adds memory: project
+.claude/agents/gameplay-programmer.md ← adds memory: project
+.claude/agents/lead-programmer.md    ← adds memory: project
+.claude/agents/level-designer.md     ← adds memory: project
+.claude/agents/narrative-director.md ← adds memory: project
+.claude/agents/systems-designer.md   ← adds memory: project
+.claude/agents/technical-artist.md   ← adds memory: project
+.claude/agents/ui-programmer.md      ← adds memory: project
+.claude/agents/ux-designer.md        ← adds memory: project
+.claude/agents/world-builder.md      ← adds memory: project
+```
+
+---
+
+### Files: Merge Carefully
+
+#### `.claude/settings.json`
+
+The new version registers `log-agent-stop.sh` as a hook for the `PostToolUse` (agent stop) event. If you haven't customized `settings.json`, overwriting is safe. Otherwise, add the new hook entry for `SubagentStop` manually.
+
+#### Customized agent files
+
+If you've added project-specific knowledge to agent `.md` files, do a diff and manually add the `memory: project` line to the YAML frontmatter where appropriate. Creative and technical director agents intentionally keep `memory: user` — only specialist agents get `memory: project`.
+
+---
+
+### New Features
+
+#### Complete Story Lifecycle
+
+Stories now have a formal lifecycle enforced by two skills:
+
+- **`/story-readiness`** — validates a story is implementation-ready before a developer picks it up. Checks Design (GDD req linked), Architecture (ADR accepted), Scope (criteria testable), and DoD (manifest version current). Verdict: READY / NEEDS WORK / BLOCKED.
+- **`/story-done`** — 8-phase completion review after implementation. Verifies each acceptance criterion, checks for GDD/ADR deviations, prompts code review, updates the story file to `Status: Complete`, and surfaces the next ready story.
+
+Flow: `/story-readiness` → implement → `/story-done` → next story
+
+#### Full UX/UI Pipeline
+
+- **`/ux-design`** — guided section-by-section UX spec authoring. Three modes: screen/flow, HUD, or interaction pattern library. Reads GDD UI requirements and player journey. Output to `design/ux/`.
+- **`/ux-review`** — validates UX specs against GDD alignment, accessibility tier, and pattern library. Verdict: APPROVED / NEEDS REVISION / MAJOR REVISION.
+- **`/team-ui`** updated: Phase 1 now runs `/ux-design` + `/ux-review` as a hard gate before visual design begins.
+
+#### Brownfield Adoption
+
+**`/adopt`** onboards existing projects to the template format. Audits internal structure of GDDs, ADRs, stories, systems-index, and infra. Classifies gaps (BLOCKING/HIGH/MEDIUM/LOW). Builds an ordered migration plan. Never regenerates existing artifacts — only fills gaps.
+
+Argument modes: `full | gdds | adrs | stories | infra`
+
+Also: `/design-system retrofit [path]` and `/architecture-decision retrofit [path]` detect existing files and add only missing sections.
+
+#### Sprint Tracking YAML
+
+`production/sprint-status.yaml` is now the authoritative story tracking format:
+- Written by `/sprint-plan` (initializes all stories) and `/story-done` (sets status to `done`)
+- Read by `/sprint-status` (fast snapshot) and `/help` (per-story status in production phase)
+- Status values: `backlog | ready-for-dev | in-progress | review | done | blocked`
+- Falls back gracefully to markdown scanning if file doesn't exist
+
+#### `/help` — Context-Aware Next Step
+
+`/help` reads your current stage and in-progress work, checks which artifacts are complete, and tells you exactly what to do next — one primary required step, plus optional opportunities. Distinct from `/start` (first-time only) and `/project-stage-detect` (full audit).
+
+---
+
+### After Upgrading
+
+1. **Verify new hooks** are registered in `.claude/settings.json` — check for `log-agent-stop.sh`.
+
+2. **Test the audit trail** by spawning any subagent — both start and stop events should appear in `production/session-logs/`.
+
+3. **Generate sprint-status.yaml** if you're in active production:
+   ```
+   /sprint-plan status
+   ```
+
+4. **Run `/adopt`** if you have existing GDDs or ADRs that predate this template version — it will identify which sections need to be added without overwriting your content.
 
 ---
 

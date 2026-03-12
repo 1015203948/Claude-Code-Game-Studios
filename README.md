@@ -3,15 +3,15 @@
   <p align="center">
     Turn a single Claude Code session into a full game development studio.
     <br />
-    48 agents. 37 workflows. One coordinated AI team.
+    48 agents. 52 workflows. One coordinated AI team.
   </p>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <a href=".claude/agents"><img src="https://img.shields.io/badge/agents-48-blueviolet" alt="48 Agents"></a>
-  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-37-green" alt="37 Skills"></a>
-  <a href=".claude/hooks"><img src="https://img.shields.io/badge/hooks-8-orange" alt="8 Hooks"></a>
+  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-52-green" alt="52 Skills"></a>
+  <a href=".claude/hooks"><img src="https://img.shields.io/badge/hooks-9-orange" alt="9 Hooks"></a>
   <a href=".claude/rules"><img src="https://img.shields.io/badge/rules-11-red" alt="11 Rules"></a>
   <a href="https://docs.anthropic.com/en/docs/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-f5f5f5?logo=anthropic" alt="Built for Claude Code"></a>
   <a href="https://ko-fi.com/donchitos"><img src="https://img.shields.io/badge/Ko--fi-Support%20this%20project-ff5e5b?logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
@@ -51,10 +51,10 @@ The result: you still make every decision, but now you have a team that asks the
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 48 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
-| **Skills** | 37 | Slash commands for common workflows (`/start`, `/sprint-plan`, `/code-review`, `/brainstorm`, etc.) |
-| **Hooks** | 8 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit, and gap detection |
+| **Skills** | 52 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics-stories`, `/story-done`, etc.) |
+| **Hooks** | 9 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit trail, and gap detection |
 | **Rules** | 11 | Path-scoped coding standards enforced when editing gameplay, engine, AI, UI, network code, and more |
-| **Templates** | 29 | Document templates for GDDs, ADRs, sprint plans, economy models, faction design, and more |
+| **Templates** | 36 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
 
 ## Studio Hierarchy
 
@@ -92,22 +92,34 @@ The template includes agent sets for all three major engines. Use the set that m
 
 ## Slash Commands
 
-Type `/` in Claude Code to access all 37 skills:
+Type `/` in Claude Code to access all 52 skills:
+
+**Onboarding & Navigation**
+`/start` `/help` `/project-stage-detect` `/setup-engine` `/adopt`
+
+**Game Design**
+`/brainstorm` `/map-systems` `/design-system` `/quick-design` `/review-all-gdds` `/propagate-design-change`
+
+**UX & Interface Design**
+`/ux-design` `/ux-review`
+
+**Architecture**
+`/create-architecture` `/architecture-decision` `/architecture-review` `/create-control-manifest`
+
+**Stories & Sprints**
+`/create-epics-stories` `/sprint-plan` `/sprint-status` `/story-readiness` `/story-done` `/estimate`
 
 **Reviews & Analysis**
-`/design-review` `/code-review` `/balance-check` `/asset-audit` `/scope-check` `/perf-profile` `/tech-debt`
+`/design-review` `/code-review` `/balance-check` `/asset-audit` `/content-audit` `/scope-check` `/perf-profile` `/tech-debt` `/gate-check`
 
 **Production**
-`/sprint-plan` `/milestone-review` `/estimate` `/retrospective` `/bug-report`
-
-**Project Management**
-`/start` `/project-stage-detect` `/reverse-document` `/gate-check` `/map-systems` `/design-system`
+`/milestone-review` `/retrospective` `/bug-report` `/reverse-document` `/playtest-report`
 
 **Release**
 `/release-checklist` `/launch-checklist` `/changelog` `/patch-notes` `/hotfix`
 
-**Creative**
-`/brainstorm` `/playtest-report` `/prototype` `/onboard` `/localize`
+**Creative & Content**
+`/prototype` `/onboard` `/localize`
 
 **Team Orchestration** (coordinate multiple agents on a single feature)
 `/team-combat` `/team-narrative` `/team-ui` `/team-release` `/team-polish` `/team-audio` `/team-level`
@@ -156,15 +168,12 @@ CLAUDE.md                           # Master configuration
 .claude/
   settings.json                     # Hooks, permissions, safety rules
   agents/                           # 48 agent definitions (markdown + YAML frontmatter)
-  skills/                           # 37 slash commands (subdirectory per skill)
-  hooks/                            # 8 hook scripts (bash, cross-platform)
+  skills/                           # 52 slash commands (subdirectory per skill)
+  hooks/                            # 9 hook scripts (bash, cross-platform)
   rules/                            # 11 path-scoped coding standards
   docs/
-    quick-start.md                  # Detailed usage guide
-    agent-roster.md                 # Full agent table with domains
-    agent-coordination-map.md       # Delegation and escalation paths
-    setup-requirements.md           # Prerequisites and platform notes
-    templates/                      # 28 document templates
+    workflow-catalog.yaml           # 7-phase pipeline definition (read by /help)
+    templates/                      # 36 document templates
 src/                                # Game source code
 assets/                             # Art, audio, VFX, shaders, data files
 design/                             # GDDs, narrative docs, level designs
@@ -212,7 +221,8 @@ You stay in control. The agents provide structure and expertise, not autonomy.
 | `detect-gaps.sh` | Session open | Detects fresh projects (suggests `/start`) and missing documentation when code/prototypes exist |
 | `pre-compact.sh` | Context compression | Preserves session progress notes |
 | `session-stop.sh` | Session close | Logs accomplishments |
-| `log-agent.sh` | Agent spawned | Audit trail of all subagent invocations |
+| `log-agent.sh` | Agent spawned | Audit trail start — logs subagent invocation |
+| `log-agent-stop.sh` | Agent stops | Audit trail stop — completes subagent record |
 
 **Permission rules** in `settings.json` auto-allow safe operations (git status, test runs) and block dangerous ones (force push, `rm -rf`, reading `.env` files).
 

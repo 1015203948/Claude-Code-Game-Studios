@@ -219,8 +219,8 @@ CLAUDE.md                          -- Master config (read this first, ~60 lines)
 .claude/
   settings.json                    -- Claude Code hooks and project settings
   agents/                          -- 48 agent definitions (YAML frontmatter)
-  skills/                          -- 37 slash command definitions (YAML frontmatter)
-  hooks/                           -- 8 hook scripts (.sh) wired by settings.json
+  skills/                          -- 52 slash command definitions (YAML frontmatter)
+  hooks/                           -- 9 hook scripts (.sh) wired by settings.json
   rules/                           -- 11 path-specific rule files
   docs/
     quick-start.md                 -- This file
@@ -228,15 +228,9 @@ CLAUDE.md                          -- Master config (read this first, ~60 lines)
     coding-standards.md            -- Coding and design doc standards
     coordination-rules.md          -- Agent coordination rules
     context-management.md          -- Context budgets and compaction instructions
-    review-workflow.md             -- Review and sign-off process
     directory-structure.md         -- Project directory layout
-    agent-roster.md                -- Full agent list with tiers
-    skills-reference.md            -- All slash commands
-    rules-reference.md             -- Path-specific rules
-    hooks-reference.md             -- Active hooks
-    agent-coordination-map.md      -- Full delegation and workflow map
+    workflow-catalog.yaml          -- 7-phase pipeline definition (read by /help)
     setup-requirements.md          -- System prerequisites (Git Bash, jq, Python)
     settings-local-template.md     -- Personal settings.local.json guide
-    hooks-reference/               -- Hook documentation and git hook examples
-    templates/                     -- 28 document templates
+    templates/                     -- 36 document templates
 ```
