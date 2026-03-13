@@ -28,6 +28,7 @@ Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: audio-director` — Sonic identity, emotional tone, audio palette
 - `subagent_type: sound-designer` — SFX specifications, audio events, mixing groups
 - `subagent_type: technical-artist` — Audio middleware, bus structure, memory budgets
+- `subagent_type: [primary engine specialist]` — Validate audio integration patterns for the engine
 - `subagent_type: gameplay-programmer` — Audio manager, gameplay triggers, adaptive music
 
 Always provide full context in each agent's prompt (feature description, existing audio assets, design doc references).
@@ -42,7 +43,7 @@ Spawn the `audio-director` agent to:
 - Define audio priorities and mix targets
 - Establish any adaptive audio rules (combat intensity, exploration, tension)
 
-### Step 2: Sound Design (sound-designer)
+### Step 2: Sound Design and Audio Accessibility (parallel)
 Spawn the `sound-designer` agent to:
 - Create detailed SFX specifications for every audio event
 - Define sound categories (ambient, UI, gameplay, music, dialogue)
@@ -50,13 +51,28 @@ Spawn the `sound-designer` agent to:
 - Plan audio event list with trigger conditions
 - Define mixing groups and ducking rules
 
-### Step 3: Technical Implementation (technical-artist)
+Spawn the `accessibility-specialist` agent in parallel to:
+- Identify which audio events carry critical gameplay information (damage received, enemy nearby, objective complete) and require visual alternatives for hearing-impaired players
+- Specify subtitle requirements: which audio events need captions, what text format, on-screen duration
+- Check that no gameplay state is communicated by audio alone (all must have a visual fallback)
+- Review the audio event list for any that could cause issues for players with auditory sensitivities (high-frequency alerts, sudden loud events)
+- Output: audio accessibility requirements list integrated into the audio event spec
+
+### Step 3: Technical Implementation (parallel)
 Spawn the `technical-artist` agent to:
 - Design the audio middleware integration (Wwise/FMOD/native)
 - Define audio bus structure and routing
 - Specify memory budgets for audio assets per platform
 - Plan streaming vs preloaded asset strategy
 - Design any audio-reactive visual effects
+
+Spawn the **primary engine specialist** in parallel (from `.claude/docs/technical-preferences.md` Engine Specialists) to validate the integration approach:
+- Is the proposed audio middleware integration idiomatic for the engine? (e.g., Godot's built-in AudioStreamPlayer vs FMOD, Unity's Audio Mixer vs Wwise, Unreal's MetaSounds vs FMOD)
+- Any engine-specific audio node/component patterns that should be used?
+- Known audio system changes in the pinned engine version that affect the integration plan?
+- Output: engine audio integration notes to merge with the technical-artist's plan
+
+If no engine is configured, skip the specialist spawn.
 
 ### Step 4: Code Integration (gameplay-programmer)
 Spawn the `gameplay-programmer` agent to:

@@ -3,7 +3,10 @@ name: prototype
 description: "Rapid prototyping workflow. Skips normal standards to quickly validate a game concept or mechanic. Produces throwaway code and a structured prototype report."
 argument-hint: "[concept-description]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task
+context: fork
+agent: prototyper
+isolation: worktree
 ---
 
 When this skill is invoked:
@@ -84,9 +87,25 @@ When this skill is invoked:
 [Discoveries that affect other systems or future work]
 ```
 
-8. **Output a summary** to the user with: the core question, the result, and
-   the recommendation. Link to the full report at
-   `prototypes/[concept-name]/REPORT.md`.
+8. **Delegate the decision to the creative-director**. Spawn a `creative-director`
+   subagent via Task and provide:
+   - The full REPORT.md content
+   - The original design question
+   - Any game pillars or concept doc from `design/gdd/` that are relevant
+
+   Ask the creative-director to:
+   - Evaluate the prototype result against the game's creative vision and pillars
+   - Confirm, modify, or override the prototyper's PROCEED / PIVOT / KILL recommendation
+   - If PROCEED: identify any creative constraints for the production implementation
+   - If PIVOT: specify which direction aligns better with the pillars
+   - If KILL: note whether the underlying player need should be addressed differently
+
+   The creative-director's decision is final. Update the REPORT.md `Recommendation`
+   section with the creative-director's verdict if it differs from the prototyper's.
+
+9. **Output a summary** to the user with: the core question, the result, the
+   prototyper's initial recommendation, and the creative-director's final decision.
+   Link to the full report at `prototypes/[concept-name]/REPORT.md`.
 
 ### Important Constraints
 

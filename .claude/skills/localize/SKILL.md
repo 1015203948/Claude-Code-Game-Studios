@@ -3,6 +3,7 @@ name: localize
 description: "Run the localization workflow: extract strings, validate localization readiness, check for hardcoded text, and generate translation-ready string tables."
 argument-hint: "[scan|extract|validate|status]"
 user-invocable: true
+agent: localization-lead
 allowed-tools: Read, Glob, Grep, Write, Bash
 ---
 When this skill is invoked:

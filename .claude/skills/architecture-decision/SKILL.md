@@ -3,7 +3,7 @@ name: architecture-decision
 description: "Creates an Architecture Decision Record (ADR) documenting a significant technical decision, its context, alternatives considered, and consequences. Every major technical choice should have an ADR."
 argument-hint: "[title]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, Task
 ---
 
 When this skill is invoked:
@@ -245,5 +245,15 @@ to implement it.]
 - [Links to related ADRs]
 - [Links to related design documents]
 ```
+
+4.5. **Engine Specialist Validation** — Before saving, spawn the **primary engine specialist** via Task to validate the drafted ADR:
+   - Read `.claude/docs/technical-preferences.md` `Engine Specialists` section to get the primary specialist
+   - If no engine is configured (`[TO BE CONFIGURED]`), skip this step
+   - Spawn `subagent_type: [primary specialist]` with: the ADR's Engine Compatibility section, Decision section, Key Interfaces, and the engine reference docs path. Ask them to:
+     1. Confirm the proposed approach is idiomatic for the pinned engine version
+     2. Flag any APIs or patterns that are deprecated or changed post-training-cutoff
+     3. Identify engine-specific risks or gotchas not captured in the current ADR draft
+   - If the specialist identifies a **blocking issue** (wrong API, deprecated approach, engine version incompatibility): revise the Decision and Engine Compatibility sections accordingly, then confirm the changes with the user before proceeding
+   - If the specialist finds **minor notes** only: incorporate them into the ADR's Risks subsection
 
 5. **Save the ADR** to `docs/architecture/adr-[NNNN]-[slug].md`.

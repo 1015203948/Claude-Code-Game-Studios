@@ -25,6 +25,7 @@ Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: writer` — Dialogue writing, lore entries, in-game text
 - `subagent_type: world-builder` — World rules, faction design, history, geography
 - `subagent_type: level-designer` — Level layouts that serve the narrative, pacing
+- `subagent_type: localization-lead` — i18n validation, string key compliance, translation headroom
 
 Always provide full context in each agent's prompt (narrative brief, lore dependencies, character profiles). Launch independent agents in parallel where the pipeline allows it (e.g., Phase 2 agents can run simultaneously).
 
@@ -57,11 +58,11 @@ Delegate to **narrative-director**:
 - Confirm narrative pacing aligns with level design
 - Check that all mysteries have documented "true answers"
 
-### Phase 5: Polish
-- Writer reviews all text for localization readiness
-- Verify no line exceeds dialogue box constraints
-- Confirm all text uses string keys (localization pipeline ready)
-- World-builder finalizes canon levels for all new lore
+### Phase 5: Polish (parallel)
+Delegate in parallel:
+- **writer**: Final self-review — verify no line exceeds dialogue box constraints, all text uses string keys (not raw strings), placeholder variable names are consistent
+- **localization-lead**: Validate i18n compliance — check string key naming conventions, flag any strings with hardcoded formatting that won't survive translation, verify character limit headroom for languages that expand (German/Finnish typically +30%), confirm no cultural assumptions in text that would need locale-specific variants
+- **world-builder**: Finalize canon levels for all new lore entries
 
 ## Output
 A summary report covering: narrative brief status, lore entries created/updated, dialogue lines written, level narrative integration points, consistency review results, and any unresolved contradictions.

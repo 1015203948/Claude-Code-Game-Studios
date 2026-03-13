@@ -16,6 +16,7 @@ The user must approve before moving to the next phase.
 - **ux-designer** — User flows, wireframes, accessibility, input handling
 - **ui-programmer** — UI framework, screens, widgets, data binding, implementation
 - **art-director** — Visual style, layout polish, consistency with art bible
+- **engine UI specialist** — Validates UI implementation patterns against engine-specific best practices (read from `.claude/docs/technical-preferences.md` Engine Specialists → UI Specialist)
 - **accessibility-specialist** — Audits accessibility compliance at Phase 4
 
 **Templates used by this pipeline:**
@@ -30,6 +31,7 @@ Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: ux-designer` — User flows, wireframes, accessibility, input handling
 - `subagent_type: ui-programmer` — UI framework, screens, widgets, data binding
 - `subagent_type: art-director` — Visual style, layout polish, art bible consistency
+- `subagent_type: [UI engine specialist]` — Engine-specific UI pattern validation (e.g., unity-ui-specialist, ue-umg-specialist, godot-specialist)
 - `subagent_type: accessibility-specialist` — Accessibility compliance audit
 
 Always provide full context in each agent's prompt (feature requirements, existing UI patterns, platform targets). Launch independent agents in parallel where the pipeline allows it (e.g., Phase 4 review agents can run simultaneously).
@@ -76,6 +78,14 @@ Delegate to **art-director**:
 - Output: visual design spec with style notes and asset manifest
 
 ### Phase 3: Implementation
+
+Before implementation begins, spawn the **engine UI specialist** (from `.claude/docs/technical-preferences.md` Engine Specialists → UI Specialist) to review the UX spec and visual design spec for engine-specific implementation guidance:
+- Which engine UI framework should be used for this screen? (e.g., UI Toolkit vs UGUI in Unity, Control nodes vs CanvasLayer in Godot, UMG vs CommonUI in Unreal)
+- Any engine-specific gotchas for the proposed layout or interaction patterns?
+- Recommended widget/node structure for the engine?
+- Output: engine UI implementation notes to hand off to ui-programmer before they begin
+
+If no engine is configured, skip this step.
 
 Delegate to **ui-programmer**:
 - Implement the UI following the UX spec and visual design spec

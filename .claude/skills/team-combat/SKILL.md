@@ -18,6 +18,7 @@ The user must approve before moving to the next phase.
 - **ai-programmer** — Implement NPC/enemy AI behavior for the feature
 - **technical-artist** — Create VFX, shader effects, and visual feedback
 - **sound-designer** — Define audio events, impact sounds, and ambient combat audio
+- **engine specialist** (primary) — Validate architecture and implementation patterns are idiomatic for the engine (read from `.claude/docs/technical-preferences.md` Engine Specialists section)
 - **qa-tester** — Write test cases and validate the implementation
 
 ## How to Delegate
@@ -28,6 +29,7 @@ Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: ai-programmer` — Implement NPC/enemy AI behavior
 - `subagent_type: technical-artist` — Create VFX, shader effects, visual feedback
 - `subagent_type: sound-designer` — Define audio events, impact sounds, ambient audio
+- `subagent_type: [primary engine specialist]` — Engine idiom validation for architecture and implementation
 - `subagent_type: qa-tester` — Write test cases and validate implementation
 
 Always provide full context in each agent's prompt (design doc path, relevant code files, constraints). Launch independent agents in parallel where the pipeline allows it (e.g., Phase 3 agents can run simultaneously).
@@ -45,6 +47,12 @@ Delegate to **gameplay-programmer** (with **ai-programmer** if AI is involved):
 - Design the code architecture: class structure, interfaces, data flow
 - Identify integration points with existing systems
 - Output: architecture sketch with file list and interface definitions
+
+Then spawn the **primary engine specialist** to validate the proposed architecture:
+- Is the class/node/component structure idiomatic for the pinned engine? (e.g., Godot node hierarchy, Unity MonoBehaviour vs DOTS, Unreal Actor/Component design)
+- Are there engine-native systems that should be used instead of custom implementations?
+- Any proposed APIs that are deprecated or changed in the pinned engine version?
+- Output: engine architecture notes — incorporate into the architecture before Phase 3 begins
 
 ### Phase 3: Implementation (parallel where possible)
 Delegate in parallel:

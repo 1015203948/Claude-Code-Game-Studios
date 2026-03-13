@@ -46,3 +46,30 @@
 
 <!-- Quick reference linking to full ADRs in docs/architecture/ -->
 - [No ADRs yet — use /architecture-decision to create one]
+
+## Engine Specialists
+
+<!-- Written by /setup-engine when engine is configured. -->
+<!-- Read by /code-review, /architecture-decision, /architecture-review, and team skills -->
+<!-- to know which specialist to spawn for engine-specific validation. -->
+
+- **Primary**: [TO BE CONFIGURED — run /setup-engine]
+- **Language/Code Specialist**: [TO BE CONFIGURED]
+- **Shader Specialist**: [TO BE CONFIGURED]
+- **UI Specialist**: [TO BE CONFIGURED]
+- **Additional Specialists**: [TO BE CONFIGURED]
+- **Routing Notes**: [TO BE CONFIGURED]
+
+### File Extension Routing
+
+<!-- Skills use this table to select the right specialist per file type. -->
+<!-- If a row says [TO BE CONFIGURED], fall back to Primary for that file type. -->
+
+| File Extension / Type | Specialist to Spawn |
+|-----------------------|---------------------|
+| Game code (primary language) | [TO BE CONFIGURED] |
+| Shader / material files | [TO BE CONFIGURED] |
+| UI / screen files | [TO BE CONFIGURED] |
+| Scene / prefab / level files | [TO BE CONFIGURED] |
+| Native extension / plugin files | [TO BE CONFIGURED] |
+| General architecture review | Primary |

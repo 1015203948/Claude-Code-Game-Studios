@@ -3,7 +3,7 @@ name: create-epics-stories
 description: "Translate approved GDDs + architecture + ADRs into implementable epics and stories. Each story embeds the GDD requirement it satisfies, the ADR governing implementation, acceptance criteria, engine compatibility notes, and control manifest rules. Programmers need nothing else to implement a story correctly."
 argument-hint: "[system-name | layer: foundation|core|feature|presentation | all]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, Task
 context: fork
 agent: technical-director
 ---
@@ -223,9 +223,31 @@ This boundary prevents scope creep and keeps stories independently reviewable.
 
 ---
 
-## 7. Approval Before Writing
+## 7. Lead-Programmer Architecture Review
 
-For each epic, after all stories are drafted, present a summary:
+Before asking for approval, spawn a `lead-programmer` subagent via Task to review
+the drafted stories for the current epic. Provide:
+- The epic summary (layer, module, governing ADRs)
+- All drafted story files for this epic
+- The control manifest (if it exists)
+
+Ask the lead-programmer to check:
+- **Story boundaries**: Are any stories too large (should be split) or too small (should be merged)?
+- **ADR adherence**: Do the implementation notes in the stories faithfully reflect the ADR decisions? Flag any that drift or contradict.
+- **Dependency ordering**: Is the story sequence safe? Can each story be implemented independently once its prerequisite is done?
+- **Missing stories**: Are there any infrastructure concerns (interfaces, base classes, test hooks) that need their own story before others can proceed?
+- **Control manifest compliance**: Do any stories ask for patterns explicitly forbidden in the manifest?
+
+The lead-programmer produces one of:
+- **APPROVED** — proceed to user approval as-is
+- **REVISIONS NEEDED** — list of specific changes; revise the affected stories before proceeding
+- **BLOCKED** — a fundamental issue (missing ADR, wrong layer, circular dependency) that must be resolved first
+
+If REVISIONS NEEDED: make the changes and re-present the updated stories to the lead-programmer before requesting user approval. Do not ask the user to approve stories with known structural issues.
+
+## 8. Approval Before Writing
+
+For each epic, after stories pass lead-programmer review, present a summary:
 
 ```
 Epic [N]: [name]

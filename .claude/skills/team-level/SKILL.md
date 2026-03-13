@@ -31,6 +31,7 @@ Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: level-designer` — Spatial layout, pacing, encounters, navigation
 - `subagent_type: systems-designer` — Enemy compositions, loot tables, difficulty balance
 - `subagent_type: art-director` — Visual theme, color palette, lighting, asset requirements
+- `subagent_type: accessibility-specialist` — Navigation clarity, colorblind safety, cognitive load
 - `subagent_type: qa-tester` — Test cases, boundary testing, playtest checklist
 
 Always provide full context in each agent's prompt (game concept, pillars, existing level docs, narrative docs).
@@ -65,13 +66,20 @@ Spawn the `systems-designer` agent to:
 - Design any area-specific mechanics or environmental hazards
 - Specify resource distribution (health pickups, save points, shops)
 
-### Step 4: Visual Direction (art-director)
+### Step 4: Visual Direction and Accessibility (parallel)
 Spawn the `art-director` agent to:
 - Define the visual theme and color palette for the area
 - Specify lighting mood and time-of-day settings
 - List required art assets (environment props, unique assets)
 - Define visual landmarks and sight lines
 - Specify any special VFX needs (weather, particles, fog)
+
+Spawn the `accessibility-specialist` agent in parallel to:
+- Review the level layout for navigation clarity (can players orient themselves without relying on color alone?)
+- Check that critical path signposting uses shape/icon/sound cues in addition to color
+- Review any puzzle mechanics for cognitive load — flag anything that requires holding more than 3 simultaneous states
+- Check that key gameplay areas have sufficient contrast for colorblind players
+- Output: accessibility concerns list with severity (BLOCKING / RECOMMENDED / NICE TO HAVE)
 
 ### Step 5: QA Planning (qa-tester)
 Spawn the `qa-tester` agent to:

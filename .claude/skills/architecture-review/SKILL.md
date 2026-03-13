@@ -3,7 +3,7 @@ name: architecture-review
 description: "Validates completeness and consistency of the project architecture against all GDDs. Builds a traceability matrix mapping every GDD technical requirement to ADRs, identifies coverage gaps, detects cross-ADR conflicts, verifies engine compatibility consistency across all decisions, and produces a PASS/CONCERNS/FAIL verdict. The architecture equivalent of /design-review."
 argument-hint: "[focus: full | coverage | consistency | engine | single-gdd path/to/gdd.md]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, Task
 context: fork
 agent: technical-director
 ---
@@ -234,6 +234,20 @@ Stale Version References:
 Post-Cutoff API Conflicts:
   - ADR-0004 and ADR-0007 both use [API] with incompatible assumptions
 ```
+
+---
+
+### Engine Specialist Consultation
+
+After completing the engine audit above, spawn the **primary engine specialist** via Task for a domain-expert second opinion:
+- Read `.claude/docs/technical-preferences.md` `Engine Specialists` section to get the primary specialist
+- If no engine is configured, skip this consultation
+- Spawn `subagent_type: [primary specialist]` with: all ADRs that contain engine-specific decisions or `Post-Cutoff APIs Used` fields, the engine reference docs, and the Phase 5 audit findings. Ask them to:
+  1. Confirm or challenge each audit finding — specialists may know of engine nuances not captured in the reference docs
+  2. Identify engine-specific anti-patterns in the ADRs that the audit may have missed (e.g., using the wrong Godot node type, Unity component coupling, Unreal subsystem misuse)
+  3. Flag ADRs that make assumptions about engine behaviour that differ from the actual pinned version
+
+Incorporate additional findings under `### Engine Specialist Findings` in the Phase 5 output. These feed into the final verdict — specialist-identified issues carry the same weight as audit-identified issues.
 
 ---
 

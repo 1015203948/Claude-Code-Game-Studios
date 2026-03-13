@@ -5,7 +5,7 @@ argument-hint: "[system-name|path-to-data-file]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
 context: fork
-agent: Explore
+agent: economy-designer
 ---
 
 When this skill is invoked:

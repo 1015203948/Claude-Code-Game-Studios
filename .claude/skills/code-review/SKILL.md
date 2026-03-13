@@ -3,9 +3,9 @@ name: code-review
 description: "Performs an architectural and quality code review on a specified file or set of files. Checks for coding standard compliance, architectural pattern adherence, SOLID principles, testability, and performance concerns."
 argument-hint: "[path-to-file-or-directory]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash, Task
 context: fork
-agent: code-reviewer
+agent: lead-programmer
 ---
 
 When this skill is invoked:
@@ -13,6 +13,13 @@ When this skill is invoked:
 1. **Read the target file(s)** in full.
 
 2. **Read the CLAUDE.md** for project coding standards.
+
+2.5. **Identify the active engine specialists** by reading `.claude/docs/technical-preferences.md`, section `## Engine Specialists`. Note:
+   - The **Primary** specialist (used for architecture and broad engine concerns)
+   - The **Language/Code Specialist** (used when reviewing the project's primary language files)
+   - The **Shader Specialist** (used when reviewing shader files)
+   - The **UI Specialist** (used when reviewing UI code)
+   - If the section reads `[TO BE CONFIGURED]`, no engine is pinned — skip engine specialist steps below.
 
 3. **ADR Compliance Check**:
 
@@ -79,10 +86,24 @@ When this skill is invoked:
    - [ ] Thread safety where required
    - [ ] Resource cleanup (no leaks)
 
-9. **Output the review** in this format:
+9. **Engine Specialist Review** — If an engine is configured (step 2.5), spawn engine specialists via Task in parallel with your own review above:
+   - Determine which specialist applies to each file being reviewed:
+     - Primary language files (`.gd`, `.cs`, `.cpp`) → Language/Code Specialist
+     - Shader files (`.gdshader`, `.hlsl`, shader graph) → Shader Specialist
+     - UI screen/widget code → UI Specialist
+     - Cross-cutting or unclear → Primary Specialist
+   - Spawn the relevant specialist(s) with: the file(s), the engine reference docs path (`docs/engine-reference/[engine]/`), and the task: "Review for engine-idiomatic patterns, deprecated or incorrect API usage, engine-specific performance concerns, and any patterns the engine's documentation recommends against."
+   - Also spawn the **Primary Specialist** for any file that touches engine architecture (scene structure, node hierarchy, component design, lifecycle hooks).
+   - Collect findings and include them in the review output under `### Engine Specialist Findings` (placed between `### Game-Specific Concerns` and `### Positive Observations`).
+   - If no engine is configured, omit the `### Engine Specialist Findings` section.
+
+10. **Output the review** in this format:
 
 ```
 ## Code Review: [File/System Name]
+
+### Engine Specialist Findings: [N/A — no engine configured / CLEAN / ISSUES FOUND]
+[Findings from engine specialist(s), or "No engine configured." if skipped]
 
 ### ADR Compliance: [NO ADRS FOUND / COMPLIANT / DRIFT / VIOLATION]
 [List each ADR checked, result, and any deviations with severity]

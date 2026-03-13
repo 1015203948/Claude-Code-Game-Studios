@@ -16,6 +16,9 @@ The user must approve before moving to the next phase.
 - **release-manager** — Release branch, versioning, changelog, deployment
 - **qa-lead** — Test sign-off, regression suite, release quality gate
 - **devops-engineer** — Build pipeline, artifacts, deployment automation
+- **security-engineer** — Pre-release security audit (invoke if game has online/multiplayer features or player data)
+- **analytics-engineer** — Verify telemetry events fire correctly and dashboards are live
+- **community-manager** — Patch notes, launch announcement, player-facing messaging
 - **producer** — Go/no-go decision, stakeholder communication, scheduling
 
 ## How to Delegate
@@ -24,7 +27,11 @@ Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: release-manager` — Release branch, versioning, changelog, deployment
 - `subagent_type: qa-lead` — Test sign-off, regression suite, release quality gate
 - `subagent_type: devops-engineer` — Build pipeline, artifacts, deployment automation
+- `subagent_type: security-engineer` — Security audit for online/multiplayer/data features
+- `subagent_type: analytics-engineer` — Telemetry event verification and dashboard readiness
+- `subagent_type: community-manager` — Patch notes and launch communication
 - `subagent_type: producer` — Go/no-go decision, stakeholder communication
+- `subagent_type: network-programmer` — Netcode stability sign-off (invoke if game has multiplayer)
 
 Always provide full context in each agent's prompt (version number, milestone status, known issues). Launch independent agents in parallel where the pipeline allows it (e.g., Phase 3 agents can run simultaneously).
 
@@ -49,12 +56,15 @@ Delegate to **release-manager**:
 Delegate in parallel:
 - **qa-lead**: Execute full regression test suite. Test all critical paths. Verify no S1/S2 bugs. Sign off on quality.
 - **devops-engineer**: Build release artifacts for all target platforms. Verify builds are clean and reproducible. Run automated tests in CI.
+- **security-engineer** *(if game has online features, multiplayer, or player data)*: Conduct pre-release security audit. Review authentication, anti-cheat, data privacy compliance. Sign off on security posture.
+- **network-programmer** *(if game has multiplayer)*: Sign off on netcode stability. Verify lag compensation, reconnect handling, and bandwidth usage under load.
 
-### Phase 4: Localization and Performance
+### Phase 4: Localization, Performance, and Analytics
 Delegate (can run in parallel with Phase 3 if resources available):
-- Verify all strings are translated (delegate to localization-lead if available)
-- Run performance benchmarks against targets (delegate to performance-analyst if available)
-- Output: localization and performance sign-off
+- Verify all strings are translated (delegate to **localization-lead** if available)
+- Run performance benchmarks against targets (delegate to **performance-analyst** if available)
+- **analytics-engineer**: Verify all telemetry events fire correctly on release build. Confirm dashboards are receiving data. Check that critical funnels (onboarding, progression, monetization if applicable) are instrumented.
+- Output: localization, performance, and analytics sign-off
 
 ### Phase 5: Go/No-Go
 Delegate to **producer**:
@@ -71,10 +81,18 @@ Delegate to **release-manager** + **devops-engineer**:
 - Deploy to production
 - Monitor for 48 hours post-release
 
+Delegate to **community-manager** (in parallel with deployment):
+- Finalize patch notes using `/patch-notes [version]`
+- Prepare launch announcement (store page updates, social media, community post)
+- Draft known issues post if any S3+ issues shipped
+- Output: all player-facing release communication, ready to publish on deploy confirmation
+
 ### Phase 7: Post-Release
 - **release-manager**: Generate release report (what shipped, what was deferred, metrics)
 - **producer**: Update milestone tracking, communicate to stakeholders
 - **qa-lead**: Monitor incoming bug reports for regressions
+- **community-manager**: Publish all player-facing communication, monitor community sentiment
+- **analytics-engineer**: Confirm live dashboards are healthy; alert if any critical events are missing
 - Schedule post-release retrospective if issues occurred
 
 ## Output
