@@ -29,6 +29,9 @@ completeness. This skill reviews the *relationships* between all GDDs.
   inherits those inconsistencies)
 
 **Argument modes:**
+
+**Focus:** `$ARGUMENTS[0]` (blank = `full`)
+
 - **No argument / `full`**: Both consistency and design theory passes
 - **`consistency`**: Cross-GDD consistency checks only (faster)
 - **`design-theory`**: Game design holism checks only

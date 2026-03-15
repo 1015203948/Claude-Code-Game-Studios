@@ -1,9 +1,10 @@
 ---
 name: sprint-status
-description: "Fast sprint status check. Reads the current sprint plan, scans story files for status, and produces a concise progress snapshot with burndown assessment and emerging risks. Run at any time during a sprint for quick situational awareness."
+description: "Fast sprint status check. Reads the current sprint plan, scans story files for status, and produces a concise progress snapshot with burndown assessment and emerging risks. Run at any time during a sprint for quick situational awareness. Use when user asks 'how is the sprint going', 'sprint update', 'show sprint progress'."
 argument-hint: "[sprint-number or blank for current]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
+context: fork
 ---
 
 # Sprint Status
@@ -19,6 +20,8 @@ files, and makes at most one concrete recommendation.
 ---
 
 ## 1. Find the Sprint
+
+**Argument:** `$ARGUMENTS[0]` (blank = use current sprint)
 
 - If an argument is given (e.g., `/sprint-status 3`), search
   `production/sprints/` for a file matching `sprint-03.md`, `sprint-3.md`,

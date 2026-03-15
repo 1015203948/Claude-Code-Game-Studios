@@ -24,6 +24,9 @@ wrong internal format.
 **Output:** `docs/adoption-plan-[date].md` — a persistent, checkable migration plan.
 
 **Argument modes:**
+
+**Audit mode:** `$ARGUMENTS[0]` (blank = `full`)
+
 - **No argument / `full`**: Complete audit — all artifact types
 - **`gdds`**: GDD format compliance only
 - **`adrs`**: ADR format compliance only

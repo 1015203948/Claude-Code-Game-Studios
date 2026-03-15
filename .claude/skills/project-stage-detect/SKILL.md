@@ -1,6 +1,6 @@
 ---
 name: project-stage-detect
-description: "Automatically analyze project state, detect stage, identify gaps, and recommend next steps based on existing artifacts."
+description: "Automatically analyze project state, detect stage, identify gaps, and recommend next steps based on existing artifacts. Use when user asks 'where are we in development', 'what stage are we in', 'full project audit'."
 argument-hint: "[optional: role filter like 'programmer' or 'designer']"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
@@ -93,6 +93,7 @@ Use template: `.claude/docs/templates/project-stage-report.md`
 
 **Date**: [date]
 **Stage**: [Concept/Systems Design/Technical Setup/Pre-Production/Production/Polish/Release]
+**Stage Confidence**: [PASS — clearly detected / CONCERNS — ambiguous signals / FAIL — critical gaps block progress]
 
 ## Completeness Overview
 - Design: [X%] ([N] docs, [gaps])
