@@ -64,5 +64,23 @@ Delegate in parallel:
 - **localization-lead**: Validate i18n compliance — check string key naming conventions, flag any strings with hardcoded formatting that won't survive translation, verify character limit headroom for languages that expand (German/Finnish typically +30%), confirm no cultural assumptions in text that would need locale-specific variants
 - **world-builder**: Finalize canon levels for all new lore entries
 
+## Error Recovery Protocol
+
+If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
+
+1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
+2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
+3. **Offer options** via AskUserQuestion with choices:
+   - Skip this agent and note the gap in the final report
+   - Retry with narrower scope
+   - Stop here and resolve the blocker first
+4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
+
+Common blockers:
+- Input file missing (story not found, GDD absent) → redirect to the skill that creates it
+- ADR status is Proposed → do not implement; run `/architecture-decision` first
+- Scope too large → split into two stories via `/create-stories`
+- Conflicting instructions between ADR and story → surface the conflict, do not guess
+
 ## Output
 A summary report covering: narrative brief status, lore entries created/updated, dialogue lines written, level narrative integration points, consistency review results, and any unresolved contradictions.

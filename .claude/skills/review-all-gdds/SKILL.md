@@ -6,6 +6,7 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Bash
 context: fork
 agent: game-designer
+model: opus
 ---
 
 # Review All GDDs
@@ -78,6 +79,15 @@ Report: "Loaded [N] system GDDs covering [M] systems. Pillars: [list]. Anti-pill
 If fewer than 2 system GDDs exist, stop:
 > "Cross-GDD review requires at least 2 system GDDs. Write more GDDs first,
 > then re-run `/review-all-gdds`."
+
+---
+
+### Parallel Execution
+
+Phase 2 (Consistency) and Phase 3 (Design Theory) are independent — they read
+the same GDD inputs but produce separate reports. Spawn both as parallel Task
+agents simultaneously rather than waiting for Phase 2 to complete before
+starting Phase 3. Collect both results before writing the combined report.
 
 ---
 
@@ -565,6 +575,20 @@ After the report is written:
 
 Gate reminder: `/gate-check technical-setup` now requires a PASS or CONCERNS
 verdict from this review before architecture work can begin.
+
+---
+
+## Error Recovery Protocol
+
+If any spawned agent returns BLOCKED, errors, or fails to complete:
+
+1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" before continuing
+2. **Assess dependencies**: If the blocked agent's output is required by a later phase, do not proceed past that phase without user input
+3. **Offer options** via AskUserQuestion with three choices:
+   - Skip this agent and note the gap in the final report
+   - Retry with narrower scope (fewer GDDs, single-system focus)
+   - Stop here and resolve the blocker first
+4. **Always produce a partial report** — output whatever was completed so work is not lost
 
 ---
 

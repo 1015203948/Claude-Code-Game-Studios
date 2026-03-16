@@ -6,6 +6,7 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Task
 context: fork
 agent: technical-director
+model: opus
 ---
 
 # Architecture Review
@@ -580,6 +581,20 @@ After completing the review:
    pre-production` to advance"
 3. **Rerun trigger**: "Re-run `/architecture-review` after each new ADR is written
    to verify coverage improves"
+
+---
+
+## Error Recovery Protocol
+
+If any spawned agent returns BLOCKED, errors, or fails to complete:
+
+1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" before continuing
+2. **Assess dependencies**: If the blocked agent's output is required by a later phase, do not proceed past that phase without user input
+3. **Offer options** via AskUserQuestion with three choices:
+   - Skip this agent and note the gap in the final report
+   - Retry with narrower scope (fewer GDDs, single-system focus)
+   - Stop here and resolve the blocker first
+4. **Always produce a partial report** — output whatever was completed so work is not lost
 
 ---
 

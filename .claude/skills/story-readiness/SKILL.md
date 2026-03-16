@@ -5,6 +5,7 @@ argument-hint: "[story-file-path or 'all' or 'sprint']"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
 context: fork
+model: haiku
 ---
 
 # Story Readiness

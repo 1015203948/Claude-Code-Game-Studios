@@ -4,6 +4,7 @@ description: "Generates a contextual onboarding document for a new contributor o
 argument-hint: "[role|area]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
+model: haiku
 ---
 
 When this skill is invoked:

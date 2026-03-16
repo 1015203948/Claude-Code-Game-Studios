@@ -5,6 +5,7 @@ argument-hint: "[target-phase: systems-design | technical-setup | pre-production
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write
 context: fork
+model: opus
 ---
 
 # Phase Gate Validation

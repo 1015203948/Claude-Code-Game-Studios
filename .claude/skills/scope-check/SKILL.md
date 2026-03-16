@@ -5,6 +5,7 @@ argument-hint: "[feature-name or sprint-N]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
 context: fork
+model: haiku
 ---
 
 # Scope Check

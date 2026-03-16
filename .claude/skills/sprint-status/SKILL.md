@@ -5,6 +5,7 @@ argument-hint: "[sprint-number or blank for current]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
 context: fork
+model: haiku
 ---
 
 # Sprint Status

@@ -5,6 +5,7 @@ argument-hint: "[optional: role filter like 'programmer' or 'designer']"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
 context: fork
+model: haiku
 agent: Explore
 ---
 
