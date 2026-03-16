@@ -1,7 +1,7 @@
 ---
 name: smoke-check
 description: "Run the critical path smoke test gate before QA hand-off. Executes the automated test suite, verifies core functionality, and produces a PASS/FAIL report. Run after a sprint's stories are implemented and before manual QA begins. A failed smoke check means the build is not ready for QA."
-argument-hint: "[sprint | quick]"
+argument-hint: "[sprint | quick | --platform pc|console|mobile|all]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
@@ -17,6 +17,27 @@ The rule is simple: **a build that fails smoke check does not go to QA.**
 Handing a broken build to QA wastes their time and demoralises the team.
 
 **Output:** `production/qa/smoke-[date].md`
+
+---
+
+## Parse Arguments
+
+Arguments can be combined: `/smoke-check sprint --platform console`
+
+**Base mode** (first argument, default: `sprint`):
+- `sprint` — full smoke check against the current sprint's stories
+- `quick` — skip coverage scan (Phase 3) and Batch 3; use for rapid re-checks
+
+**Platform flag** (`--platform`, default: none):
+- `--platform pc` — add PC-specific checks (keyboard, mouse, windowed mode)
+- `--platform console` — add console-specific checks (gamepad, TV safe zones,
+  platform certification requirements)
+- `--platform mobile` — add mobile-specific checks (touch, portrait/landscape,
+  battery/thermal behaviour)
+- `--platform all` — add all platform variants; output per-platform verdict table
+
+If `--platform` is provided, Phase 4 adds platform-specific batches and
+Phase 5 outputs a per-platform verdict table in addition to the overall verdict.
 
 ---
 
@@ -196,6 +217,50 @@ options:
 
 Record each response verbatim for the Phase 5 report.
 
+**Platform Batches** *(run only if `--platform` argument was provided)*:
+
+**PC platform** (`--platform pc` or `--platform all`):
+```
+question: "Smoke check — PC Platform: Verify platform-specific behaviour:"
+options:
+  - "Keyboard controls work correctly across all menus and gameplay — PASS"
+  - "Keyboard controls — FAIL: [describe issue]"
+  - "Mouse input and cursor visibility correct in all states — PASS"
+  - "Mouse input — FAIL: [describe issue]"
+  - "Windowed and fullscreen modes function without graphical issues — PASS"
+  - "Windowed/fullscreen — FAIL: [describe issue]"
+  - "Resolution changes apply correctly — PASS"
+  - "Resolution changes — FAIL: [describe issue]"
+```
+
+**Console platform** (`--platform console` or `--platform all`):
+```
+question: "Smoke check — Console Platform: Verify platform-specific behaviour:"
+options:
+  - "Gamepad input works correctly for all actions — PASS"
+  - "Gamepad input — FAIL: [describe issue]"
+  - "UI fits within TV safe zone margins (no text clipped) — PASS"
+  - "TV safe zone — FAIL: [describe what is clipped]"
+  - "No keyboard/mouse-only fallbacks shown to gamepad user — PASS"
+  - "Input prompt inconsistency — FAIL: [describe]"
+  - "Game boots correctly from cold start (no prior save) — PASS"
+  - "Cold start — FAIL: [describe issue]"
+```
+
+**Mobile platform** (`--platform mobile` or `--platform all`):
+```
+question: "Smoke check — Mobile Platform: Verify platform-specific behaviour:"
+options:
+  - "Touch controls work correctly for all primary actions — PASS"
+  - "Touch controls — FAIL: [describe issue]"
+  - "Game handles orientation change (portrait ↔ landscape) correctly — PASS"
+  - "Orientation change — FAIL: [describe what breaks]"
+  - "Background / foreground transitions (home button) handled gracefully — PASS"
+  - "Background/foreground — FAIL: [describe issue]"
+  - "No visible performance issues on target device (no thermal throttling signs) — PASS"
+  - "Mobile performance — FAIL: [describe issue]"
+```
+
 ---
 
 ## Phase 5: Generate Report
@@ -259,6 +324,20 @@ Stories that must have test evidence before they can be marked COMPLETE via
   Expected location: `tests/unit/[system]/[story-slug]_test.[ext]`
 
 [If none:] "All Logic and Integration stories have test coverage."
+
+---
+
+### Platform-Specific Results *(only if `--platform` was provided)*
+
+| Platform | Checks Run | Passed | Failed | Platform Verdict |
+|----------|-----------|--------|--------|-----------------|
+| PC | [N] | [N] | [N] | PASS / FAIL |
+| Console | [N] | [N] | [N] | PASS / FAIL |
+| Mobile | [N] | [N] | [N] | PASS / FAIL |
+
+**Platform notes**: [any platform-specific observations not captured in pass/fail]
+
+Any platform with one or more FAIL checks contributes to the overall FAIL verdict.
 
 ---
 

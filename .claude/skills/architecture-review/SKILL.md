@@ -21,6 +21,11 @@ and Pre-Production.
 - **`consistency`**: Cross-ADR conflict detection only
 - **`engine`**: Engine compatibility audit only
 - **`single-gdd [path]`**: Review architecture coverage for one specific GDD
+- **`rtm`**: Requirements Traceability Matrix — extends the standard matrix
+  to include story file paths and test file paths; outputs
+  `docs/architecture/requirements-traceability.md` with the full
+  GDD requirement → ADR → Story → Test chain. Use in Production phase when
+  stories and tests exist.
 
 ---
 
@@ -151,6 +156,60 @@ Build the full matrix:
 ```
 
 Count the totals: X covered, Y partial, Z gaps.
+
+---
+
+## Phase 3b: Story and Test Linkage (RTM mode only)
+
+*Skip this phase unless the argument is `rtm` or `full` with stories present.*
+
+This phase extends the Phase 3 matrix to include the story that implements
+each requirement and the test that verifies it — producing the full
+Requirements Traceability Matrix (RTM).
+
+### Step 3b-1 — Load stories
+
+Glob `production/epics/**/*.md` (excluding EPIC.md index files). For each
+story file:
+- Extract `TR-ID` from the story's Context section
+- Extract story file path, title, Status
+- Extract `## Test Evidence` section — the stated test file path
+
+### Step 3b-2 — Load test files
+
+Glob `tests/unit/**/*_test.*` and `tests/integration/**/*_test.*`.
+Build an index: system → [test file paths].
+
+For each test file path from Step 3b-1, confirm via Glob whether the file
+actually exists. Note MISSING if the stated path does not exist.
+
+### Step 3b-3 — Build the extended RTM
+
+For each TR-ID in the Phase 3 matrix, add:
+- **Story**: the story file path(s) that reference this TR-ID (may be multiple)
+- **Test File**: the test file path stated in the story's Test Evidence section
+- **Test Status**: COVERED (test file exists) / MISSING (path stated but not
+  found) / NONE (no test path stated, story type may be Visual/Feel/UI) /
+  NO STORY (requirement has no story yet — pre-production gap)
+
+Extended matrix format:
+
+```
+## Requirements Traceability Matrix (RTM)
+
+| TR-ID | GDD | Requirement | ADR | Story | Test File | Test Status |
+|-------|-----|-------------|-----|-------|-----------|-------------|
+| TR-combat-001 | combat.md | Hitbox < 1 frame | ADR-0003 | story-001-hitbox.md | tests/unit/combat/hitbox_test.gd | COVERED |
+| TR-combat-002 | combat.md | Combo window | — | story-002-combo.md | — | NONE (Visual/Feel) |
+| TR-inventory-001 | inventory.md | Persistent storage | ADR-0005 | — | — | NO STORY |
+```
+
+RTM coverage summary:
+- COVERED: [N] — requirements with ADR + story + passing test
+- MISSING test: [N] — story exists but test file not found
+- NO STORY: [N] — requirements with ADR but no story yet
+- NO ADR: [N] — requirements without architectural coverage (from Phase 3 gaps)
+- Full chain complete (COVERED): [N/total] ([%])
 
 ---
 
@@ -391,6 +450,67 @@ Ask: "May I write this review to `docs/architecture/architecture-review-[date].m
 
 Also ask: "May I update `docs/architecture/architecture-traceability.md` with the
 current matrix? This is the living index that future reviews update incrementally."
+
+### RTM Output (rtm mode only)
+
+For `rtm` mode, additionally ask: "May I write the full Requirements Traceability
+Matrix to `docs/architecture/requirements-traceability.md`?"
+
+RTM file format:
+
+```markdown
+# Requirements Traceability Matrix (RTM)
+
+> Last Updated: [date]
+> Mode: /architecture-review rtm
+> Coverage: [N]% full chain complete (GDD → ADR → Story → Test)
+
+## How to read this matrix
+
+| Column | Meaning |
+|--------|---------|
+| TR-ID | Stable requirement ID from tr-registry.yaml |
+| GDD | Source design document |
+| ADR | Architectural decision governing implementation |
+| Story | Story file that implements this requirement |
+| Test File | Automated test file path |
+| Test Status | COVERED / MISSING / NONE / NO STORY |
+
+## Full Traceability Matrix
+
+| TR-ID | GDD | Requirement | ADR | Story | Test File | Status |
+|-------|-----|-------------|-----|-------|-----------|--------|
+[Full matrix rows from Phase 3b]
+
+## Coverage Summary
+
+| Status | Count | % |
+|--------|-------|---|
+| COVERED — full chain complete | [N] | [%] |
+| MISSING test — story exists, no test | [N] | [%] |
+| NO STORY — ADR exists, not yet implemented | [N] | [%] |
+| NO ADR — architectural gap | [N] | [%] |
+| **Total requirements** | **[N]** | **100%** |
+
+## Uncovered Requirements (Priority Fix List)
+
+Requirements where the full chain is broken, prioritised by layer:
+
+### Foundation layer gaps
+[list with suggested action per gap]
+
+### Core layer gaps
+[list]
+
+### Feature / Presentation layer gaps
+[list — lower priority]
+
+## History
+
+| Date | Full Chain % | Notes |
+|------|-------------|-------|
+| [date] | [%] | Initial RTM |
+```
 
 ### TR Registry Update
 
