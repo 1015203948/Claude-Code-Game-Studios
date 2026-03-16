@@ -61,7 +61,7 @@
 >
 > | Gap | Severity | Reason |
 > |-----|----------|--------|
-> | No systems index | BLOCKING | `/design-system`, `/create-epics-stories`, `/gate-check` all require it |
+> | No systems index | BLOCKING | `/design-system`, `/create-stories`, `/gate-check` all require it |
 > | GDD files not in template format | HIGH | Skills cannot reference TR-IDs from malformed GDDs |
 > | No architecture docs | HIGH | Cannot run `/architecture-review` or `/create-control-manifest` |
 > | No production tracking | MEDIUM | Sprint and story skills won't work, but not needed until production phase |

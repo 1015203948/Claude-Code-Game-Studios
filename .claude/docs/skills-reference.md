@@ -43,7 +43,9 @@
 
 | Command | Purpose |
 |---------|---------|
-| `/create-epics-stories` | Translate GDDs + ADRs + manifest into implementable story files |
+| `/create-epics` | Translate GDDs + ADRs into epics — one per architectural module |
+| `/create-stories` | Break a single epic into implementable story files |
+| `/dev-story` | Read a story and implement it — routes to the correct programmer agent |
 | `/sprint-plan` | Generate or update a sprint plan; initializes sprint-status.yaml |
 | `/sprint-status` | Fast 30-line sprint snapshot (reads sprint-status.yaml) |
 | `/story-readiness` | Validate a story is implementation-ready before pickup (READY/NEEDS WORK/BLOCKED) |

@@ -116,7 +116,7 @@ If `design/gdd/systems-index.md` exists:
 
 1. **Parenthetical status values** — Grep for any Status cell containing
    parentheses: `"Needs Revision ("`, `"In Progress ("`, etc.
-   These break exact-string matching in `/gate-check`, `/create-epics-stories`,
+   These break exact-string matching in `/gate-check`, `/create-stories`,
    and `/architecture-review`. **BLOCKING.**
 
 2. **Valid status values** — check that Status column values are only from:
@@ -240,7 +240,7 @@ Stories audited: [N]
 
 Gap counts:
   BLOCKING: [N] — template skills will malfunction without these fixes
-  HIGH:     [N] — unsafe to run /create-epics-stories or /story-readiness
+  HIGH:     [N] — unsafe to run /create-stories or /story-readiness
   MEDIUM:   [N] — quality degradation
   LOW:      [N] — optional improvements
 
@@ -350,7 +350,7 @@ If ADRs are missing Status fields:
 
 If GDDs are missing Acceptance Criteria:
 > "The most important GDD gap is missing Acceptance Criteria — without these,
-> `/create-epics-stories` can't generate stories. Shall I start with
+> `/create-stories` can't generate stories. Shall I start with
 > `design/gdd/[highest-priority-system].md` using `/design-system retrofit`?"
 
 Use `AskUserQuestion`:

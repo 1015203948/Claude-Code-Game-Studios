@@ -92,7 +92,9 @@ Ask yourself: "What department would handle this in a real studio?"
 | `/architecture-decision` | Creates an ADR |
 | `/architecture-review` | Validate all ADRs, dependency ordering, GDD traceability |
 | `/create-control-manifest` | Flat programmer rules sheet from Accepted ADRs |
-| `/create-epics-stories` | Break GDDs + ADRs into implementable story files |
+| `/create-epics` | Translate GDDs + ADRs into epics (one per architectural module) |
+| `/create-stories` | Break a single epic into implementable story files |
+| `/dev-story` | Read a story and implement it — routes to the correct programmer agent |
 | `/sprint-plan` | Creates or updates sprint plans |
 | `/sprint-status` | Quick 30-line sprint snapshot |
 | `/story-readiness` | Validate a story is implementation-ready before pickup |

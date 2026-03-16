@@ -264,11 +264,11 @@ draft the missing sections for your approval."
 
 If the user says yes for a specific story, draft only the missing sections
 in conversation. Do not use Write or Edit tools — the user (or
-`/create-epics-stories`) handles writing.
+`/create-stories`) handles writing.
 
 **Redirect rules:**
 - If a story file does not exist at all: "This story file is missing entirely.
-  Run `/create-epics-stories [system-name]` to generate it from the GDD and ADR."
+  Run `/create-epics [layer]` then `/create-stories [epic-slug]` to generate stories from the GDD and ADR."
 - If a story has no GDD reference and the work appears small: "This story has
   no GDD reference. If the change is small (under ~4 hours), run
   `/quick-design [description]` to create a Quick Design Spec, then reference

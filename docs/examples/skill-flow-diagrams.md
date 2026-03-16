@@ -39,7 +39,8 @@ PHASE 3: TECHNICAL SETUP
 PHASE 4: PRE-PRODUCTION
   /ux-design [screen/hud/patterns] ────────────────────────────► design/ux/*.md
   /ux-review ──────────────────────────────────────────────────► UX specs approved
-  /create-epics-stories ───────────────────────────────────────► production/stories/STORY-*.md
+  /create-epics [layer] ───────────────────────────────────────► production/epics/*/EPIC.md
+  /create-stories [epic-slug] ─────────────────────────────────► production/epics/*/story-*.md
   /prototype [core-mechanic] ──────────────────────────────────► prototypes/[name]/
   /playtest-report ────────────────────────────────────────────► tests/playtest/vertical-slice.md
   /sprint-plan new ────────────────────────────────────────────► production/sprints/sprint-01.md
@@ -117,10 +118,15 @@ upstream GDDs (input, if any)
 How a story gets from backlog to closed:
 
 ```
-/create-epics-stories
+/create-epics [layer: foundation]
         │
-        └── Output: production/stories/STORY-[SYS]-NNN.md
-                    (Status: backlog or blocked if ADR is Proposed)
+        └── Output: production/epics/[slug]/EPIC.md
+                │
+                ▼
+        /create-stories [epic-slug]
+                │
+                └── Output: production/epics/[slug]/story-NNN-[slug].md
+                            (Status: Ready or Blocked if ADR is Proposed)
                 │
                 ▼
         /story-readiness [story]

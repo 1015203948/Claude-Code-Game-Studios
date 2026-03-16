@@ -51,7 +51,21 @@ skills:
     priority: critical
 
   # High — pipeline-critical skills
-  - name: create-epics-stories
+  - name: create-epics
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+
+  - name: create-stories
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+
+  - name: dev-story
     spec: ""
     last_static: ""
     last_static_result: ""

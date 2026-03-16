@@ -51,7 +51,7 @@ The result: you still make every decision, but now you have a team that asks the
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 48 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
-| **Skills** | 52 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics-stories`, `/story-done`, etc.) |
+| **Skills** | 65 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics`, `/create-stories`, `/dev-story`, `/story-done`, etc.) |
 | **Hooks** | 9 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit trail, and gap detection |
 | **Rules** | 11 | Path-scoped coding standards enforced when editing gameplay, engine, AI, UI, network code, and more |
 | **Templates** | 36 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
@@ -92,7 +92,7 @@ The template includes agent sets for all three major engines. Use the set that m
 
 ## Slash Commands
 
-Type `/` in Claude Code to access all 52 skills:
+Type `/` in Claude Code to access all 65 skills:
 
 **Onboarding & Navigation**
 `/start` `/help` `/project-stage-detect` `/setup-engine` `/adopt`
@@ -107,7 +107,7 @@ Type `/` in Claude Code to access all 52 skills:
 `/create-architecture` `/architecture-decision` `/architecture-review` `/create-control-manifest`
 
 **Stories & Sprints**
-`/create-epics-stories` `/sprint-plan` `/sprint-status` `/story-readiness` `/story-done` `/estimate`
+`/create-epics` `/create-stories` `/dev-story` `/sprint-plan` `/sprint-status` `/story-readiness` `/story-done` `/estimate`
 
 **Reviews & Analysis**
 `/design-review` `/code-review` `/balance-check` `/asset-audit` `/content-audit` `/scope-check` `/perf-profile` `/tech-debt` `/gate-check`

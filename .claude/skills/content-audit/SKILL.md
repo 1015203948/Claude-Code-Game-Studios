@@ -181,7 +181,7 @@ After writing the report, ask:
 > "Would you like to create backlog stories for any of the content gaps?"
 
 If yes: for each system the user selects, suggest a story title and point them
-to `/create-epics-stories` or `/quick-design` depending on the size of the gap.
+to `/create-stories [epic-slug]` or `/quick-design` depending on the size of the gap.
 
 ### --summary mode
 

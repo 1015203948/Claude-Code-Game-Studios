@@ -88,7 +88,7 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 
 | Category | Changes |
 |----------|---------|
-| **New skills (15)** | `/ux-design`, `/ux-review`, `/help`, `/quick-design`, `/review-all-gdds`, `/story-readiness`, `/story-done`, `/sprint-status`, `/adopt`, `/create-architecture`, `/create-control-manifest`, `/create-epics-stories`, `/propagate-design-change`, `/content-audit`, `/architecture-review` |
+| **New skills (17)** | `/ux-design`, `/ux-review`, `/help`, `/quick-design`, `/review-all-gdds`, `/story-readiness`, `/story-done`, `/sprint-status`, `/adopt`, `/create-architecture`, `/create-control-manifest`, `/create-epics`, `/create-stories`, `/dev-story`, `/propagate-design-change`, `/content-audit`, `/architecture-review` |
 | **New hook** | `log-agent-stop.sh` — completes agent audit trail (stop event to match start) |
 | **New templates (8)** | `ux-spec.md`, `hud-design.md`, `accessibility-requirements.md`, `interaction-pattern-library.md`, `player-journey.md`, `difficulty-curve.md`, and 2 adoption plan templates |
 | **New infrastructure** | `workflow-catalog.yaml` (7-phase pipeline, read by `/help`), `docs/architecture/tr-registry.yaml` (stable TR-IDs), `production/sprint-status.yaml` schema |
@@ -119,7 +119,9 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 .claude/skills/adopt/SKILL.md
 .claude/skills/create-architecture/SKILL.md
 .claude/skills/create-control-manifest/SKILL.md
-.claude/skills/create-epics-stories/SKILL.md
+.claude/skills/create-epics/SKILL.md
+.claude/skills/create-stories/SKILL.md
+.claude/skills/dev-story/SKILL.md
 .claude/skills/propagate-design-change/SKILL.md
 .claude/skills/content-audit/SKILL.md
 .claude/skills/architecture-review/SKILL.md

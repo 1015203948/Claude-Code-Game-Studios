@@ -235,7 +235,7 @@ These APIs are deprecated or unverified for [engine + version]:
 
 After writing the manifest:
 
-- If epics/stories don't exist yet: "Run `/create-epics-stories` — programmers
+- If epics/stories don't exist yet: "Run `/create-epics layer: foundation` then `/create-stories [epic-slug]` — programmers
   can now use this manifest when writing story implementation notes."
 - If this is a regeneration (manifest already existed): "Updated. Recommend
   notifying the team of changed rules — especially any new Forbidden entries."

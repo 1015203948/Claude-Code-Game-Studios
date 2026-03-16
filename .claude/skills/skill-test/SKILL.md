@@ -232,7 +232,7 @@ For each skill:
   from catalog (or mark as "never" if not in catalog)
 - Assign priority:
   - `critical` — gate-check, design-review, story-readiness, story-done, review-all-gdds, architecture-review
-  - `high` — create-epics-stories, create-control-manifest, propagate-design-change, story-done
+  - `high` — create-epics, create-stories, dev-story, create-control-manifest, propagate-design-change, story-done
   - `medium` — team-* skills, sprint-plan, sprint-status
   - `low` — all others
 
@@ -259,7 +259,9 @@ review-all-gdds        | NO       | never            | —             | never  
 Top 5 Priority Gaps (no spec, critical/high priority):
 1. /architecture-review — critical, no spec
 2. /review-all-gdds — critical, no spec
-3. /create-epics-stories — high, no spec
+3. /create-epics — high, no spec
+4. /create-stories — high, no spec
+5. /dev-story — high, no spec
 4. /propagate-design-change — high, no spec
 5. /sprint-plan — medium, no spec
 

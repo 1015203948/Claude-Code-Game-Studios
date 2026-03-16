@@ -126,7 +126,7 @@ production/           # Sprint plans, milestones, releases
   sprints/
   milestones/
   releases/
-  stories/            # Story files (from /create-epics-stories)
+  epics/              # Epic and story files (from /create-epics + /create-stories)
   playtests/          # Playtest reports
   session-state/      # Ephemeral session state (gitignored)
   session-logs/       # Session audit trail (gitignored)
@@ -586,18 +586,23 @@ that proves the core loop is fun.
 ### Phase 4 Pipeline
 
 ```
-/prototype  -->  /create-epics-stories  -->  /sprint-plan
-    |                    |                        |
-    v                    v                        v
-  Throwaway         Story files in           First sprint with
-  prototypes        production/stories/      prioritized stories
-  in prototypes/    from GDDs + ADRs +       production/sprints/
-                    control manifest         sprint-*.md
-                         |
-                         v
-                   /story-readiness
-                   (validates each story
-                    before pickup)
+/prototype  -->  /create-epics  -->  /create-stories  -->  /sprint-plan
+    |                  |                   |                       |
+    v                  v                   v                       v
+  Throwaway       Epic files in       Story files in          First sprint with
+  prototypes      production/         production/             prioritized stories
+  in prototypes/  epics/*/EPIC.md     epics/*/story-*.md      production/sprints/
+                  (one per module)    (one per behaviour)     sprint-*.md
+                                           |
+                                           v
+                                     /story-readiness
+                                     (validates each story
+                                      before pickup)
+                                           |
+                                           v
+                                       /dev-story
+                                     (implements the story,
+                                      routes to right agent)
                          |
                          v
                    Vertical Slice
@@ -625,19 +630,26 @@ pollutes `src/`.
 hardcoded values OK, no tests required -- but a README with hypothesis and
 findings is mandatory.
 
-### Step 4.2: Create Stories From Design Artifacts
+### Step 4.2: Create Epics and Stories From Design Artifacts
 
 ```
-/create-epics-stories
+/create-epics layer: foundation
+/create-stories [epic-slug]   # repeat for each epic
+/create-epics layer: core
+/create-stories [epic-slug]   # repeat for each core epic
 ```
 
-This reads your GDDs, ADRs, and control manifest to generate implementable
-story files in `production/stories/`. Each story embeds:
+`/create-epics` reads your GDDs, ADRs, and architecture to define epic scope —
+one epic per architectural module. Then `/create-stories` breaks each epic into
+implementable story files in `production/epics/[slug]/`. Each story embeds:
 - GDD requirement references (TR-IDs, not quoted text -- stays fresh)
 - ADR references (only from Accepted ADRs; Proposed ADRs cause `Status: Blocked`)
 - Control manifest version date (for staleness detection)
 - Engine-specific implementation notes
 - Acceptance criteria from the GDD
+
+Once stories exist, run `/dev-story [story-path]` to implement one — it routes
+automatically to the correct programmer agent.
 
 ### Step 4.3: Validate Stories Before Pickup
 
@@ -1395,7 +1407,9 @@ conflicts go to `producer`.
 
 | Command | Purpose | Phase |
 |---------|---------|-------|
-| `/create-epics-stories` | Break GDDs + ADRs into story files | 4 |
+| `/create-epics` | Translate GDDs + ADRs into epics (one per module) | 4 |
+| `/create-stories` | Break a single epic into story files | 4 |
+| `/dev-story` | Implement a story — routes to the correct programmer agent | 5 |
 | `/sprint-plan` | Create or manage sprint plans | 4-5 |
 | `/sprint-status` | Quick 30-line sprint snapshot | 5 |
 | `/story-readiness` | Validate story is implementation-ready | 4-5 |
@@ -1482,7 +1496,7 @@ conflicts go to `producer`.
 5. /architecture-review
 6. /create-control-manifest
 7. /gate-check technical-setup
-8. /create-epics-stories (break GDDs into stories)
+8. /create-epics layer: foundation + /create-stories [slug] (define epics, break into stories)
 9. /sprint-plan new
 10. /story-readiness -> implement -> /story-done (story lifecycle)
 ```

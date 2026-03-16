@@ -14,7 +14,7 @@
 #     the new TR-ID(s).
 #
 # WRITTEN BY: /architecture-review (appends new entries, never overwrites)
-# READ BY:    /create-epics-stories (embed IDs in stories)
+# READ BY:    /create-stories (embed IDs in stories)
 #             /story-done (look up current requirement text at review time)
 #             /story-readiness (validate TR-ID exists and is active)
 #
