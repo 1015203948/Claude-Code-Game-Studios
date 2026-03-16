@@ -1,6 +1,6 @@
 ---
 name: create-epics-stories
-description: "Translate approved GDDs + architecture + ADRs into implementable epics and stories. Each story embeds the GDD requirement it satisfies, the ADR governing implementation, acceptance criteria, engine compatibility notes, and control manifest rules. Programmers need nothing else to implement a story correctly."
+description: "DEPRECATED — use /create-epics then /create-stories instead. This skill has been split into two focused skills: /create-epics (architect-level scoping, one per layer) and /create-stories (lead-programmer story breakdown, one per epic)."
 argument-hint: "[system-name | layer: foundation|core|feature|presentation | all]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Task
@@ -8,7 +8,22 @@ context: fork
 agent: technical-director
 ---
 
-# Create Epics & Stories
+# Create Epics & Stories — DEPRECATED
+
+> **This skill has been superseded.** Use the two-skill workflow instead:
+>
+> 1. `/create-epics layer: foundation` — define Foundation epics (technical-director)
+> 2. `/create-stories [epic-slug]` — break each epic into stories (lead-programmer)
+> 3. `/create-epics layer: core` — define Core epics
+> 4. `/create-stories [epic-slug]` — break each Core epic into stories
+>
+> **Why the split?** Epics are architectural scope decisions (technical-director's domain).
+> Stories are implementation decomposition (lead-programmer's domain). Mixing them in one
+> skill caused the wrong agent to own the wrong decisions.
+>
+> **To implement a story** once stories exist, use `/dev-story [story-path]`.
+
+---
 
 This skill translates the approved design and architecture into implementable
 work units. Each **epic** maps to one architectural module. Each **story** is a

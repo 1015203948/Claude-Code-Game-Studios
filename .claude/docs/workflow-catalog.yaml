@@ -160,14 +160,25 @@ phases:
           min_count: 1
         description: "Build throwaway prototypes in isolated worktree to validate core mechanic"
 
-      - id: create-epics-stories
-        name: "Epics and Stories"
-        command: /create-epics-stories
+      - id: create-epics
+        name: "Create Epics"
+        command: /create-epics
         required: true
+        repeatable: true
         artifact:
-          glob: "production/stories/*.md"
+          glob: "production/epics/*/EPIC.md"
           min_count: 1
-        description: "Break GDDs + ADRs + control manifest into implementable story files"
+        description: "Translate GDDs + ADRs into epics — one per architectural module. Run per layer: /create-epics layer: foundation, then /create-epics layer: core"
+
+      - id: create-stories
+        name: "Create Stories"
+        command: /create-stories
+        required: true
+        repeatable: true
+        artifact:
+          glob: "production/epics/**/*.md"
+          min_count: 2
+        description: "Break each epic into implementable story files. Run per epic: /create-stories [epic-slug]"
 
       - id: sprint-plan
         name: "First Sprint Plan"
@@ -208,11 +219,12 @@ phases:
 
       - id: implement
         name: "Implement Stories"
+        command: /dev-story
         required: true
         repeatable: true
         artifact:
-          note: "Check src/ for active code and production/stories/ for In Progress stories"
-        description: "Pick the next ready story and implement it. Then run /story-done."
+          note: "Check src/ for active code and production/epics/**/*.md for In Progress stories"
+        description: "Pick the next ready story and implement it with /dev-story [story-path]. Routes to the correct programmer agent. Then run /code-review and /story-done."
 
       - id: story-done
         name: "Story Done Review"
