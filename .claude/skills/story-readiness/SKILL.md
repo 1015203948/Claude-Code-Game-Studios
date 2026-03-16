@@ -169,9 +169,14 @@ items pass or are explicitly marked N/A with a stated reason.
 - [ ] **Performance budget noted if applicable**: If this story touches any
   part of the gameplay loop, rendering, or physics, a performance budget or
   a "no performance impact expected — [reason]" note is present.
-- [ ] **Test strategy noted**: The story states whether verification is by
-  unit test, manual test, or playtest. "Acceptance criteria verified by
-  [test type]" is sufficient.
+- [ ] **Story Type declared**: The story includes a `Type:` field in its header
+  identifying the test category (Logic / Integration / Visual/Feel / UI / Config/Data).
+  Without this, test evidence requirements cannot be enforced at story close.
+  Fix: Add `Type: [Logic|Integration|Visual/Feel|UI|Config/Data]` to the story header.
+- [ ] **Test evidence requirement is clear**: If the Story Type is set, the story
+  includes a `## Test Evidence` section stating where evidence will be stored
+  (test file path for Logic/Integration, or evidence doc path for Visual/Feel/UI).
+  Fix: Add `## Test Evidence` with the expected evidence location for the story's type.
 
 ---
 

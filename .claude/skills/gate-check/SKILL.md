@@ -82,6 +82,9 @@ The project progresses through these stages:
 - [ ] At least 3 Architecture Decision Records in `docs/architecture/` covering
       Foundation-layer systems (scene management, event architecture, save/load)
 - [ ] Engine reference docs exist in `docs/engine-reference/[engine]/`
+- [ ] Test framework initialized: `tests/unit/` and `tests/integration/` directories exist
+- [ ] CI/CD test workflow exists at `.github/workflows/tests.yml` (or equivalent)
+- [ ] At least one example test file exists to confirm the framework is functional
 - [ ] Master architecture document exists at `docs/architecture/architecture.md`
 - [ ] Architecture traceability index exists at `docs/architecture/architecture-traceability.md`
 - [ ] `/architecture-review` has been run (a review report file exists in `docs/architecture/`)
@@ -161,7 +164,9 @@ The project progresses through these stages:
 - [ ] `src/` has active code organized into subsystems
 - [ ] All core mechanics from GDD are implemented (cross-reference `design/gdd/` with `src/`)
 - [ ] Main gameplay path is playable end-to-end
-- [ ] Test files exist in `tests/`
+- [ ] Test files exist in `tests/unit/` and `tests/integration/` covering Logic and Integration stories
+- [ ] All Logic stories from this sprint have corresponding unit test files in `tests/unit/`
+- [ ] Smoke check has been run with a PASS or PASS WITH WARNINGS verdict — report exists in `production/qa/`
 - [ ] At least 3 distinct playtest sessions documented in `production/playtests/`
 - [ ] Playtest reports cover: new player experience, mid-game systems, and difficulty curve
 - [ ] Fun hypothesis from Game Concept has been explicitly validated or revised
@@ -186,7 +191,11 @@ The project progresses through these stages:
 - [ ] All features from milestone plan are implemented
 - [ ] Content is complete (all levels, assets, dialogue referenced in design docs exist)
 - [ ] Localization strings are externalized (no hardcoded player-facing text in `src/`)
-- [ ] QA test plan exists
+- [ ] QA test plan exists (`/qa-plan` output in `production/qa/`)
+- [ ] QA sign-off report exists (`/team-qa` output — APPROVED or APPROVED WITH CONDITIONS)
+- [ ] All Must Have story test evidence is present (Logic/Integration: test files pass; Visual/Feel/UI: sign-off docs in `production/qa/evidence/`)
+- [ ] Smoke check passes cleanly (PASS verdict) on the release candidate build
+- [ ] No test regressions from previous sprint (test suite passes fully)
 - [ ] Balance data has been reviewed (`/balance-check` run)
 - [ ] Release checklist completed (`/release-checklist` or `/launch-checklist` run)
 - [ ] Store metadata prepared (if applicable)
@@ -304,6 +313,8 @@ Based on the verdict, suggest specific next steps:
 - **No interaction pattern library?** → `/ux-design patterns` to initialize it
 - **GDDs not cross-reviewed?** → `/review-all-gdds` (run after all MVP GDDs are individually approved)
 - **Cross-GDD consistency issues?** → fix flagged GDDs, then re-run `/review-all-gdds`
+- **No test framework?** → `/test-setup` to scaffold the framework for your engine
+- **No QA plan for current sprint?** → `/qa-plan sprint` to generate one before implementation begins
 - **Missing ADRs?** → `/architecture-decision` for individual decisions
 - **No master architecture doc?** → `/create-architecture` for the full blueprint
 - **ADRs missing engine compatibility sections?** → Re-run `/architecture-decision`

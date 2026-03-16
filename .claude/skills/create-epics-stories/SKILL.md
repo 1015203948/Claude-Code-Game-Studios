@@ -151,6 +151,19 @@ For each epic, decompose the GDD's acceptance criteria into stories:
 3. Each group = one story
 4. Order stories within the epic: foundation behaviour first, edge cases last
 
+**Story Type Classification** — assign each story a type based on its acceptance criteria:
+
+| Story Type | Assign when criteria reference... |
+|---|---|
+| **Logic** | Formulas, numerical thresholds, state transitions, AI decisions, calculations |
+| **Integration** | Two or more systems interacting, signals crossing boundaries, save/load round-trips |
+| **Visual/Feel** | Animation behaviour, VFX, "feels responsive", timing, screen shake, audio sync |
+| **UI** | Menus, HUD elements, buttons, screens, dialogue boxes, tooltips |
+| **Config/Data** | Balance tuning values, data file changes only — no new code logic |
+
+Mixed stories: assign the type that carries the highest implementation risk and note the secondary type.
+The Story Type determines what evidence is required before `/story-done` can mark the story Complete.
+
 For each story, map:
 - **GDD requirement**: Which specific acceptance criterion does this satisfy?
 - **TR-ID**: Look up the matching entry in `tr-registry.yaml` by normalizing the
@@ -179,6 +192,7 @@ For each story, produce a story file embedding full context:
 > **Epic**: [epic name]
 > **Status**: Ready
 > **Layer**: [Foundation / Core / Feature / Presentation]
+> **Type**: [Logic | Integration | Visual/Feel | UI | Config/Data]
 > **Manifest Version**: [date from control-manifest.md header — or "N/A" if manifest not yet created]
 
 ## Context
@@ -229,6 +243,19 @@ paraphrase in ways that change meaning.]
 - [Other epic story]: [what it handles]
 
 This boundary prevents scope creep and keeps stories independently reviewable.
+
+---
+
+## Test Evidence
+
+**Required evidence** (based on Story Type):
+- Logic: `tests/unit/[system]/[story-slug]_test.[ext]` — must exist and pass
+- Integration: `tests/integration/[system]/[story-slug]_test.[ext]` OR playtest doc
+- Visual/Feel: `production/qa/evidence/[story-slug]-evidence.md` + sign-off
+- UI: `production/qa/evidence/[story-slug]-evidence.md` or interaction test
+- Config/Data: smoke check pass (`production/qa/smoke-*.md`)
+
+**Status**: [ ] Not yet created
 
 ---
 
@@ -313,6 +340,8 @@ After approval, write:
 This epic is complete when:
 - All stories are implemented and reviewed
 - All acceptance criteria from [GDD filename] are passing
+- All Logic and Integration stories have passing test files in `tests/`
+- All Visual/Feel and UI stories have evidence docs with sign-off in `production/qa/evidence/`
 - No Foundation or Core layer stories have open blockers
 ```
 

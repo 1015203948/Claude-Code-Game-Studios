@@ -45,6 +45,7 @@ Read the full story file. Extract and hold in context:
 - **ADR reference(s)** referenced
 - **Acceptance Criteria** — the complete list (every checkbox item)
 - **Implementation files** — files listed under "files to create/modify"
+- **Story Type** — the `Type:` field from the story header (Logic / Integration / Visual/Feel / UI / Config/Data)
 - **Engine notes** — any engine-specific constraints noted
 - **Definition of Done** — if present, the story-level DoD
 - **Estimated vs actual scope** — if an estimate was noted
@@ -133,6 +134,42 @@ For each acceptance criterion in the story:
 4. For any ADVISORY untested criteria, add to the Completion Notes in Phase 7:
    `"Untested criteria: [AC-N list]. Recommend adding tests in a follow-up story."`
 
+### Test Evidence Requirement
+
+Based on the Story Type extracted in Phase 2, check for required evidence:
+
+| Story Type | Required Evidence | Gate Level |
+|---|---|---|
+| **Logic** | Automated unit test in `tests/unit/[system]/` — must exist and pass | BLOCKING |
+| **Integration** | Integration test in `tests/integration/[system]/` OR playtest doc | BLOCKING |
+| **Visual/Feel** | Screenshot + sign-off in `production/qa/evidence/` | ADVISORY |
+| **UI** | Manual walkthrough doc OR interaction test in `production/qa/evidence/` | ADVISORY |
+| **Config/Data** | Smoke check pass report in `production/qa/smoke-*.md` | ADVISORY |
+
+**For Logic stories**: use `Glob` to check `tests/unit/[system]/` for a test
+file matching the story slug. If none found:
+- Flag as **BLOCKING**: "Logic story has no unit test file. Expected at
+  `tests/unit/[system]/[story-slug]_test.[ext]`. Create and run the test
+  before marking this story Complete."
+
+**For Integration stories**: check `tests/integration/[system]/` AND
+`production/session-logs/` for a playtest record referencing this story.
+If neither exists: flag as **BLOCKING** (same rule as Logic).
+
+**For Visual/Feel and UI stories**: glob `production/qa/evidence/` for a file
+referencing this story. If none: flag as **ADVISORY** —
+"No manual test evidence found. Create `production/qa/evidence/[story-slug]-evidence.md`
+using the test-evidence template and obtain sign-off before final closure."
+
+**For Config/Data stories**: check for any `production/qa/smoke-*.md` file.
+If none: flag as **ADVISORY** — "No smoke check report found. Run `/smoke-check`."
+
+**If no Story Type is set**: flag as **ADVISORY** —
+"Story Type not declared. Add `Type: [Logic|Integration|Visual/Feel|UI|Config/Data]`
+to the story header to enable test evidence gate enforcement in future stories."
+
+Any BLOCKING test evidence gap prevents the COMPLETE verdict in Phase 6.
+
 ---
 
 ## Phase 4: Check for Deviations
@@ -220,6 +257,11 @@ Before updating any files, present the full report:
 | AC-2: [text] | Manual confirmation | COVERED |
 | AC-3: [text] | — | UNTESTED |
 
+### Test Evidence
+**Story Type**: [Logic | Integration | Visual/Feel | UI | Config/Data | Not declared]
+**Required evidence**: [unit test file | integration test or playtest | screenshot + sign-off | walkthrough doc | smoke check pass]
+**Evidence found**: [YES — `[path]` | NO — BLOCKING | NO — ADVISORY]
+
 ### Deviations
 [NONE] OR:
 - BLOCKING: [description] — [GDD/ADR reference]
@@ -257,6 +299,7 @@ If yes, edit the story file:
 **Completed**: [date]
 **Criteria**: [X/Y passing] ([any deferred items listed])
 **Deviations**: [None] or [list of advisory deviations]
+**Test Evidence**: [Logic: test file at path | Visual/Feel: evidence doc at path | None required (Config/Data)]
 **Code Review**: [Pending / Complete / Skipped]
 ```
 
