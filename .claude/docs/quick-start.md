@@ -253,8 +253,8 @@ CLAUDE.md                          -- Master config (read this first, ~60 lines)
 .claude/
   settings.json                    -- Claude Code hooks and project settings
   agents/                          -- 48 agent definitions (YAML frontmatter)
-  skills/                          -- 52 slash command definitions (YAML frontmatter)
-  hooks/                           -- 9 hook scripts (.sh) wired by settings.json
+  skills/                          -- 66 slash command definitions (YAML frontmatter)
+  hooks/                           -- 12 hook scripts (.sh) wired by settings.json
   rules/                           -- 11 path-specific rule files
   docs/
     quick-start.md                 -- This file
@@ -266,5 +266,5 @@ CLAUDE.md                          -- Master config (read this first, ~60 lines)
     workflow-catalog.yaml          -- 7-phase pipeline definition (read by /help)
     setup-requirements.md          -- System prerequisites (Git Bash, jq, Python)
     settings-local-template.md     -- Personal settings.local.json guide
-    templates/                     -- 36 document templates
+    templates/                     -- 35 document templates
 ```

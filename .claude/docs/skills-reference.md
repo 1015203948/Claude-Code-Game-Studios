@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-52 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+66 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -66,6 +66,20 @@
 | `/tech-debt` | Scan, track, prioritize, and report on technical debt |
 | `/gate-check` | Validate readiness to advance between development phases (PASS/CONCERNS/FAIL) |
 
+## QA & Testing
+
+| Command | Purpose |
+|---------|---------|
+| `/qa-plan` | Generate a QA test plan for a sprint or feature |
+| `/smoke-check` | Run critical path smoke test gate before QA hand-off |
+| `/soak-test` | Generate a soak test protocol for extended play sessions |
+| `/regression-suite` | Map test coverage to GDD critical paths, identify fixed bugs without regression tests |
+| `/test-setup` | Scaffold the test framework and CI/CD pipeline for the project's engine |
+| `/test-helpers` | Generate engine-specific test helper libraries for the test suite |
+| `/test-evidence-review` | Quality review of test files and manual evidence documents |
+| `/test-flakiness` | Detect non-deterministic (flaky) tests from CI run logs |
+| `/skill-test` | Validate skill files for structural compliance and behavioral correctness |
+
 ## Production
 
 | Command | Purpose |
@@ -73,6 +87,7 @@
 | `/milestone-review` | Review milestone progress and generate status report |
 | `/retrospective` | Run a structured sprint or milestone retrospective |
 | `/bug-report` | Create a structured bug report |
+| `/bug-triage` | Read all open bugs, re-evaluate priority vs. severity, assign owner and label |
 | `/reverse-document` | Generate design or architecture docs from existing implementation |
 | `/playtest-report` | Generate a structured playtest report or analyze existing playtest notes |
 
@@ -107,3 +122,5 @@ Coordinate multiple agents on a single feature area:
 | `/team-polish` | performance-analyst + technical-artist + sound-designer + qa-tester |
 | `/team-audio` | audio-director + sound-designer + technical-artist + gameplay-programmer |
 | `/team-level` | level-designer + narrative-director + world-builder + art-director + systems-designer + qa-tester |
+| `/team-live-ops` | live-ops-designer + economy-designer + community-manager + analytics-engineer |
+| `/team-qa` | qa-lead + qa-tester + gameplay-programmer + producer |

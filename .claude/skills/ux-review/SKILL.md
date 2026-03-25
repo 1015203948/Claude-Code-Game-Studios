@@ -47,12 +47,16 @@ full detail for each.
 
 Before validating any spec, load:
 
-1. The accessibility tier committed to in `design/accessibility-requirements.md`
+1. **Input & Platform config**: Read `.claude/docs/technical-preferences.md` and
+   extract `## Input & Platform`. This is the authoritative source for which input
+   methods the game supports — use it to drive the Input Method Coverage checks in
+   Phase 3A, not the spec's own header. If unconfigured, fall back to the spec header.
+2. The accessibility tier committed to in `design/accessibility-requirements.md`
    (if it exists)
-2. The interaction pattern library at `design/ux/interaction-patterns.md` (if
+3. The interaction pattern library at `design/ux/interaction-patterns.md` (if
    it exists)
-3. The GDDs referenced in the spec's header (read their UI Requirements sections)
-4. The player journey map at `design/player-journey.md` (if it exists) for
+4. The GDDs referenced in the spec's header (read their UI Requirements sections)
+5. The player journey map at `design/player-journey.md` (if it exists) for
    context-arrival validation
 
 ---

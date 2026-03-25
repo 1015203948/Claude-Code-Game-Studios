@@ -90,7 +90,28 @@ already made.
 Check for `design/accessibility-requirements.md`. If found, read it. The spec
 must satisfy the accessibility tier committed to there.
 
-### 2h: Present Context Summary
+### 2h: Input Method (from Project Config)
+
+Read `.claude/docs/technical-preferences.md` and extract the `## Input & Platform`
+section. Store these values for use throughout the skill — they drive the
+Interaction Map and inform accessibility requirements:
+
+- **Input Methods** — e.g., Keyboard/Mouse, Gamepad, Touch, Mixed
+- **Primary Input** — the dominant input for this game
+- **Gamepad Support** — Full / Partial / None
+- **Touch Support** — Full / Partial / None
+- **Target Platforms** — for safe zone and aspect ratio decisions
+
+If the section is unconfigured (`[TO BE CONFIGURED]`), ask once:
+> "Input methods aren't configured yet. What does this game target?"
+> Options: "Keyboard/Mouse only", "Gamepad only", "Both (PC + Console)", "Touch (mobile)", "All of the above"
+>
+> (Run `/setup-engine` to save this permanently so you won't be asked again.)
+
+Store the answer for the rest of this session. Do **not** ask again per section
+or per screen.
+
+### 2i: Present Context Summary
 
 Before any design work, present a brief summary to the user:
 
@@ -101,6 +122,7 @@ Before any design work, present a brief summary to the user:
 > - Related screens already specced: [list, or "none yet"]
 > - Known patterns available: [count, or "no pattern library yet"]
 > - Accessibility tier: [from requirements doc, or "not yet defined"]
+> - Input methods: [from technical-preferences.md, or "asked above"]
 
 Then ask: "Anything else I should read before we start, or shall we proceed?"
 
@@ -427,8 +449,9 @@ For each interactive component identified in the Layout Specification, define:
 - The immediate feedback (visual, audio, haptic)
 - The outcome (navigation target, state change, data write)
 
-Ask up front: "Which input methods does this game target? I'll tailor the
-interaction map to those." Reference game concept for platform targets.
+Use the input methods loaded from `technical-preferences.md` in Phase 2h — do
+not ask the user again. State them upfront: "Mapping interactions for:
+[Input Methods from tech-prefs]. Covering [Gamepad Support] gamepad support."
 
 Work through components one at a time rather than asking for all at once.
 For navigation actions (going to another screen), verify the target matches

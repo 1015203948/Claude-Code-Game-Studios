@@ -10,6 +10,18 @@
 - **Rendering**: [TO BE CONFIGURED]
 - **Physics**: [TO BE CONFIGURED]
 
+## Input & Platform
+
+<!-- Written by /setup-engine. Read by /ux-design, /ux-review, /test-setup, /team-ui, and /dev-story -->
+<!-- to scope interaction specs, test helpers, and implementation to the correct input methods. -->
+
+- **Target Platforms**: [TO BE CONFIGURED — e.g., PC, Console, Mobile, Web]
+- **Input Methods**: [TO BE CONFIGURED — e.g., Keyboard/Mouse, Gamepad, Touch, Mixed]
+- **Primary Input**: [TO BE CONFIGURED — the dominant input for this game]
+- **Gamepad Support**: [TO BE CONFIGURED — Full / Partial / None]
+- **Touch Support**: [TO BE CONFIGURED — Full / Partial / None]
+- **Platform Notes**: [TO BE CONFIGURED — any platform-specific UX constraints]
+
 ## Naming Conventions
 
 - **Classes**: [TO BE CONFIGURED]

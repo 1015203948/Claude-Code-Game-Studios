@@ -3,15 +3,15 @@
   <p align="center">
     Turn a single Claude Code session into a full game development studio.
     <br />
-    48 agents. 52 workflows. One coordinated AI team.
+    48 agents. 66 workflows. One coordinated AI team.
   </p>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <a href=".claude/agents"><img src="https://img.shields.io/badge/agents-48-blueviolet" alt="48 Agents"></a>
-  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-52-green" alt="52 Skills"></a>
-  <a href=".claude/hooks"><img src="https://img.shields.io/badge/hooks-9-orange" alt="9 Hooks"></a>
+  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-66-green" alt="66 Skills"></a>
+  <a href=".claude/hooks"><img src="https://img.shields.io/badge/hooks-12-orange" alt="12 Hooks"></a>
   <a href=".claude/rules"><img src="https://img.shields.io/badge/rules-11-red" alt="11 Rules"></a>
   <a href="https://docs.anthropic.com/en/docs/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-f5f5f5?logo=anthropic" alt="Built for Claude Code"></a>
   <a href="https://ko-fi.com/donchitos"><img src="https://img.shields.io/badge/Ko--fi-Support%20this%20project-ff5e5b?logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
@@ -51,10 +51,10 @@ The result: you still make every decision, but now you have a team that asks the
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 48 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
-| **Skills** | 65 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics`, `/create-stories`, `/dev-story`, `/story-done`, etc.) |
-| **Hooks** | 9 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit trail, and gap detection |
+| **Skills** | 66 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics`, `/create-stories`, `/dev-story`, `/story-done`, etc.) |
+| **Hooks** | 12 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit trail, and gap detection |
 | **Rules** | 11 | Path-scoped coding standards enforced when editing gameplay, engine, AI, UI, network code, and more |
-| **Templates** | 36 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
+| **Templates** | 35 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
 
 ## Studio Hierarchy
 
@@ -92,7 +92,7 @@ The template includes agent sets for all three major engines. Use the set that m
 
 ## Slash Commands
 
-Type `/` in Claude Code to access all 65 skills:
+Type `/` in Claude Code to access all 66 skills:
 
 **Onboarding & Navigation**
 `/start` `/help` `/project-stage-detect` `/setup-engine` `/adopt`
@@ -112,8 +112,11 @@ Type `/` in Claude Code to access all 65 skills:
 **Reviews & Analysis**
 `/design-review` `/code-review` `/balance-check` `/asset-audit` `/content-audit` `/scope-check` `/perf-profile` `/tech-debt` `/gate-check`
 
+**QA & Testing**
+`/qa-plan` `/smoke-check` `/soak-test` `/regression-suite` `/test-setup` `/test-helpers` `/test-evidence-review` `/test-flakiness` `/skill-test`
+
 **Production**
-`/milestone-review` `/retrospective` `/bug-report` `/reverse-document` `/playtest-report`
+`/milestone-review` `/retrospective` `/bug-report` `/bug-triage` `/reverse-document` `/playtest-report`
 
 **Release**
 `/release-checklist` `/launch-checklist` `/changelog` `/patch-notes` `/hotfix`
@@ -122,7 +125,7 @@ Type `/` in Claude Code to access all 65 skills:
 `/prototype` `/onboard` `/localize`
 
 **Team Orchestration** (coordinate multiple agents on a single feature)
-`/team-combat` `/team-narrative` `/team-ui` `/team-release` `/team-polish` `/team-audio` `/team-level`
+`/team-combat` `/team-narrative` `/team-ui` `/team-release` `/team-polish` `/team-audio` `/team-level` `/team-live-ops` `/team-qa`
 
 ## Getting Started
 
@@ -168,12 +171,12 @@ CLAUDE.md                           # Master configuration
 .claude/
   settings.json                     # Hooks, permissions, safety rules
   agents/                           # 48 agent definitions (markdown + YAML frontmatter)
-  skills/                           # 52 slash commands (subdirectory per skill)
-  hooks/                            # 9 hook scripts (bash, cross-platform)
+  skills/                           # 66 slash commands (subdirectory per skill)
+  hooks/                            # 12 hook scripts (bash, cross-platform)
   rules/                            # 11 path-scoped coding standards
   docs/
     workflow-catalog.yaml           # 7-phase pipeline definition (read by /help)
-    templates/                      # 36 document templates
+    templates/                      # 35 document templates
 src/                                # Game source code
 assets/                             # Art, audio, VFX, shaders, data files
 design/                             # GDDs, narrative docs, level designs
@@ -219,10 +222,13 @@ You stay in control. The agents provide structure and expertise, not autonomy.
 | `validate-assets.sh` | File writes in `assets/` | Validates naming conventions and JSON structure |
 | `session-start.sh` | Session open | Loads sprint context and recent git activity |
 | `detect-gaps.sh` | Session open | Detects fresh projects (suggests `/start`) and missing documentation when code/prototypes exist |
-| `pre-compact.sh` | Context compression | Preserves session progress notes |
+| `pre-compact.sh` | Before compaction | Preserves session progress notes |
+| `post-compact.sh` | After compaction | Reminds Claude to restore session state from `active.md` |
+| `notify.sh` | Notification event | Shows Windows toast notification via PowerShell |
 | `session-stop.sh` | Session close | Logs accomplishments |
 | `log-agent.sh` | Agent spawned | Audit trail start — logs subagent invocation |
 | `log-agent-stop.sh` | Agent stops | Audit trail stop — completes subagent record |
+| `validate-skill-change.sh` | Skill file written | Advises running `/skill-test` after any `.claude/skills/` change |
 
 **Permission rules** in `settings.json` auto-allow safe operations (git status, test runs) and block dangerous ones (force push, `rm -rf`, reading `.env` files).
 

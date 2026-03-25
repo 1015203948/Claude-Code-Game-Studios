@@ -35,9 +35,10 @@ If no engine is specified, run an interactive engine selection process:
 ### If the user wants to pick without a concept, ask:
 1. **What kind of game?** (2D, 3D, or both?)
 2. **What platforms?** (PC, mobile, console, web?)
-3. **Team size and experience?** (solo beginner, solo experienced, small team?)
-4. **Any strong language preferences?** (GDScript, C#, C++, visual scripting?)
-5. **Budget for engine licensing?** (free only, or commercial licenses OK?)
+3. **Primary input method?** (keyboard/mouse, gamepad, touch, or mixed?)
+4. **Team size and experience?** (solo beginner, solo experienced, small team?)
+5. **Any strong language preferences?** (GDScript, C#, C++, visual scripting?)
+6. **Budget for engine licensing?** (free only, or commercial licenses OK?)
 
 ### Produce a recommendation
 
@@ -134,6 +135,39 @@ engine-appropriate defaults. Read the existing template first, then fill in:
 - Functions: PascalCase (e.g., `TakeDamage()`)
 - Booleans: `b` prefix (e.g., `bIsAlive`)
 - Files: Match class without prefix (e.g., `PlayerController.h`)
+
+### Input & Platform Section
+
+Populate `## Input & Platform` using the answers gathered in Section 2 (or extracted
+from the game concept). Derive the values using this mapping:
+
+| Platform target | Gamepad Support | Touch Support |
+|-----------------|-----------------|---------------|
+| PC only | Partial (recommended) | None |
+| Console | Full | None |
+| Mobile | None | Full |
+| PC + Console | Full | None |
+| PC + Mobile | Partial | Full |
+| Web | Partial | Partial |
+
+For **Primary Input**, use the dominant input for the game genre:
+- Action/RPG/platformer targeting console → Gamepad
+- Strategy/point-and-click/RTS → Keyboard/Mouse
+- Mobile game → Touch
+- Cross-platform → ask the user
+
+Present the derived values and ask the user to confirm or adjust before writing.
+
+Example filled section:
+```markdown
+## Input & Platform
+- **Target Platforms**: PC, Console
+- **Input Methods**: Keyboard/Mouse, Gamepad
+- **Primary Input**: Gamepad
+- **Gamepad Support**: Full
+- **Touch Support**: None
+- **Platform Notes**: All UI must support d-pad navigation. No hover-only interactions.
+```
 
 ### Remaining Sections
 - Performance Budgets: Leave as `[TO BE CONFIGURED]` with a suggestion:

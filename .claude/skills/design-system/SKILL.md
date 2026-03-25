@@ -457,6 +457,16 @@ For **Visual/Audio**: Coordinate with `art-director` and `audio-director` if det
 is needed. Often a brief note suffices at the GDD stage.
 
 For **UI Requirements**: Coordinate with `ux-designer` for complex UI systems.
+After writing this section, check whether it contains real content (not just
+`[To be designed]` or a note that this system has no UI). If it does have real
+UI requirements, output this flag immediately:
+
+> **📌 UX Flag — [System Name]**: This system has UI requirements. In Phase 4
+> (Pre-Production), run `/ux-design` to create a UX spec for each screen or
+> HUD element this system contributes to **before** writing epics. Stories that
+> reference UI should cite `design/ux/[screen].md`, not the GDD directly.
+>
+> Note this in the systems index for this system if you update it.
 
 For **Open Questions**: Capture anything that came up during design that wasn't
 fully resolved. Each question should have an owner and target resolution date.

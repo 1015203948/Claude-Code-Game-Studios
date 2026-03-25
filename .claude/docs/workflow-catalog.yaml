@@ -86,7 +86,7 @@ phases:
 
   technical-setup:
     label: "Technical Setup"
-    description: "Architecture decisions, UX foundations, engine validation"
+    description: "Architecture decisions, accessibility foundations, engine validation"
     next_phase: pre-production
     steps:
       - id: create-architecture
@@ -128,8 +128,13 @@ phases:
         required: true
         artifact:
           glob: "design/accessibility-requirements.md"
-        description: "Commit accessibility tier (Basic/Standard/Comprehensive/Exemplary) and feature matrix"
+        description: "Commit accessibility tier (Basic/Standard/Comprehensive/Exemplary) and feature matrix. UX specs (Phase 4) reference this tier."
 
+  pre-production:
+    label: "Pre-Production"
+    description: "UX specs, prototype the core mechanic, define stories, validate fun"
+    next_phase: production
+    steps:
       - id: ux-design
         name: "UX Specs (key screens)"
         command: /ux-design
@@ -138,19 +143,14 @@ phases:
         artifact:
           glob: "design/ux/*.md"
           min_count: 1
-        description: "Author UX specs for main menu, core gameplay HUD, and pause screen"
+        description: "Author UX specs for main menu, core gameplay HUD, and interaction patterns. Reads input method and platform from technical-preferences.md."
 
       - id: ux-review
         name: "UX Review"
         command: /ux-review
         required: true
-        description: "Validate all key screen UX specs for accessibility and GDD alignment"
+        description: "Validate all key screen UX specs for GDD alignment and accessibility tier compliance. Run before creating epics."
 
-  pre-production:
-    label: "Pre-Production"
-    description: "Prototype the core mechanic, define stories, validate fun"
-    next_phase: production
-    steps:
       - id: prototype
         name: "Prototype"
         command: /prototype

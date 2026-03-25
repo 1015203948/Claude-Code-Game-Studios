@@ -80,16 +80,17 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 
 ## v0.3.0 → v0.4.0
 
-**Released:** 2026-03-09
+**Released:** 2026-03-21
 **Commit range:** `b1cad29..HEAD`
-**Key themes:** Full UX/UI pipeline, complete story lifecycle, brownfield adoption, pipeline integrity, 15 new skills
+**Key themes:** Full UX/UI pipeline, complete story lifecycle, brownfield adoption, comprehensive QA/testing framework, pipeline integrity, 29 new skills
 
 ### What Changed
 
 | Category | Changes |
 |----------|---------|
 | **New skills (17)** | `/ux-design`, `/ux-review`, `/help`, `/quick-design`, `/review-all-gdds`, `/story-readiness`, `/story-done`, `/sprint-status`, `/adopt`, `/create-architecture`, `/create-control-manifest`, `/create-epics`, `/create-stories`, `/dev-story`, `/propagate-design-change`, `/content-audit`, `/architecture-review` |
-| **New hook** | `log-agent-stop.sh` — completes agent audit trail (stop event to match start) |
+| **New skills QA (12)** | `/qa-plan`, `/smoke-check`, `/soak-test`, `/regression-suite`, `/test-setup`, `/test-helpers`, `/test-evidence-review`, `/test-flakiness`, `/skill-test`, `/bug-triage`, `/team-live-ops`, `/team-qa` |
+| **New hooks (4)** | `log-agent-stop.sh` — agent audit trail stop; `notify.sh` — Windows toast notifications; `post-compact.sh` — session recovery reminder after compaction; `validate-skill-change.sh` — advises `/skill-test` after skill edits |
 | **New templates (8)** | `ux-spec.md`, `hud-design.md`, `accessibility-requirements.md`, `interaction-pattern-library.md`, `player-journey.md`, `difficulty-curve.md`, and 2 adoption plan templates |
 | **New infrastructure** | `workflow-catalog.yaml` (7-phase pipeline, read by `/help`), `docs/architecture/tr-registry.yaml` (stable TR-IDs), `production/sprint-status.yaml` schema |
 | **Skill updates** | `/gate-check` — 3 gates now require UX artifacts; Pre-Production gate requires vertical slice (HARD gate) |
@@ -99,6 +100,8 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 | **Skill updates** | `/team-ui` — full UX pipeline (ux-design → ux-review → team phases) |
 | **Agent updates** | 14 specialist agents — `memory: project` added |
 | **Agent updates** | `prototyper` — `isolation: worktree` (throwaway work in isolated git branch) |
+| **Model routing** | Haiku/Sonnet/Opus tier assignments documented in coordination rules; skills declare their tier in frontmatter |
+| **Directory CLAUDE.md** | Scaffolded `design/CLAUDE.md`, `src/CLAUDE.md`, `docs/CLAUDE.md` — path-scoped instructions for each directory |
 | **Pipeline integrity** | TR-ID stability, manifest versioning, ADR status gates, TR-ID reference not quote |
 | **GDD template** | `## Game Feel` section added (input responsiveness, animation targets, impact moments) |
 
@@ -125,7 +128,22 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 .claude/skills/propagate-design-change/SKILL.md
 .claude/skills/content-audit/SKILL.md
 .claude/skills/architecture-review/SKILL.md
+.claude/skills/qa-plan/SKILL.md
+.claude/skills/smoke-check/SKILL.md
+.claude/skills/soak-test/SKILL.md
+.claude/skills/regression-suite/SKILL.md
+.claude/skills/test-setup/SKILL.md
+.claude/skills/test-helpers/SKILL.md
+.claude/skills/test-evidence-review/SKILL.md
+.claude/skills/test-flakiness/SKILL.md
+.claude/skills/skill-test/SKILL.md
+.claude/skills/bug-triage/SKILL.md
+.claude/skills/team-live-ops/SKILL.md
+.claude/skills/team-qa/SKILL.md
 .claude/hooks/log-agent-stop.sh
+.claude/hooks/notify.sh
+.claude/hooks/post-compact.sh
+.claude/hooks/validate-skill-change.sh
 .claude/docs/workflow-catalog.yaml
 .claude/docs/templates/ux-spec.md
 .claude/docs/templates/hud-design.md
@@ -133,6 +151,9 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 .claude/docs/templates/interaction-pattern-library.md
 .claude/docs/templates/player-journey.md
 .claude/docs/templates/difficulty-curve.md
+design/CLAUDE.md
+src/CLAUDE.md
+docs/CLAUDE.md
 ```
 
 **Existing files to overwrite (no user content):**
@@ -174,7 +195,12 @@ UPGRADING.md
 
 #### `.claude/settings.json`
 
-The new version registers `log-agent-stop.sh` as a hook for the `PostToolUse` (agent stop) event. If you haven't customized `settings.json`, overwriting is safe. Otherwise, add the new hook entry for `SubagentStop` manually.
+Four new hooks are registered in this version. If you haven't customized `settings.json`, overwriting is safe. Otherwise, add the following hook entries manually:
+
+- `log-agent-stop.sh` — `SubagentStop` event (agent audit trail stop)
+- `notify.sh` — `Notification` event (Windows toast notification)
+- `post-compact.sh` — `PostCompact` event (session recovery reminder)
+- `validate-skill-change.sh` — `PostToolUse` event filtered to `.claude/skills/` writes
 
 #### Customized agent files
 
@@ -219,11 +245,49 @@ Also: `/design-system retrofit [path]` and `/architecture-decision retrofit [pat
 
 `/help` reads your current stage and in-progress work, checks which artifacts are complete, and tells you exactly what to do next — one primary required step, plus optional opportunities. Distinct from `/start` (first-time only) and `/project-stage-detect` (full audit).
 
+#### Comprehensive QA and Testing Framework
+
+Nine new QA/testing skills covering the full testing lifecycle:
+
+- **`/test-setup`** — scaffolds the test framework and CI/CD pipeline for your engine
+- **`/test-helpers`** — generates engine-specific test helper libraries (GDUnit4, NUnit, etc.)
+- **`/qa-plan`** — generates a QA test plan for a sprint or feature, classifying stories by test type
+- **`/smoke-check`** — runs the critical path smoke test gate before QA hand-off
+- **`/soak-test`** — generates a soak test protocol for extended play sessions (stability, memory leaks)
+- **`/regression-suite`** — maps test coverage to GDD critical paths, identifies fixed bugs lacking regression tests
+- **`/test-evidence-review`** — quality review of test files and manual evidence documents
+- **`/test-flakiness`** — detects non-deterministic tests by reading CI run logs
+- **`/skill-test`** — validates skill files for structural compliance and behavioral correctness (three modes: lint, spec, catalog)
+
+Also new: **`/bug-triage`** re-evaluates all open bugs for priority, severity, and ownership.
+
+#### Skill Validator (`/skill-test`)
+
+`/skill-test` is a meta-skill for validating the harness itself. Run it after editing any skill file. Three modes:
+- `lint` — validates YAML frontmatter and required fields
+- `spec [skill-name]` — runs behavioral spec tests against a specific skill
+- `catalog` — checks that all skills in `.claude/skills/` are indexed in the catalog
+
+The new `validate-skill-change.sh` hook reminds you to run `/skill-test` automatically when a skill file is modified.
+
+#### Team Live-Ops and Team QA Orchestration
+
+- **`/team-live-ops`** — coordinates live-ops-designer + economy-designer + community-manager + analytics-engineer for post-launch content planning (seasonal events, battle pass, retention)
+- **`/team-qa`** — orchestrates qa-lead + qa-tester + gameplay-programmer + producer through a full QA cycle: strategy, execution, coverage, and sign-off
+
+#### Model Tier Routing
+
+Skills are now explicitly assigned to Haiku, Sonnet, or Opus tiers based on task complexity. Read-only status checks use Haiku; complex multi-document synthesis uses Opus; everything else defaults to Sonnet. Tier assignments are documented in `.claude/docs/coordination-rules.md`.
+
+#### Directory CLAUDE.md Files
+
+Three new directory-scoped CLAUDE.md files (`design/`, `src/`, `docs/`) provide path-specific instructions to agents working in those directories. These load automatically when Claude Code reads files in that directory.
+
 ---
 
 ### After Upgrading
 
-1. **Verify new hooks** are registered in `.claude/settings.json` — check for `log-agent-stop.sh`.
+1. **Verify new hooks** are registered in `.claude/settings.json` — check for all four: `log-agent-stop.sh`, `notify.sh`, `post-compact.sh`, `validate-skill-change.sh`.
 
 2. **Test the audit trail** by spawning any subagent — both start and stop events should appear in `production/session-logs/`.
 
@@ -233,6 +297,8 @@ Also: `/design-system retrofit [path]` and `/architecture-decision retrofit [pat
    ```
 
 4. **Run `/adopt`** if you have existing GDDs or ADRs that predate this template version — it will identify which sections need to be added without overwriting your content.
+
+5. **Validate your skills** after any skill edits with `/skill-test` — the new `validate-skill-change.sh` hook will automatically remind you to do this.
 
 ---
 

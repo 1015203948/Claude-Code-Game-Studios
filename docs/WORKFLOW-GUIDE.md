@@ -3,7 +3,7 @@
 > **How to go from zero to a shipped game using the Agent Architecture.**
 >
 > This guide walks you through every phase of game development using the
-> 48-agent system, 52 slash commands, and 9 automated hooks. It assumes you
+> 48-agent system, 66 slash commands, and 12 automated hooks. It assumes you
 > have Claude Code installed and are working from the project root.
 >
 > The pipeline has 7 phases. Each phase has a formal gate (`/gate-check`)
@@ -522,40 +522,14 @@ This contains Required patterns, Forbidden patterns, and Guardrails organized
 by code layer. Stories created later embed the manifest version date so
 staleness can be detected.
 
-### Step 3.5: UX Foundations
-
-Three UX artifacts are required before leaving this phase:
-
-**Accessibility Requirements:**
+### Step 3.5: Accessibility Requirements
 
 Create `design/accessibility-requirements.md` using the template. Commit to a
 tier (Basic / Standard / Comprehensive / Exemplary) and fill the 4-axis feature
 matrix (visual, motor, cognitive, auditory).
 
-**UX Specs for Key Screens:**
-
-```
-/ux-design main-menu
-/ux-design core-gameplay-hud
-```
-
-Three modes: screen/flow, HUD, and interaction patterns. Output goes to
-`design/ux/`. Each spec includes: player need, layout zones, states,
-interaction map, data requirements, events fired, accessibility, localization.
-
-**UX Review:**
-
-```
-/ux-review
-```
-
-Validates UX specs for GDD alignment and accessibility tier compliance.
-
-**Interaction Pattern Library:**
-
-Create `design/ux/interaction-patterns.md` -- 16 standard controls plus
-game-specific patterns (inventory slot, ability icon, HUD bar, dialogue box,
-etc.) with animation and sound standards.
+This document is required in Phase 3 because UX specs (written in Phase 4)
+reference this tier — it is a design prerequisite, not a UX deliverable.
 
 ### Phase 3 Gate
 
@@ -570,8 +544,6 @@ etc.) with animation and sound standards.
 - Architecture review report exists
 - `docs/architecture/control-manifest.md` exists
 - `design/accessibility-requirements.md` exists
-- At least 1 UX spec reviewed in `design/ux/`
-- UX review completed
 
 ---
 
@@ -579,30 +551,30 @@ etc.) with animation and sound standards.
 
 ### What Happens in This Phase
 
-You turn design documents into implementable stories, create prototypes to
-validate risky mechanics, plan your first sprint, and build a Vertical Slice
-that proves the core loop is fun.
+You create UX specs for key screens, prototype risky mechanics, turn design
+documents into implementable stories, plan your first sprint, and build a
+Vertical Slice that proves the core loop is fun.
 
 ### Phase 4 Pipeline
 
 ```
-/prototype  -->  /create-epics  -->  /create-stories  -->  /sprint-plan
-    |                  |                   |                       |
-    v                  v                   v                       v
-  Throwaway       Epic files in       Story files in          First sprint with
-  prototypes      production/         production/             prioritized stories
-  in prototypes/  epics/*/EPIC.md     epics/*/story-*.md      production/sprints/
-                  (one per module)    (one per behaviour)     sprint-*.md
-                                           |
-                                           v
-                                     /story-readiness
-                                     (validates each story
-                                      before pickup)
-                                           |
-                                           v
-                                       /dev-story
-                                     (implements the story,
-                                      routes to right agent)
+/ux-design  -->  /prototype  -->  /create-epics  -->  /create-stories  -->  /sprint-plan
+    |                |                  |                   |                       |
+    v                v                  v                   v                       v
+  UX specs       Throwaway       Epic files in       Story files in          First sprint with
+  design/ux/     prototypes      production/         production/             prioritized stories
+                 in prototypes/  epics/*/EPIC.md     epics/*/story-*.md      production/sprints/
+                                 (one per module)    (one per behaviour)     sprint-*.md
+    |                                                      |
+    v                                                      v
+ /ux-review                                          /story-readiness
+ (validates specs                                    (validates each story
+  before epics)                                       before pickup)
+                                                           |
+                                                           v
+                                                       /dev-story
+                                                     (implements the story,
+                                                      routes to right agent)
                          |
                          v
                    Vertical Slice
@@ -610,7 +582,49 @@ that proves the core loop is fun.
                     3 unguided sessions)
 ```
 
-### Step 4.1: Prototype Risky Mechanics
+### Step 4.1: UX Specs for Key Screens
+
+Before writing epics, create UX specs so that story authors know what screens
+exist and what player interactions they must support.
+
+**UX Specs:**
+
+```
+/ux-design main-menu
+/ux-design core-gameplay-hud
+```
+
+Three modes: screen/flow, HUD, and interaction patterns. Output goes to
+`design/ux/`. Each spec includes: player need, layout zones, states,
+interaction map, data requirements, events fired, accessibility, localization.
+
+Reads your `accessibility-requirements.md` (written in Phase 3) and your
+input method config from `technical-preferences.md` to drive accessibility
+and input coverage checks — no need to re-specify them per screen.
+
+> **Tip:** `/design-system` emits a 📌 UX Flag for every system with UI
+> requirements. Use those flags as a checklist for which screens need specs.
+
+**Interaction Pattern Library:**
+
+```
+/ux-design interaction-patterns
+```
+
+Create `design/ux/interaction-patterns.md` — 16 standard controls plus
+game-specific patterns (inventory slot, ability icon, HUD bar, dialogue box,
+etc.) with animation and sound standards.
+
+**UX Review:**
+
+```
+/ux-review all
+```
+
+Validates UX specs for GDD alignment and accessibility tier compliance.
+Produces APPROVED / NEEDS REVISION / MAJOR REVISION NEEDED verdict.
+
+### Step 4.2: Prototype Risky Mechanics
 
 Not everything needs a prototype. Prototype when:
 - A mechanic is novel and you are not sure it is fun
@@ -630,7 +644,7 @@ pollutes `src/`.
 hardcoded values OK, no tests required -- but a README with hypothesis and
 findings is mandatory.
 
-### Step 4.2: Create Epics and Stories From Design Artifacts
+### Step 4.3: Create Epics and Stories From Design Artifacts
 
 ```
 /create-epics layer: foundation
@@ -651,7 +665,7 @@ implementable story files in `production/epics/[slug]/`. Each story embeds:
 Once stories exist, run `/dev-story [story-path]` to implement one — it routes
 automatically to the correct programmer agent.
 
-### Step 4.3: Validate Stories Before Pickup
+### Step 4.4: Validate Stories Before Pickup
 
 ```
 /story-readiness production/stories/combat-damage-calc.md
@@ -660,7 +674,7 @@ automatically to the correct programmer agent.
 Checks: Design completeness, Architecture coverage, Scope clarity, Definition
 of Done. Verdict: READY / NEEDS WORK / BLOCKED.
 
-### Step 4.4: Effort Estimation
+### Step 4.5: Effort Estimation
 
 ```
 /estimate production/stories/combat-damage-calc.md
@@ -668,7 +682,7 @@ of Done. Verdict: READY / NEEDS WORK / BLOCKED.
 
 Provides effort estimates with risk assessment.
 
-### Step 4.5: Plan Your First Sprint
+### Step 4.6: Plan Your First Sprint
 
 ```
 /sprint-plan new
@@ -681,7 +695,7 @@ Provides effort estimates with risk assessment.
 - Creates `production/sprints/sprint-01.md`
 - Populates `production/sprint-status.yaml` (machine-readable story tracking)
 
-### Step 4.6: Vertical Slice (Hard Gate)
+### Step 4.7: Vertical Slice (Hard Gate)
 
 Before advancing to Production, you must build and playtest a Vertical Slice:
 
@@ -701,6 +715,8 @@ played the build unguided.
 
 **Requirements to pass:**
 
+- At least 1 UX spec reviewed in `design/ux/`
+- UX review completed (APPROVED or NEEDS REVISION with documented risks)
 - At least 1 prototype with README
 - Story files exist in `production/stories/`
 - At least 1 sprint plan exists
@@ -1186,16 +1202,19 @@ Tier 3 (Specialists):  gameplay-programmer, engine-programmer,
 
 ### Automated Hooks (Safety Net)
 
-The system has 9 hooks that run automatically:
+The system has 12 hooks that run automatically:
 
 | Hook | Trigger | What It Does |
 |------|---------|-------------|
 | `session-start.sh` | Session start | Shows branch, recent commits, detects active.md for recovery |
 | `detect-gaps.sh` | Session start | Detects fresh projects (no engine, no concept) and suggests `/start` |
 | `pre-compact.sh` | Before compaction | Dumps session state into conversation for auto-recovery |
+| `post-compact.sh` | After compaction | Reminds Claude to restore session state from `active.md` |
+| `notify.sh` | Notification event | Shows Windows toast notification via PowerShell |
 | `validate-commit.sh` | Before commit | Checks for design doc references, valid JSON, no hardcoded values |
 | `validate-push.sh` | Before push | Warns on pushes to main/develop |
 | `validate-assets.sh` | Before commit | Checks asset naming and size |
+| `validate-skill-change.sh` | Skill file written | Advises running `/skill-test` after `.claude/skills/` changes |
 | `log-agent.sh` | Agent start | Logs agent invocations for audit trail |
 | `log-agent-stop.sh` | Agent stop | Completes agent audit trail (start + stop) |
 | `session-stop.sh` | Session end | Final session logging |
@@ -1364,7 +1383,7 @@ conflicts go to `producer`.
 
 ## Appendix B: Slash Command Quick-Reference
 
-### All 52 Commands by Category
+### All 66 Commands by Category
 
 #### Onboarding and Navigation (5)
 
@@ -1391,8 +1410,8 @@ conflicts go to `producer`.
 
 | Command | Purpose | Phase |
 |---------|---------|-------|
-| `/ux-design` | Author UX specs (screen/flow, HUD, patterns) | 3 |
-| `/ux-review` | Validate UX specs for accessibility and GDD alignment | 3 |
+| `/ux-design` | Author UX specs (screen/flow, HUD, patterns) | 4 |
+| `/ux-review` | Validate UX specs for accessibility and GDD alignment | 4 |
 
 #### Architecture (4)
 
@@ -1403,7 +1422,7 @@ conflicts go to `producer`.
 | `/architecture-review` | Validate all ADRs, dependency ordering | 3 |
 | `/create-control-manifest` | Flat programmer rules from Accepted ADRs | 3 |
 
-#### Stories and Sprints (6)
+#### Stories and Sprints (8)
 
 | Command | Purpose | Phase |
 |---------|---------|-------|
@@ -1431,13 +1450,28 @@ conflicts go to `producer`.
 | `/gate-check` | Formal phase gate with PASS/CONCERNS/FAIL | All transitions |
 | `/reverse-document` | Generate design docs from existing code | Any |
 
-#### Production Management (5)
+#### QA and Testing (9)
+
+| Command | Purpose | Phase |
+|---------|---------|-------|
+| `/qa-plan` | Generate QA test plan for a sprint or feature | 5 |
+| `/smoke-check` | Critical path smoke test gate before QA hand-off | 5-6 |
+| `/soak-test` | Soak test protocol for extended play sessions | 6 |
+| `/regression-suite` | Map test coverage, identify fixed bugs lacking regression tests | 5-6 |
+| `/test-setup` | Scaffold test framework and CI/CD pipeline | 4 |
+| `/test-helpers` | Generate engine-specific test helper libraries | 4-5 |
+| `/test-evidence-review` | Quality review of test files and manual evidence | 5 |
+| `/test-flakiness` | Detect non-deterministic tests from CI logs | 5-6 |
+| `/skill-test` | Validate skill files for structural and behavioral correctness | Any |
+
+#### Production Management (6)
 
 | Command | Purpose | Phase |
 |---------|---------|-------|
 | `/milestone-review` | Milestone progress and go/no-go | 5 |
 | `/retrospective` | Sprint retrospective analysis | 5 |
 | `/bug-report` | Structured bug report creation | 5+ |
+| `/bug-triage` | Re-evaluate open bugs for priority, severity, and owner | 5+ |
 | `/playtest-report` | Structured playtest session report | 4-6 |
 | `/onboard` | Onboard a new team member | Any |
 
@@ -1458,7 +1492,7 @@ conflicts go to `producer`.
 | `/prototype` | Throwaway prototype in isolated worktree | 4 |
 | `/localize` | String extraction and validation | 6-7 |
 
-#### Team Orchestration (7)
+#### Team Orchestration (9)
 
 | Command | Purpose | Phase |
 |---------|---------|-------|
@@ -1469,6 +1503,8 @@ conflicts go to `producer`.
 | `/team-audio` | Audio: direction through implemented events | 5-6 |
 | `/team-polish` | Coordinated polish: perf + art + audio + QA | 6 |
 | `/team-release` | Release coordination: build + QA + deployment | 7 |
+| `/team-live-ops` | Live-ops planning: seasonal events, battle pass, retention | 7+ |
+| `/team-qa` | Full QA cycle: strategy, execution, coverage, sign-off | 6-7 |
 
 ---
 
