@@ -1,7 +1,7 @@
 ---
 name: setup-engine
 description: "Configure the project's game engine and version. Pins the engine in CLAUDE.md, detects knowledge gaps, and populates engine reference docs via WebSearch when the version is beyond the LLM's training data."
-argument-hint: "[engine version] | refresh | upgrade [old-version] [new-version] | no args for guided selection"
+argument-hint: "[engine] | [engine version] | refresh | upgrade [old-version] [new-version] | no args for guided selection"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Task
 ---
@@ -74,6 +74,22 @@ Once the engine is chosen:
 
 ## 4. Update CLAUDE.md Technology Stack
 
+### Language Selection (Godot only)
+
+If Godot was chosen, ask the user which language to use **before** showing the proposed Technology Stack:
+
+> "Godot supports two primary languages:
+>
+>   **A) GDScript** — Python-like, Godot-native, fastest iteration. Best for beginners, solo devs, and teams coming from Python or Lua.
+>   **B) C#** — .NET 8+, familiar to Unity developers, stronger IDE tooling (Rider / Visual Studio), slight performance advantage on heavy logic.
+>   **C) Both** — GDScript for gameplay/UI scripting, C# for performance-critical systems. Advanced setup — requires .NET SDK alongside Godot.
+>
+> Which will this project primarily use?"
+
+Record the choice. It determines the CLAUDE.md template, naming conventions, specialist routing, and which agent is spawned for code files throughout the project.
+
+---
+
 Read `CLAUDE.md` and show the user the proposed Technology Stack changes.
 Ask: "May I write these engine settings to `CLAUDE.md`?"
 
@@ -81,13 +97,7 @@ Wait for confirmation before making any edits.
 
 Update the Technology Stack section, replacing the `[CHOOSE]` placeholders with the actual values:
 
-**For Godot:**
-```markdown
-- **Engine**: Godot [version]
-- **Language**: GDScript (primary), C++ via GDExtension (performance-critical)
-- **Build System**: SCons (engine), Godot Export Templates
-- **Asset Pipeline**: Godot Import System + custom resource pipeline
-```
+**For Godot** — use the template matching the language chosen above. See **Appendix A** at the bottom of this skill for all three variants (GDScript, C#, Both).
 
 **For Unity:**
 ```markdown
@@ -117,13 +127,7 @@ engine-appropriate defaults. Read the existing template first, then fill in:
 
 ### Naming Conventions (engine defaults)
 
-**For Godot (GDScript):**
-- Classes: PascalCase (e.g., `PlayerController`)
-- Variables/functions: snake_case (e.g., `move_speed`)
-- Signals: snake_case past tense (e.g., `health_changed`)
-- Files: snake_case matching class (e.g., `player_controller.gd`)
-- Scenes: PascalCase matching root node (e.g., `PlayerController.tscn`)
-- Constants: UPPER_SNAKE_CASE (e.g., `MAX_HEALTH`)
+**For Godot** — see **Appendix A** for GDScript, C#, and Both variants.
 
 **For Unity (C#):**
 - Classes: PascalCase (e.g., `PlayerController`)
@@ -183,27 +187,7 @@ Example filled section:
 
 Also populate the `## Engine Specialists` section in `technical-preferences.md` with the correct routing for the chosen engine:
 
-**For Godot:**
-```markdown
-## Engine Specialists
-- **Primary**: godot-specialist
-- **Language/Code Specialist**: godot-gdscript-specialist (all .gd files)
-- **Shader Specialist**: godot-shader-specialist (.gdshader files, VisualShader resources)
-- **UI Specialist**: godot-specialist (no dedicated UI specialist — primary covers all UI)
-- **Additional Specialists**: godot-gdextension-specialist (GDExtension / native C++ bindings only)
-- **Routing Notes**: Invoke primary for architecture decisions, ADR validation, and cross-cutting code review. Invoke GDScript specialist for code quality, signal architecture, static typing enforcement, and GDScript idioms. Invoke shader specialist for material design and shader code. Invoke GDExtension specialist only when native extensions are involved.
-
-### File Extension Routing
-
-| File Extension / Type | Specialist to Spawn |
-|-----------------------|---------------------|
-| Game code (.gd files) | godot-gdscript-specialist |
-| Shader / material files (.gdshader, VisualShader) | godot-shader-specialist |
-| UI / screen files (Control nodes, CanvasLayer) | godot-specialist |
-| Scene / prefab / level files (.tscn, .tres) | godot-specialist |
-| Native extension / plugin files (.gdextension, C++) | godot-gdextension-specialist |
-| General architecture review | godot-specialist |
-```
+**For Godot** — see **Appendix A** for the routing table matching the language chosen.
 
 **For Unity:**
 ```markdown
@@ -251,9 +235,10 @@ Also populate the `## Engine Specialists` section in `technical-preferences.md` 
 ```
 
 ### Collaborative Step
-Present the filled-in preferences to the user:
-> "Here are the default technical preferences for [engine]. Want to customize
-> any of these, or shall I save the defaults?"
+Present the filled-in preferences to the user. For Godot, include the chosen language and note where the full naming conventions and routing tables live:
+> "Here are the default technical preferences for [engine] ([language if Godot]). The naming conventions and specialist routing are in Appendix A of this skill — I'll apply the [GDScript/C#/Both] variant. Want to customize any of these, or shall I save the defaults?"
+
+For all other engines, present the defaults directly without referencing the appendix.
 
 Wait for approval before writing the file.
 
@@ -507,6 +492,7 @@ After setup is complete, output:
 Engine Setup Complete
 =====================
 Engine:          [name] [version]
+Language:        [GDScript | C# | GDScript + C# | C# | C++ + Blueprint]
 Knowledge Risk:  [LOW/MEDIUM/HIGH]
 Reference Docs:  [created/skipped]
 CLAUDE.md:       [updated]
@@ -533,3 +519,137 @@ Verdict: **COMPLETE** — engine configured and reference docs populated.
 - If reference docs already exist for a different engine, ask before replacing
 - Always show the user what you're about to change before making CLAUDE.md edits
 - If WebSearch returns ambiguous results, show the user and let them decide
+
+---
+
+## Appendix A — Godot Language Configuration
+
+All Godot-specific variants for language-dependent configuration. Referenced from Sections 4 and 5 — only relevant when Godot is the chosen engine. Use the subsection matching the language chosen in Section 4.
+
+---
+
+### A1. CLAUDE.md Technology Stack Templates
+
+**GDScript:**
+```markdown
+- **Engine**: Godot [version]
+- **Language**: GDScript (primary), C++ via GDExtension (performance-critical)
+- **Build System**: SCons (engine), Godot Export Templates
+- **Asset Pipeline**: Godot Import System + custom resource pipeline
+```
+
+**C#:**
+```markdown
+- **Engine**: Godot [version]
+- **Language**: C# (.NET 8+, primary), C++ via GDExtension (native plugins only)
+- **Build System**: .NET SDK + Godot Export Templates
+- **Asset Pipeline**: Godot Import System + custom resource pipeline
+```
+
+**Both — GDScript + C#:**
+```markdown
+- **Engine**: Godot [version]
+- **Language**: GDScript (gameplay/UI scripting), C# (performance-critical systems), C++ via GDExtension (native only)
+- **Build System**: .NET SDK + Godot Export Templates
+- **Asset Pipeline**: Godot Import System + custom resource pipeline
+```
+
+---
+
+### A2. Naming Conventions
+
+**GDScript:**
+- Classes: PascalCase (e.g., `PlayerController`)
+- Variables/functions: snake_case (e.g., `move_speed`)
+- Signals: snake_case past tense (e.g., `health_changed`)
+- Files: snake_case matching class (e.g., `player_controller.gd`)
+- Scenes: PascalCase matching root node (e.g., `PlayerController.tscn`)
+- Constants: UPPER_SNAKE_CASE (e.g., `MAX_HEALTH`)
+
+**C#:**
+- Classes: PascalCase (`PlayerController`) — must also be `partial`
+- Public properties/fields: PascalCase (`MoveSpeed`, `JumpVelocity`)
+- Private fields: `_camelCase` (`_currentHealth`, `_isGrounded`)
+- Methods: PascalCase (`TakeDamage()`, `GetCurrentHealth()`)
+- Signal delegates: PascalCase + `EventHandler` suffix (`HealthChangedEventHandler`)
+- Files: PascalCase matching class (`PlayerController.cs`)
+- Scenes: PascalCase matching root node (`PlayerController.tscn`)
+- Constants: PascalCase (`MaxHealth`, `DefaultMoveSpeed`)
+
+**Both — GDScript + C#:**
+Use GDScript conventions for `.gd` files and C# conventions for `.cs` files. Mixed-language files do not exist — the boundary is per-file. When in doubt about which language a new system should use, ask the user and record the decision in `technical-preferences.md`.
+
+---
+
+### A3. Engine Specialists Routing
+
+**GDScript:**
+```markdown
+## Engine Specialists
+- **Primary**: godot-specialist
+- **Language/Code Specialist**: godot-gdscript-specialist (all .gd files)
+- **Shader Specialist**: godot-shader-specialist (.gdshader files, VisualShader resources)
+- **UI Specialist**: godot-specialist (no dedicated UI specialist — primary covers all UI)
+- **Additional Specialists**: godot-gdextension-specialist (GDExtension / native C++ bindings only)
+- **Routing Notes**: Invoke primary for architecture decisions, ADR validation, and cross-cutting code review. Invoke GDScript specialist for code quality, signal architecture, static typing enforcement, and GDScript idioms. Invoke shader specialist for material design and shader code. Invoke GDExtension specialist only when native extensions are involved.
+
+### File Extension Routing
+
+| File Extension / Type | Specialist to Spawn |
+|-----------------------|---------------------|
+| Game code (.gd files) | godot-gdscript-specialist |
+| Shader / material files (.gdshader, VisualShader) | godot-shader-specialist |
+| UI / screen files (Control nodes, CanvasLayer) | godot-specialist |
+| Scene / prefab / level files (.tscn, .tres) | godot-specialist |
+| Native extension / plugin files (.gdextension, C++) | godot-gdextension-specialist |
+| General architecture review | godot-specialist |
+```
+
+**C#:**
+```markdown
+## Engine Specialists
+- **Primary**: godot-specialist
+- **Language/Code Specialist**: godot-csharp-specialist (all .cs files)
+- **Shader Specialist**: godot-shader-specialist (.gdshader files, VisualShader resources)
+- **UI Specialist**: godot-specialist (no dedicated UI specialist — primary covers all UI)
+- **Additional Specialists**: godot-gdextension-specialist (GDExtension / native C++ bindings only)
+- **Routing Notes**: Invoke primary for architecture decisions, ADR validation, and cross-cutting code review. Invoke C# specialist for code quality, [Signal] delegate patterns, [Export] attributes, .csproj management, and C#-specific Godot idioms. Invoke shader specialist for material design and shader code. Invoke GDExtension specialist only when native C++ plugins are involved.
+
+### File Extension Routing
+
+| File Extension / Type | Specialist to Spawn |
+|-----------------------|---------------------|
+| Game code (.cs files) | godot-csharp-specialist |
+| Shader / material files (.gdshader, VisualShader) | godot-shader-specialist |
+| UI / screen files (Control nodes, CanvasLayer) | godot-specialist |
+| Scene / prefab / level files (.tscn, .tres) | godot-specialist |
+| Project config (.csproj, NuGet) | godot-csharp-specialist |
+| Native extension / plugin files (.gdextension, C++) | godot-gdextension-specialist |
+| General architecture review | godot-specialist |
+```
+
+**Both — GDScript + C#:**
+```markdown
+## Engine Specialists
+- **Primary**: godot-specialist
+- **GDScript Specialist**: godot-gdscript-specialist (.gd files — gameplay/UI scripts)
+- **C# Specialist**: godot-csharp-specialist (.cs files — performance-critical systems)
+- **Shader Specialist**: godot-shader-specialist (.gdshader files, VisualShader resources)
+- **UI Specialist**: godot-specialist (no dedicated UI specialist — primary covers all UI)
+- **Additional Specialists**: godot-gdextension-specialist (GDExtension / native C++ bindings only)
+- **Routing Notes**: Invoke primary for cross-language architecture decisions and which systems belong in which language. Invoke GDScript specialist for .gd files. Invoke C# specialist for .cs files and .csproj management. Prefer signals over direct cross-language method calls at the boundary.
+
+### File Extension Routing
+
+| File Extension / Type | Specialist to Spawn |
+|-----------------------|---------------------|
+| Game code (.gd files) | godot-gdscript-specialist |
+| Game code (.cs files) | godot-csharp-specialist |
+| Cross-language boundary decisions | godot-specialist |
+| Shader / material files (.gdshader, VisualShader) | godot-shader-specialist |
+| UI / screen files (Control nodes, CanvasLayer) | godot-specialist |
+| Scene / prefab / level files (.tscn, .tres) | godot-specialist |
+| Project config (.csproj, NuGet) | godot-csharp-specialist |
+| Native extension / plugin files (.gdextension, C++) | godot-gdextension-specialist |
+| General architecture review | godot-specialist |
+```
