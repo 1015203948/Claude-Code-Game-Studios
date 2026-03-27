@@ -11,6 +11,8 @@ model: haiku
 
 # Studio Help — What Do I Do Next?
 
+This skill is read-only — it reports findings but writes no files.
+
 This skill figures out exactly where you are in the game development pipeline and
 tells you what comes next. It is **lightweight** — not a full audit. For a full
 gap analysis, use `/project-stage-detect`.
@@ -162,6 +164,8 @@ Approaching **[next phase]** gate → run `/gate-check` when ready.
 - Show commands inline as backtick code
 - If a step has no command (e.g. "Implement Stories"), explain what to do instead of showing a slash command
 - For MANUAL steps, ask the user: "I can't tell if [step] is done — has it been completed?"
+
+Verdict: **COMPLETE** — next steps identified.
 
 ---
 

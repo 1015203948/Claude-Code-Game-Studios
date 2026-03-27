@@ -6,7 +6,18 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
 ---
 
-When invoked with `new`, generate this template:
+## Phase 1: Parse Arguments
+
+Determine the mode:
+
+- `new` → generate a blank playtest report template
+- `analyze [path]` → read raw notes and fill in the template with structured findings
+
+---
+
+## Phase 2A: New Template Mode
+
+Generate this template and output it to the user:
 
 ```markdown
 # Playtest Report
@@ -32,11 +43,9 @@ When invoked with `new`, generate this template:
 ## Gameplay Flow
 ### What worked well
 - [Observation 1]
-- [Observation 2]
 
 ### Pain points
 - [Issue 1 -- Severity: High/Medium/Low]
-- [Issue 2 -- Severity: High/Medium/Low]
 
 ### Confusion points
 - [Where the player was confused and why]
@@ -72,38 +81,44 @@ When invoked with `new`, generate this template:
 3. [Third priority]
 ```
 
-When invoked with `analyze`, read the raw notes, cross-reference with existing
-design documents, and fill in the template above with structured findings.
-Flag any playtest observations that conflict with design intent.
+---
 
-After generating or analyzing a report, run the **Action Routing** phase:
+## Phase 2B: Analyze Mode
 
-**Action Routing**
+Read the raw notes at the provided path. Cross-reference with existing design documents. Fill in the template above with structured findings. Flag any playtest observations that conflict with design intent.
 
-Categorize all findings from the report into the four buckets below (a single
-finding may appear in more than one bucket if appropriate):
+---
 
-- **Design changes needed** — fun issues, player confusion, broken mechanics,
-  observations that conflict with the GDD's intended experience
-- **Balance adjustments** — numbers feel wrong, difficulty too spiked or too
-  flat, economy or progression feedback
+## Phase 3: Action Routing
+
+Categorize all findings into four buckets:
+
+- **Design changes needed** — fun issues, player confusion, broken mechanics, observations that conflict with the GDD's intended experience
+- **Balance adjustments** — numbers feel wrong, difficulty too spiked or too flat
 - **Bug reports** — clear implementation defects that are reproducible
-- **Polish items** — not blocking progress, but friction or feel issues noted
-  for later
+- **Polish items** — not blocking progress, but friction or feel issues for later
 
-Present the categorized list, then provide the routing guidance for each
-non-empty bucket:
+Present the categorized list, then route:
 
-- **Design changes:** "These findings suggest GDD revisions. Run
-  `/propagate-design-change [path]` on the affected design document to find
-  downstream impacts before making changes."
-- **Balance adjustments:** "Run `/balance-check [system]` to verify the full
-  balance picture before tuning individual values."
-- **Bugs:** "Use `/bug-report` to formally track these so they are not lost
-  between sessions."
-- **Polish items:** "No immediate action required. Consider adding these to the
-  polish backlog in `production/` when the team reaches that phase."
+- **Design changes:** "Run `/propagate-design-change [path]` on the affected design document to find downstream impacts before making changes."
+- **Balance adjustments:** "Run `/balance-check [system]` to verify the full balance picture before tuning values."
+- **Bugs:** "Use `/bug-report` to formally track these."
+- **Polish items:** "Add to the polish backlog in `production/` when the team reaches that phase."
 
-Finally, ask:
+---
 
-> "Which category would you like to act on first?"
+## Phase 4: Save Report
+
+Ask: "May I write this playtest report to `production/qa/playtests/playtest-[date]-[tester].md`?"
+
+If yes, write the file, creating the directory if needed.
+
+---
+
+## Phase 5: Next Steps
+
+Verdict: **COMPLETE** — playtest report generated.
+
+- Act on the highest-priority finding category first.
+- After addressing design changes: re-run `/design-review` on the updated GDD.
+- After fixing bugs: re-run `/bug-triage` to update priorities.

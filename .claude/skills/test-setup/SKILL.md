@@ -406,6 +406,8 @@ Gate note: /gate-check Technical Setup → Pre-Production now requires:
 - .github/workflows/tests.yml
 - At least one example test file
 Run /test-setup and write one example test before advancing.
+
+Verdict: **COMPLETE** — test framework scaffolded and CI/CD wired up.
 ```
 
 ---

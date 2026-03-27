@@ -5,62 +5,90 @@ argument-hint: "[bug-id or description]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task
 ---
-When this skill is invoked:
 
 > **Explicit invocation only**: This skill should only run when the user explicitly requests it with `/hotfix`. Do not auto-invoke based on context matching.
 
-1. **Assess the emergency** — Read the bug description or ID. Determine severity:
-   - **S1 (Critical)**: Game unplayable, data loss, security vulnerability — hotfix immediately
-   - **S2 (Major)**: Significant feature broken, workaround exists — hotfix within 24 hours
-   - If severity is S3 or lower, recommend using the normal bug fix workflow instead
+## Phase 1: Assess Severity
 
-2. **Create the hotfix record** at `production/hotfixes/hotfix-[date]-[short-name].md`:
+Read the bug description or ID. Determine severity:
 
-   ```markdown
-   ## Hotfix: [Short Description]
-   Date: [Date]
-   Severity: [S1/S2]
-   Reporter: [Who found it]
-   Status: IN PROGRESS
+- **S1 (Critical)**: Game unplayable, data loss, security vulnerability — hotfix immediately
+- **S2 (Major)**: Significant feature broken, workaround exists — hotfix within 24 hours
+- If severity is S3 or lower, recommend using the normal bug fix workflow instead and stop.
 
-   ### Problem
-   [Clear description of what is broken and the player impact]
+---
 
-   ### Root Cause
-   [To be filled during investigation]
+## Phase 2: Create Hotfix Record
 
-   ### Fix
-   [To be filled during implementation]
+Draft the hotfix record:
 
-   ### Testing
-   [What was tested and how]
+```markdown
+## Hotfix: [Short Description]
+Date: [Date]
+Severity: [S1/S2]
+Reporter: [Who found it]
+Status: IN PROGRESS
 
-   ### Approvals
-   - [ ] Fix reviewed by lead-programmer
-   - [ ] Regression test passed (qa-tester)
-   - [ ] Release approved (producer)
+### Problem
+[Clear description of what is broken and the player impact]
 
-   ### Rollback Plan
-   [How to revert if the fix causes new issues]
-   ```
+### Root Cause
+[To be filled during investigation]
 
-3. **Create the hotfix branch** (if git is initialized):
-   ```
-   git checkout -b hotfix/[short-name] [release-tag-or-main]
-   ```
+### Fix
+[To be filled during implementation]
 
-4. **Investigate and implement the fix** — Focus on the minimal change that resolves the issue. Do NOT refactor, clean up, or add features alongside the hotfix.
+### Testing
+[What was tested and how]
 
-5. **Validate the fix** — Run targeted tests for the affected system. Check for regressions in adjacent systems.
+### Approvals
+- [ ] Fix reviewed by lead-programmer
+- [ ] Regression test passed (qa-tester)
+- [ ] Release approved (producer)
 
-6. **Update the hotfix record** with root cause, fix details, and test results.
+### Rollback Plan
+[How to revert if the fix causes new issues]
+```
 
-6b. **Collect approvals** — Use the Task tool to request sign-off:
-   - `subagent_type: lead-programmer` — Review the fix for correctness and side effects
-   - `subagent_type: qa-tester` — Run targeted regression tests on the affected system
-   - `subagent_type: producer` — Approve deployment timing and communication plan
+Ask: "May I write this to `production/hotfixes/hotfix-[date]-[short-name].md`?"
 
-7. **Output a summary** with: severity, root cause, fix applied, testing status, and what approvals are still needed before deployment.
+If yes, write the file, creating the directory if needed.
+
+---
+
+## Phase 3: Create Hotfix Branch
+
+If git is initialized, create the hotfix branch:
+
+```
+git checkout -b hotfix/[short-name] [release-tag-or-main]
+```
+
+---
+
+## Phase 4: Investigate and Implement
+
+Focus on the minimal change that resolves the issue. Do NOT refactor, clean up, or add features alongside the hotfix.
+
+Validate the fix by running targeted tests for the affected system. Check for regressions in adjacent systems.
+
+Update the hotfix record with root cause, fix details, and test results.
+
+---
+
+## Phase 5: Collect Approvals
+
+Use the Task tool to request sign-off in parallel:
+
+- `subagent_type: lead-programmer` — Review the fix for correctness and side effects
+- `subagent_type: qa-tester` — Run targeted regression tests on the affected system
+- `subagent_type: producer` — Approve deployment timing and communication plan
+
+---
+
+## Phase 6: Summary
+
+Output a summary with: severity, root cause, fix applied, testing status, and what approvals are still needed before deployment.
 
 ### Rules
 - Hotfixes must be the MINIMUM change to fix the issue — no cleanup, no refactoring, no "while we're here" changes
@@ -68,3 +96,15 @@ When this skill is invoked:
 - Hotfix branches merge to BOTH the release branch AND the development branch
 - All hotfixes require a post-incident review within 48 hours
 - If the fix is complex enough to need more than 4 hours, escalate to technical-director for a scope decision
+
+---
+
+## Phase 7: Next Steps
+
+Verdict: **COMPLETE** — hotfix applied and backported.
+
+After the fix is approved and merged:
+
+- Run `/smoke-check` to verify critical paths are intact.
+- Run `/code-review` on the hotfix diff before merging to main.
+- Schedule a post-incident review within 48 hours.

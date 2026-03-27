@@ -176,7 +176,7 @@ Mastery (challenge, strategy), Achievement (completion, power), Immersion
 Every numeric system exposes exactly three categories of knobs:
 1. **Feel knobs**: affect moment-to-moment experience (attack speed, movement
    speed, animation timing). These are tuned through playtesting intuition.
-2. **Curve knobs**: affect progression shape (XP requirements, damage scaling,
+2. **Curve knobs**: affect progression shape ([progression resource] requirements, [stat] scaling,
    cost multipliers). These are tuned through mathematical modeling.
 3. **Gate knobs**: affect pacing (level requirements, resource thresholds,
    cooldown timers). These are tuned through session-length targets.

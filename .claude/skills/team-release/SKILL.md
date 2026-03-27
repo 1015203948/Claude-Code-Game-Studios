@@ -5,6 +5,11 @@ argument-hint: "[version number or 'next']"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion, TodoWrite
 ---
+**Argument check:** If no version number is provided:
+1. Read `production/session-state/active.md` and the most recent file in `production/milestones/` (if they exist) to infer the target version.
+2. If a version is found: report "No version argument provided — inferred [version] from milestone data. Proceeding." Then confirm with `AskUserQuestion`: "Releasing [version]. Is this correct?"
+3. If no version is discoverable: use `AskUserQuestion` to ask "What version number should be released? (e.g., v1.0.0)" and wait for user input before proceeding. Do NOT default to a hardcoded version string.
+
 When this skill is invoked, orchestrate the release team through a structured pipeline.
 
 **Decision Points:** At each phase transition, use `AskUserQuestion` to present
@@ -68,10 +73,20 @@ Delegate (can run in parallel with Phase 3 if resources available):
 
 ### Phase 5: Go/No-Go
 Delegate to **producer**:
-- Collect sign-off from: qa-lead, release-manager, devops-engineer, technical-director
+- Collect sign-off from: qa-lead, release-manager, devops-engineer, security-engineer (if spawned in Phase 3), network-programmer (if spawned in Phase 3), and technical-director
 - Evaluate any open issues — are they blocking or can they ship?
 - Make the go/no-go call
 - Output: release decision with rationale
+
+**If producer declares NO-GO:**
+- Surface the decision immediately: "PRODUCER: NO-GO — [rationale, e.g., S1 bug found in Phase 3]."
+- Use `AskUserQuestion` with options:
+  - Fix the blocker and re-run the affected phase
+  - Defer the release to a later date
+  - Override NO-GO with documented rationale (user must provide written justification)
+- **Skip Phase 6 entirely** — do not tag, deploy to staging, deploy to production, or spawn community-manager.
+- Produce a partial report summarizing Phases 1–5 and what was skipped (Phase 6) and why.
+- Verdict: **BLOCKED** — release not deployed.
 
 ### Phase 6: Deployment (if GO)
 Delegate to **release-manager** + **devops-engineer**:
@@ -113,5 +128,21 @@ Common blockers:
 - Scope too large → split into two stories via `/create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 
+## File Write Protocol
+
+All file writes (release checklists, changelogs, patch notes, deployment scripts) are
+delegated to sub-agents and sub-skills. Each enforces the "May I write to [path]?"
+protocol. This orchestrator does not write files directly.
+
 ## Output
+
 A summary report covering: release version, scope, quality gate results, go/no-go decision, deployment status, and monitoring plan.
+
+Verdict: **COMPLETE** — release executed and deployed.
+Verdict: **BLOCKED** — release halted; go/no-go was NO or a hard blocker is unresolved.
+
+## Next Steps
+
+- Monitor post-release dashboards for 48 hours.
+- Run `/retrospective` if significant issues occurred during the release.
+- Update `production/stage.txt` to `Live` after successful deployment.

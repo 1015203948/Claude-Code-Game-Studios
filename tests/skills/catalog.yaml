@@ -1,5 +1,5 @@
 version: 1
-last_updated: ""
+last_updated: "2026-03-26"
 skills:
   # Critical — gate skills that control phase transitions
   - name: gate-check
@@ -35,7 +35,7 @@ skills:
     priority: critical
 
   - name: review-all-gdds
-    spec: ""
+    spec: tests/skills/review-all-gdds.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -43,7 +43,7 @@ skills:
     priority: critical
 
   - name: architecture-review
-    spec: ""
+    spec: tests/skills/architecture-review.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -52,21 +52,21 @@ skills:
 
   # High — pipeline-critical skills
   - name: create-epics
-    spec: ""
+    spec: tests/skills/create-epics.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
     last_spec_result: ""
 
   - name: create-stories
-    spec: ""
+    spec: tests/skills/create-stories.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
     last_spec_result: ""
 
   - name: dev-story
-    spec: ""
+    spec: tests/skills/dev-story.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -74,7 +74,7 @@ skills:
     priority: high
 
   - name: create-control-manifest
-    spec: ""
+    spec: tests/skills/create-control-manifest.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -82,7 +82,7 @@ skills:
     priority: high
 
   - name: propagate-design-change
-    spec: ""
+    spec: tests/skills/propagate-design-change.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -90,7 +90,7 @@ skills:
     priority: high
 
   - name: architecture-decision
-    spec: ""
+    spec: tests/skills/architecture-decision.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -98,7 +98,7 @@ skills:
     priority: high
 
   - name: map-systems
-    spec: ""
+    spec: tests/skills/map-systems.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -106,7 +106,15 @@ skills:
     priority: high
 
   - name: design-system
-    spec: ""
+    spec: tests/skills/design-system.md
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: high
+
+  - name: consistency-check
+    spec: tests/skills/consistency-check.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -131,7 +139,7 @@ skills:
     priority: medium
 
   - name: team-ui
-    spec: ""
+    spec: tests/skills/team-ui.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -139,7 +147,7 @@ skills:
     priority: medium
 
   - name: team-combat
-    spec: ""
+    spec: tests/skills/team-combat.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -147,7 +155,7 @@ skills:
     priority: medium
 
   - name: team-narrative
-    spec: ""
+    spec: tests/skills/team-narrative.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -155,7 +163,7 @@ skills:
     priority: medium
 
   - name: team-audio
-    spec: ""
+    spec: tests/skills/team-audio.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -163,7 +171,7 @@ skills:
     priority: medium
 
   - name: team-level
-    spec: ""
+    spec: tests/skills/team-level.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -171,7 +179,7 @@ skills:
     priority: medium
 
   - name: team-polish
-    spec: ""
+    spec: tests/skills/team-polish.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -179,7 +187,7 @@ skills:
     priority: medium
 
   - name: team-release
-    spec: ""
+    spec: tests/skills/team-release.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -187,7 +195,7 @@ skills:
     priority: medium
 
   - name: team-live-ops
-    spec: ""
+    spec: tests/skills/team-live-ops.md
     last_static: ""
     last_static_result: ""
     last_spec: ""
@@ -450,3 +458,91 @@ skills:
     last_spec: ""
     last_spec_result: ""
     priority: low
+
+  - name: smoke-check
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: soak-test
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: skill-improve
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: test-setup
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: test-evidence-review
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: test-flakiness
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: test-helpers
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: regression-suite
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: qa-plan
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: bug-triage
+    spec: ""
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: low
+
+  - name: team-qa
+    spec: tests/skills/team-qa.md
+    last_static: ""
+    last_static_result: ""
+    last_spec: ""
+    last_spec_result: ""
+    priority: medium

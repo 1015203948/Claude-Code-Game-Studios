@@ -232,3 +232,8 @@ what must be DONE before you can start it."
 4. **Ask before writing** — get approval for the full story set before writing files
 5. **No invention** — acceptance criteria come from GDDs, implementation notes from ADRs, rules from the manifest
 6. **Never start implementation** — this skill stops at the story file level
+
+After writing (or declining):
+
+- **Verdict: COMPLETE** — [N] stories written to `production/epics/[epic-slug]/`. Run `/story-readiness` → `/dev-story` to begin implementation.
+- **Verdict: BLOCKED** — user declined. No story files written.

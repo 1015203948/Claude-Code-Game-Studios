@@ -74,8 +74,12 @@ Once the engine is chosen:
 
 ## 4. Update CLAUDE.md Technology Stack
 
-Read `CLAUDE.md` and update the Technology Stack section. Replace the
-`[CHOOSE]` placeholders with the actual values:
+Read `CLAUDE.md` and show the user the proposed Technology Stack changes.
+Ask: "May I write these engine settings to `CLAUDE.md`?"
+
+Wait for confirmation before making any edits.
+
+Update the Technology Stack section, replacing the `[CHOOSE]` placeholders with the actual values:
 
 **For Godot:**
 ```markdown
@@ -317,6 +321,10 @@ Create the full reference doc set by searching the web:
    - Deprecated APIs with replacements
    - New features and best practices
 
+Ask: "May I create the engine reference docs under `docs/engine-reference/<engine>/`?"
+
+Wait for confirmation before writing any files.
+
 3. **Create the full reference directory**:
    ```
    docs/engine-reference/<engine>/
@@ -338,7 +346,9 @@ Create the full reference doc set by searching the web:
 
 ## 8. Update CLAUDE.md Import
 
-Update the `@` import under "Engine Version Reference" to point to the
+Ask: "May I update the `@` import in `CLAUDE.md` to point to the new engine reference?"
+
+Wait for confirmation, then update the `@` import under "Engine Version Reference" to point to the
 correct engine:
 
 ```markdown
@@ -353,6 +363,8 @@ Godot to Unity), update it.
 ---
 
 ## 9. Update Agent Instructions
+
+Ask: "May I add a Version Awareness section to the engine specialist agent files?" before making any edits.
 
 For the chosen engine's specialist agents, verify they have a
 "Version Awareness" section. If not, add one following the pattern in
@@ -511,6 +523,8 @@ Next Steps:
 ```
 
 ---
+
+Verdict: **COMPLETE** — engine configured and reference docs populated.
 
 ## Guardrails
 

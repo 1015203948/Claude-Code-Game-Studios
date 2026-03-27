@@ -64,7 +64,25 @@ modified since the last review report file was written. Show the user which
 GDDs are in scope based on summaries before doing any full reads. Only
 proceed to L1 for those GDDs plus any GDDs listed in their "Key deps".
 
-### Phase 1b — L1/L2: Full Document Load
+### Phase 1b — Registry Pre-Load (fast baseline)
+
+Before full-reading any GDD, check for the entity registry:
+
+```
+Read path="design/registry/entities.yaml"
+```
+
+If the registry exists and has entries, use it as a **pre-built conflict
+baseline**: known entities, items, formulas, and constants with their
+authoritative values and source GDDs. In Phase 2, grep GDDs for registered
+names first — this is faster than reading all GDDs in full before knowing
+what to look for.
+
+If the registry is empty or absent: proceed without it. Note in the report:
+"Entity registry is empty — consistency checks rely on full GDD reads only.
+Run `/consistency-check` after this review to populate the registry."
+
+### Phase 1c — L1/L2: Full Document Load
 
 Full-read the in-scope documents:
 
@@ -105,8 +123,8 @@ reciprocal:
 
 ```
 ⚠️  Dependency Asymmetry
-combat.md lists: Depends On → health-system.md
-health-system.md does NOT list combat.md as a dependent
+[system-a].md lists: Depends On → [system-b].md
+[system-b].md does NOT list [system-a].md as a dependent
 → One of these documents has a stale dependency section
 ```
 
@@ -116,10 +134,8 @@ For each game rule, mechanic, or constraint defined in any GDD, check whether
 any other GDD defines a contradicting rule for the same situation:
 
 Categories to scan:
-- **Health and damage**: Does any GDD say damage floor is 1? Does any other say
-  armour can reduce damage to 0? These contradict.
-- **Resource ownership**: If two GDDs both define how a shared resource (gold,
-  stamina, mana) accumulates or depletes, do they agree?
+- **Floor/ceiling rules**: Does any GDD define a minimum value for an output? Does any other say a different system can bypass that floor? These contradict.
+- **Resource ownership**: If two GDDs both define how a shared resource accumulates or depletes, do they agree?
 - **State transitions**: If GDD-A describes what happens when a character dies,
   does GDD-B's description of the same event agree?
 - **Timing**: If GDD-A says "X happens on the same frame", does GDD-B assume
@@ -129,9 +145,8 @@ Categories to scan:
 
 ```
 🔴 Rule Contradiction
-combat.md: "Minimum damage after armour reduction is 1"
-status-effects.md: "Poison ignores armour and can reduce health by any amount,
-  including to 0"
+[system-a].md: "Minimum [output] after reduction is [floor_value]"
+[system-b].md: "[mechanic] bypasses [system-a]'s rules and can reduce [output] to 0"
 → These rules directly contradict. Which GDD is authoritative?
 ```
 
@@ -143,8 +158,8 @@ with the same name and behaviour:
 
 - If GDD-A says "combo multiplier from the combat system feeds into score", check
   that the combat GDD actually defines a combo multiplier that outputs to score
-- If GDD-A references "the XP curve defined in progression.md", check that
-  progression.md actually has an XP curve, not a flat-level system
+- If GDD-A references "the progression curve defined in [system].md", check that
+  [system].md actually has that curve, not a different progression model
 - If GDD-A was written before GDD-B and assumed a mechanic that GDD-B later
   designed differently, flag GDD-A as containing a stale reference
 
@@ -164,8 +179,8 @@ Tuning Knobs sections across all GDDs and flag duplicates:
 
 ```
 ⚠️  Ownership Conflict
-combat.md Tuning Knobs: "base_damage_multiplier — controls damage scaling"
-progression.md Tuning Knobs: "damage_multiplier — scales with player level"
+[system-a].md Tuning Knobs: "[multiplier_name] — controls [output] scaling"
+[system-b].md Tuning Knobs: "[multiplier_name] — scales [output] with [factor]"
 → Two GDDs define multipliers on the same output. Which owns the final value?
   This will produce either a double-application bug or a design conflict.
 ```
@@ -176,21 +191,20 @@ For GDDs whose formulas are connected (output of one feeds input of another),
 check that the output range of the upstream formula is within the expected
 input range of the downstream formula:
 
-- If combat.md outputs damage values between 1–500, and the health system is
-  designed for health values between 10–100, a one-hit kill is almost always
-  possible — is that intended?
-- If the economy GDD expects item prices between 1–1000 gold, and the
-  progression GDD generates gold at a rate of 50–5000 per session, the
-  economy will either be trivially easy or permanently locked — is that intended?
+- If [system-a].md outputs values between [min]–[max], and [system-b].md is
+  designed to receive values between [min2]–[max2], is the mismatch intentional?
+- If an economy GDD expects resource acquisition in range X, and the
+  progression GDD generates it at range Y, the economy will be trivial or
+  inaccessible — is that intended?
 
 Flag incompatibilities as CONCERNS (design judgment needed, not necessarily wrong):
 
 ```
 ⚠️  Formula Range Mismatch
-combat.md: Max damage output = 500 (at max level, max gear)
-health-system.md: Base player health = 100, max health = 250
-→ Late-game combat can one-shot a max-health player in a single hit.
-  Is this intentional? If not, either damage ceiling or health ceiling needs adjustment.
+[system-a].md: Max [output] = [value_a] (at max [condition])
+[system-b].md: Base [input] = [value_b], max [input] = [value_c]
+→ Late-[stage] [scenario] can resolve in a single [event].
+  Is this intentional? If not, either [system-a]'s ceiling or [system-b]'s ceiling needs adjustment.
 ```
 
 ### 2f: Acceptance Criteria Cross-Check
@@ -244,13 +258,13 @@ players. Present the count and flag if it exceeds 4 concurrent active systems:
 
 ```
 ⚠️  Cognitive Load Risk
-Simultaneously active systems during combat:
-  1. combat.md — combat decisions (active)
-  2. stamina-system.md — stamina management (active)
-  3. status-effects.md — status tracking (active)
-  4. inventory.md — mid-combat item use (active)
-  5. ability-system.md — ability cooldown management (active)
-  6. companion-ai.md — companion command decisions (active)
+Simultaneously active systems during [core loop moment]:
+  1. [system-a].md — [decision type] (active)
+  2. [system-b].md — [resource management] (active)
+  3. [system-c].md — [tracking] (active)
+  4. [system-d].md — [item/action use] (active)
+  5. [system-e].md — [cooldown/timer management] (active)
+  6. [system-f].md — [coordination decisions] (active)
 → 6 simultaneously active systems during the core loop.
   Research suggests 3-4 is the comfortable limit for most players.
   Consider: which of these can be made passive or simplified?
@@ -512,9 +526,9 @@ Scenarios walked: [N]
 
 | GDD | Reason | Type | Priority |
 |-----|--------|------|----------|
-| combat.md | Rule contradiction with status-effects.md | Consistency | Blocking |
-| inventory.md | Stale reference to nonexistent formula | Consistency | Blocking |
-| fishing.md | No pillar alignment | Design Theory | Warning |
+| [system-a].md | Rule contradiction with [system-b].md | Consistency | Blocking |
+| [system-c].md | Stale reference to nonexistent mechanic | Consistency | Blocking |
+| [system-d].md | No pillar alignment | Design Theory | Warning |
 
 ---
 

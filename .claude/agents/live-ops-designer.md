@@ -101,8 +101,8 @@ plain text. Follow the **Explain → Capture** pattern:
 - Free track must provide meaningful progression (never feel punishing)
 - Premium track adds cosmetic and convenience rewards
 - No gameplay-affecting items exclusively in premium track (pay-to-win)
-- XP curve: early levels fast (hook), mid levels steady, final levels require dedication
-- Include catch-up mechanics for late joiners (XP boost in final weeks)
+- [Progression] curve: early [tiers] fast (hook), mid [tiers] steady, final [tiers] require dedication
+- Include catch-up mechanics for late joiners ([progression boost] in final weeks)
 - Document reward tables with rarity distribution and perceived value
 
 ### Event Design

@@ -5,7 +5,11 @@ argument-hint: "[combat feature description]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion, TodoWrite
 ---
-When this skill is invoked, orchestrate the combat team through a structured pipeline.
+**Argument check:** If no combat feature description is provided, output:
+> "Usage: `/team-combat [combat feature description]` — Provide a description of the combat feature to design and implement (e.g., `melee parry system`, `ranged weapon spread`)."
+Then stop immediately without spawning any subagents or reading any files.
+
+When this skill is invoked with a valid argument, orchestrate the combat team through a structured pipeline.
 
 **Decision Points:** At each phase transition, use `AskUserQuestion` to present
 the user with the subagent's proposals as selectable options. Write the agent's
@@ -96,5 +100,21 @@ Common blockers:
 - Scope too large → split into two stories via `/create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 
+## File Write Protocol
+
+All file writes (design documents, implementation files, test cases) are
+delegated to sub-agents spawned via Task. Each sub-agent enforces the
+"May I write to [path]?" protocol. This orchestrator does not write files directly.
+
 ## Output
+
 A summary report covering: design completion status, implementation status per team member, test results, and any open issues.
+
+Verdict: **COMPLETE** — combat feature designed, implemented, and validated.
+Verdict: **BLOCKED** — one or more phases could not complete; partial report produced with unresolved items listed.
+
+## Next Steps
+
+- Run `/code-review` on the implemented combat code before closing stories.
+- Run `/balance-check` to validate combat formulas and tuning values.
+- Run `/team-polish` if VFX, audio, or performance polish is needed.

@@ -1,7 +1,7 @@
 ---
 name: design-system
 description: "Guided, section-by-section GDD authoring for a single game system. Gathers context from existing docs, walks through each required section collaboratively, cross-references dependencies, and writes incrementally to file."
-argument-hint: "<system-name> (e.g., 'combat-system', 'inventory', 'dialogue')"
+argument-hint: "<system-name> (e.g., 'movement', 'progression', 'dialogue')"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion, TodoWrite
 ---
@@ -11,8 +11,8 @@ When this skill is invoked:
 ## 1. Parse Arguments & Validate
 
 A system name or retrofit path is **required**. If missing, fail with:
-> "Usage: `/design-system <system-name>` — e.g., `/design-system combat-system`
-> Or to fill gaps in an existing GDD: `/design-system retrofit design/gdd/combat-system.md`
+> "Usage: `/design-system <system-name>` — e.g., `/design-system movement`
+> Or to fill gaps in an existing GDD: `/design-system retrofit design/gdd/[system-name].md`
 > Run `/map-systems` first to create the systems index, then use this skill
 > to write individual system GDDs."
 
@@ -66,6 +66,16 @@ primary advantage over ad-hoc design — it arrives informed.
 - **Target system**: Find the system in the index. If not listed, warn:
   > "[system-name] is not in the systems index. Would you like to add it, or
   > design it as an off-index system?"
+- **Entity registry**: Read `design/registry/entities.yaml` if it exists.
+  Extract all entries referenced by or relevant to this system (grep
+  `referenced_by.*[system-name]` and `source.*[system-name]`). Hold these
+  in context as **known facts** — values that other GDDs have already
+  established and this GDD must not contradict.
+- **Reflexion log**: Read `docs/consistency-failures.md` if it exists.
+  Extract entries whose Domain matches this system's category. These are
+  recurring conflict patterns — present them under "Past failure patterns"
+  in the Phase 2d context summary so the user knows where mistakes have
+  occurred before in this domain.
 
 ### 2b: Dependency Reads
 
@@ -87,8 +97,8 @@ For each dependency GDD that exists, extract and hold in context:
 - **Existing GDD**: Read `design/gdd/[system-name].md` if it exists (resume, don't
   restart from scratch)
 - **Related GDDs**: Glob `design/gdd/*.md` and read any that are thematically related
-  (e.g., if designing "status-effects", also read "combat-system" even if it's not
-  a direct dependency)
+  (e.g., if designing a system that overlaps with another in scope, read the related GDD
+  even if it's not a formal dependency)
 
 ### 2d: Present Context Summary
 
@@ -100,6 +110,15 @@ Before starting design work, present a brief summary to the user:
 > - Depended on by: [list, noting which have GDDs vs. undesigned]
 > - Existing decisions to respect: [key constraints from dependency GDDs]
 > - Pillar alignment: [which pillar(s) this system primarily serves]
+> - **Known cross-system facts (from registry):**
+>   - [entity_name]: [attribute]=[value], [attribute]=[value] (owned by [source GDD])
+>   - [item_name]: [attribute]=[value], [attribute]=[value] (owned by [source GDD])
+>   - [formula_name]: variables=[list], output=[min–max] (owned by [source GDD])
+>   - [constant_name]: [value] [unit] (owned by [source GDD])
+>   *(These values are locked — if this GDD needs different values, surface
+>   the conflict before writing. Do not silently use different numbers.)*
+>
+> If no registry entries are relevant: omit the "Known cross-system facts" section.
 
 If any upstream dependencies are undesigned, warn:
 > "[dependency] doesn't have a GDD yet. We'll need to make assumptions about
@@ -287,6 +306,17 @@ Context  ->  Questions  ->  Options  ->  Decision  ->  Draft  ->  Approval  ->  
 7. **Write**: Use the Edit tool to replace the `[To be designed]` placeholder with
    the approved content. Confirm the write.
 
+8. **Registry conflict check** (Sections C and D only — Detailed Design and Formulas):
+   After writing, scan the section content for entity names, item names, formula
+   names, and numeric constants that appear in the registry. For each match:
+   - Compare the value just written against the registry entry.
+   - If they differ: **surface the conflict immediately** before starting the next
+     section. Do not continue silently.
+     > "Registry conflict: [name] is registered in [source GDD] as [registry_value].
+     > This section just wrote [new_value]. Which is correct?"
+   - If new (not in registry): flag it as a candidate for registry registration
+     (will be handled in Phase 5).
+
 After writing each section, update `production/session-state/active.md` with the
 completed section name.
 
@@ -347,8 +377,8 @@ This is usually the largest section. Break it into sub-sections:
 mechanical modeling. Provide the full context gathered in Phase 2.
 
 **Cross-reference**: For each interaction listed, verify it matches what the
-dependency GDD specifies. If the dependency says "damage is calculated as X" and
-this system expects something different, flag the conflict.
+dependency GDD specifies. If a dependency defines a value or formula and this
+system expects something different, flag the conflict.
 
 ---
 
@@ -357,13 +387,32 @@ this system expects something different, flag the conflict.
 **Goal**: Every mathematical formula, with variables defined, ranges specified,
 and edge cases noted.
 
+**Completion Steering — always begin each formula with this exact structure:**
+
+```
+The [formula_name] formula is defined as:
+
+`[formula_name] = [expression]`
+
+**Variables:**
+| Variable | Symbol | Type | Range | Description |
+|----------|--------|------|-------|-------------|
+| [name] | [sym] | float/int | [min–max] | [what it represents] |
+
+**Output Range:** [min] to [max] under normal play; [behaviour at extremes]
+**Example:** [worked example with real numbers]
+```
+
+Do NOT write `[Formula TBD]` or describe a formula in prose without the variable
+table. A formula without defined variables cannot be implemented without guesswork.
+
 **Questions to ask**:
 - What are the core calculations this system performs?
 - Should scaling be linear, logarithmic, or stepped?
 - What should the output ranges be at early/mid/late game?
 
-**Agent delegation**: For formula-heavy systems (combat, economy, progression),
-delegate to `systems-designer` via the Task tool. Provide:
+**Agent delegation**: For formula-heavy systems, delegate to `systems-designer`
+via the Task tool. Provide:
 - The Core Rules from Section C (already written to file)
 - Tuning goals from the user
 - Balance context from dependency GDDs
@@ -380,18 +429,28 @@ this system, reference it explicitly. Don't reinvent — connect.
 
 **Goal**: Explicitly handle unusual situations so they don't become bugs.
 
+**Completion Steering — format each edge case as:**
+- **If [condition]**: [exact outcome]. [rationale if non-obvious]
+
+Example (adapt terminology to the game's domain):
+- **If [resource] reaches 0 while [protective condition] is active**: hold at minimum until condition ends, then apply consequence.
+- **If two [triggers/events] fire simultaneously**: resolve in [defined priority order]; ties use [defined tiebreak rule].
+
+Do NOT write vague entries like "handle appropriately" — each must name the exact
+condition and the exact resolution. An edge case without a resolution is an open
+design question, not a specification.
+
 **Questions to ask**:
-- What happens at zero? At maximum? At negative values?
-- What happens when two effects trigger simultaneously?
-- What happens if the player tries to exploit this? (Identify degenerate strategies)
+- What happens at zero? At maximum? At out-of-range values?
+- What happens when two rules apply at the same time?
+- What happens if a player finds an unintended interaction? (Identify degenerate strategies)
 
 **Agent delegation**: For systems with complex interactions, delegate to
 `systems-designer` to identify edge cases from the formula space. For narrative
 systems, consult `narrative-director` for story-breaking edge cases.
 
-**Cross-reference**: Check edge cases against dependency GDDs. If combat says
-"damage cannot go below 1" but this system can reduce damage to 0, that's a
-conflict to resolve.
+**Cross-reference**: Check edge cases against dependency GDDs. If a dependency
+defines a floor, cap, or resolution rule that this system could violate, flag it.
 
 ---
 
@@ -432,6 +491,17 @@ reference them here. Don't create duplicate knobs — point to the source of tru
 ### Section H: Acceptance Criteria
 
 **Goal**: Testable conditions that prove the system works as designed.
+
+**Completion Steering — format each criterion as Given-When-Then:**
+- **GIVEN** [initial state], **WHEN** [action or trigger], **THEN** [measurable outcome]
+
+Example (adapt terminology to the game's domain):
+- **GIVEN** [initial state], **WHEN** [player action or system trigger], **THEN** [specific measurable outcome].
+- **GIVEN** [a constraint is active], **WHEN** [player attempts an action], **THEN** [feedback shown and action result].
+
+Include at least: one criterion per core rule from Section C, and one per formula
+from Section D. Do NOT write "the system works as designed" — every criterion must
+be independently verifiable by a QA tester without reading the GDD.
 
 **Questions to ask**:
 - What's the minimum set of tests that prove this works?
@@ -487,7 +557,37 @@ the source of truth). Verify:
 - Dependencies are listed with interfaces
 - Acceptance criteria are testable
 
-### 5b: Offer Design Review
+### 5b: Update Entity Registry
+
+Scan the completed GDD for cross-system facts that should be registered:
+- Named entities (enemies, NPCs, bosses) with stats or drops
+- Named items with values, weights, or categories
+- Named formulas with defined variables and output ranges
+- Named constants referenced by value in more than one place
+
+For each candidate, check if it already exists in `design/registry/entities.yaml`:
+```
+Grep pattern="  - name: [candidate_name]" path="design/registry/entities.yaml"
+```
+
+Present a summary:
+```
+Registry candidates from this GDD:
+  NEW (not yet registered):
+    - [entity_name] [entity]: [attribute]=[value], [attribute]=[value]
+    - [item_name] [item]: [attribute]=[value], [attribute]=[value]
+    - [formula_name] [formula]: variables=[list], output=[min–max]
+  ALREADY REGISTERED (referenced_by will be updated):
+    - [constant_name] [constant]: value=[N] ← matches registry ✅
+```
+
+Ask: "May I update `design/registry/entities.yaml` with these [N] new entries
+and update `referenced_by` for the existing entries?"
+
+If yes: append new entries and update `referenced_by` arrays. Never modify
+existing `value` / attribute fields without surfacing it as a conflict first.
+
+### 5c: Offer Design Review
 
 Present a completion summary:
 

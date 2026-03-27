@@ -53,6 +53,14 @@ Enter **retrofit mode**:
 
 If NOT in retrofit mode, proceed to Step 0 below (normal ADR authoring).
 
+**No-argument guard**: If no argument was provided (title is empty), ask before
+running Phase 0:
+
+> "What technical decision are you documenting? Please provide a short title
+> (e.g., `event-system-architecture`, `physics-engine-choice`)."
+
+Use the user's response as the title, then proceed to Step 0.
+
 ---
 
 ## 0. Load Engine Context (ALWAYS FIRST)
@@ -108,6 +116,45 @@ Scan `docs/architecture/` for existing ADRs to find the next number.
 ## 2. Gather context
 
 Read related code, existing ADRs, and relevant GDDs from `design/gdd/`.
+
+### 2a: Architecture Registry Check (BLOCKING gate)
+
+Read `docs/registry/architecture.yaml`. Extract entries relevant to this ADR's
+domain and decision (grep by system name, domain keyword, or state being touched).
+
+Present any relevant stances to the user **before** the collaborative design
+begins, as locked constraints:
+
+```
+## Existing Architectural Stances (must not contradict)
+
+State Ownership:
+  player_health → owned by health-system (ADR-0001)
+  Interface: HealthComponent.current_health (read-only float)
+  → If this ADR reads or writes player health, it must use this interface.
+
+Interface Contracts:
+  damage_delivery → signal pattern (ADR-0003)
+  Signal: damage_dealt(amount, target, is_crit)
+  → If this ADR delivers or receives damage events, it must use this signal.
+
+Forbidden Patterns:
+  ✗ autoload_singleton_coupling (ADR-0001)
+  ✗ direct_cross_system_state_write (ADR-0000)
+  → The proposed approach must not use these patterns.
+```
+
+If the user's proposed decision would contradict any registered stance, surface
+the conflict immediately:
+
+> "⚠️ Conflict: This ADR proposes [X], but ADR-[NNNN] established that [Y] is
+> the accepted pattern for this purpose. Proceeding without resolving this will
+> produce contradictory ADRs and inconsistent stories.
+> Options: (1) Align with the existing stance, (2) Supersede ADR-[NNNN] with
+> an explicit replacement, (3) Explain why this case is an exception."
+
+Do not proceed to Step 3 (collaborative design) until any conflict is resolved
+or explicitly accepted as an intentional exception.
 
 ---
 
@@ -229,6 +276,12 @@ to implement it.]
 - [Things that could go wrong]
 - [Mitigation for each risk]
 
+## GDD Requirements Addressed
+
+| GDD System | Requirement | How This ADR Addresses It |
+|------------|-------------|--------------------------|
+| [system-name].md | [specific rule, formula, or performance constraint from that GDD] | [how this decision satisfies it] |
+
 ## Performance Implications
 - **CPU**: [Expected impact]
 - **Memory**: [Expected impact]
@@ -256,4 +309,33 @@ to implement it.]
    - If the specialist identifies a **blocking issue** (wrong API, deprecated approach, engine version incompatibility): revise the Decision and Engine Compatibility sections accordingly, then confirm the changes with the user before proceeding
    - If the specialist finds **minor notes** only: incorporate them into the ADR's Risks subsection
 
-5. **Save the ADR** to `docs/architecture/adr-[NNNN]-[slug].md`.
+5. Ask: "May I write this ADR to `docs/architecture/adr-[NNNN]-[slug].md`?"
+
+If yes, write the file, creating the directory if needed.
+
+6. **Update Architecture Registry**
+
+Scan the written ADR for new architectural stances that should be registered:
+- State it claims ownership of
+- Interface contracts it defines (signal signatures, method APIs)
+- Performance budget it claims
+- API choices it makes explicitly
+- Patterns it bans (Consequences → Negative or explicit "do not use X")
+
+Present candidates:
+```
+Registry candidates from this ADR:
+  NEW state ownership:      player_stamina → stamina-system
+  NEW interface contract:   stamina_depleted signal
+  NEW performance budget:   stamina-system: 0.5ms/frame
+  NEW forbidden pattern:    polling stamina each frame (use signal instead)
+  EXISTING (referenced_by update only): player_health → already registered ✅
+```
+
+Ask: "May I update `docs/registry/architecture.yaml` with these [N] new stances?"
+
+If yes: append new entries. Never modify existing entries — if a stance is
+changing, set the old entry to `status: superseded_by: ADR-[NNNN]` and add
+the new entry.
+
+**Next Steps:** Run `/architecture-review` to validate coverage after the ADR is saved. Update any stories that were `Status: Blocked` pending this ADR to `Status: Ready`.

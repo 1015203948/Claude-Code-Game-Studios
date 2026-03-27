@@ -5,7 +5,10 @@ argument-hint: "[feature or area to polish]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion, TodoWrite
 ---
-When this skill is invoked, orchestrate the polish team through a structured pipeline.
+If no argument is provided, output usage guidance and exit without spawning any agents:
+> Usage: `/team-polish [feature or area]` — specify the feature or area to polish (e.g., `combat`, `main menu`, `inventory system`, `level-1`). Do not use `AskUserQuestion` here; output the guidance directly.
+
+When this skill is invoked with an argument, orchestrate the polish team through a structured pipeline.
 
 **Decision Points:** At each phase transition, use `AskUserQuestion` to present
 the user with the subagent's proposals as selectable options. Write the agent's
@@ -104,5 +107,18 @@ Common blockers:
 - Scope too large → split into two stories via `/create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 
+## File Write Protocol
+
+All file writes (performance reports, test results, evidence docs) are delegated to
+sub-agents spawned via Task. Each sub-agent enforces the "May I write to [path]?"
+protocol. This orchestrator does not write files directly.
+
 ## Output
+
 A summary report covering: performance before/after metrics, visual polish changes, audio polish changes, test results, and release readiness assessment.
+
+## Next Steps
+
+- If READY FOR RELEASE: run `/release-checklist` for the final pre-release validation.
+- If NEEDS MORE WORK: schedule remaining issues in `/sprint-plan update` and re-run `/team-polish` after fixes.
+- Run `/gate-check` for a formal phase gate verdict before handing off to release.

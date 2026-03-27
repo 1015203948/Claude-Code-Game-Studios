@@ -190,6 +190,9 @@ The document contains:
 - Resolution decisions made in step 7
 - List of ADRs that need to be written or updated
 
+If user approved: Verdict: **COMPLETE** — change impact report saved.
+If user declined: Verdict: **BLOCKED** — user declined write.
+
 ---
 
 ## 10. Follow-Up Actions

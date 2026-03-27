@@ -246,7 +246,7 @@ After writing the manifest:
 
 1. **Load silently** — read all inputs before presenting anything
 2. **Show the summary first** — let the user see the scope before writing
-3. **Ask before writing** — always confirm before creating or overwriting the manifest
+3. **Ask before writing** — always confirm before creating or overwriting the manifest. On write: Verdict: **COMPLETE** — control manifest written. On decline: Verdict: **BLOCKED** — user declined write.
 4. **Source every rule** — never add a rule that doesn't trace to an ADR, a
    technical preference, or an engine reference doc
 5. **No interpretation** — extract rules as stated in ADRs; do not paraphrase

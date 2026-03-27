@@ -5,7 +5,11 @@ argument-hint: "[season name or event description]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion, TodoWrite
 ---
-When this skill is invoked, orchestrate the live-ops team through a structured planning pipeline.
+**Argument check:** If no season name or event description is provided, output:
+> "Usage: `/team-live-ops [season name or event description]` — Provide the name or description of the season or live event to plan."
+Then stop immediately without spawning any subagents or reading any files.
+
+When this skill is invoked with a valid argument, orchestrate the live-ops team through a structured planning pipeline.
 
 **Decision Points:** At each phase transition, use `AskUserQuestion` to present
 the user with the subagent's proposals as selectable options. Write the agent's
@@ -94,16 +98,48 @@ Present a summary to the user with:
 - **Content scope**: what is being created
 - **Economy health check**: does the reward track feel fair and non-predatory?
 - **Analytics readiness**: are success criteria defined and instrumented?
-- **Ethics review**: flag any element that violates the ethics policy in `design/live-ops/ethics-policy.md`
+- **Ethics review**: check the Phase 3 economy design against `design/live-ops/ethics-policy.md`
+  - If the file does not exist: flag "ETHICS REVIEW SKIPPED: `design/live-ops/ethics-policy.md` not found. Economy design was not reviewed against an ethics policy. Recommend creating one before production begins." Include this flag in the season design output document. Add to next steps: create `design/live-ops/ethics-policy.md`.
+  - If the file exists and a violation is found: flag "ETHICS FLAG: [element] in Phase 3 economy design violates [policy rule]. Approval is blocked until this is resolved." Do NOT issue a COMPLETE verdict or write output documents. Use `AskUserQuestion` with options: revise economy design / override with documented rationale / cancel. If user chooses to revise: re-spawn economy-designer to produce a corrected design, then return to Phase 7 review.
 - **Open questions**: decisions still needed before production begins
 
-Ask the user to approve the season plan before delegating to production teams.
+Ask the user to approve the season plan before delegating to production teams. Issue the COMPLETE verdict only after the user approves and no unresolved ethics violations remain. If an ethics violation is unresolved, end with Verdict: **BLOCKED**.
 
 ## Output Documents
+
 All documents save to `design/live-ops/`:
 - `seasons/S[N]_[name].md` — Season design document (from Phase 1-3)
 - `seasons/S[N]_[name]_analytics.md` — Analytics plan (from Phase 4)
 - `seasons/S[N]_[name]_comms.md` — Communication calendar (from Phase 6)
 
+## Error Recovery Protocol
+
+If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
+
+1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
+2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
+3. **Offer options** via AskUserQuestion with choices:
+   - Skip this agent and note the gap in the final report
+   - Retry with narrower scope
+   - Stop here and resolve the blocker first
+4. **Always produce a partial report** — output whatever was completed. Never discard work because one agent blocked.
+
+If a BLOCKED state is unresolvable, end with Verdict: **BLOCKED** instead of COMPLETE.
+
+## File Write Protocol
+
+All file writes (season design docs, analytics plans, communication calendars) are
+delegated to sub-agents spawned via Task. Each sub-agent enforces the
+"May I write to [path]?" protocol. This orchestrator does not write files directly.
+
 ## Output
+
 A summary covering: season theme and scope, economy design highlights, success metrics, content list, communication plan, and any open decisions needing user input before production.
+
+Verdict: **COMPLETE** — season plan produced and handed off for production.
+
+## Next Steps
+
+- Run `/design-review` on the season design document for consistency validation.
+- Run `/sprint-plan` to schedule content creation work for the season.
+- Run `/team-release` when the season content is ready to deploy.

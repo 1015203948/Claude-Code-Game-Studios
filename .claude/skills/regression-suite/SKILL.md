@@ -234,6 +234,8 @@ After writing (if approved):
 - If coverage drift detected: "Regression suite may be drifting. Consider
   running `/regression-suite audit` at the next sprint boundary."
 
+Verdict: **COMPLETE** — regression suite updated. (If user declined write: Verdict: **BLOCKED**.)
+
 ---
 
 ## Collaborative Protocol

@@ -49,6 +49,8 @@ Spawn the `world-builder` agent to:
 - Define environmental storytelling opportunities
 - Specify any world rules that affect gameplay in this area
 
+**Gate**: Use `AskUserQuestion` to present Step 1 outputs and confirm before proceeding to Step 2.
+
 ### Step 2: Layout and Encounter Design (level-designer)
 Spawn the `level-designer` agent to:
 - Design the spatial layout (critical path, optional paths, secrets)
@@ -58,6 +60,17 @@ Spawn the `level-designer` agent to:
 - Define points of interest and landmarks for wayfinding
 - Specify entry/exit points and connections to adjacent areas
 
+**Adjacent area dependency check**: After the layout is produced, check `design/levels/` for each adjacent area referenced by the level-designer. If any referenced area's `.md` file does not exist, surface the gap:
+> "Level references [area-name] as an adjacent area but `design/levels/[area-name].md` does not exist."
+
+Use `AskUserQuestion` with options:
+- (a) Proceed with a placeholder reference — mark the connection as UNRESOLVED in the level doc and list it in the open cross-level dependencies section of the summary report
+- (b) Pause and run `/team-level [area-name]` first to establish that area
+
+Do NOT invent content for the missing adjacent area.
+
+**Gate**: Use `AskUserQuestion` to present Step 2 layout (including any unresolved adjacent area dependencies) and confirm before proceeding to Step 3.
+
 ### Step 3: Systems Integration (systems-designer)
 Spawn the `systems-designer` agent to:
 - Specify enemy compositions and encounter formulas
@@ -65,6 +78,8 @@ Spawn the `systems-designer` agent to:
 - Balance difficulty relative to expected player level/gear
 - Design any area-specific mechanics or environmental hazards
 - Specify resource distribution (health pickups, save points, shops)
+
+**Gate**: Use `AskUserQuestion` to present Step 3 outputs and confirm before proceeding to Step 4.
 
 ### Step 4: Visual Direction and Accessibility (parallel)
 Spawn the `art-director` agent to:
@@ -81,6 +96,14 @@ Spawn the `accessibility-specialist` agent in parallel to:
 - Check that key gameplay areas have sufficient contrast for colorblind players
 - Output: accessibility concerns list with severity (BLOCKING / RECOMMENDED / NICE TO HAVE)
 
+Wait for both agents to return before proceeding.
+
+**Gate**: Use `AskUserQuestion` to present both Step 4 results. If the accessibility-specialist returned any BLOCKING concerns, highlight them prominently and offer:
+- (a) Return to level-designer and art-director to redesign the flagged elements before Step 5
+- (b) Document as a known accessibility gap and proceed to Step 5 with the concern explicitly logged in the final report
+
+Do NOT proceed to Step 5 without the user acknowledging any BLOCKING accessibility concerns.
+
 ### Step 5: QA Planning (qa-tester)
 Spawn the `qa-tester` agent to:
 - Write test cases for the critical path
@@ -94,7 +117,24 @@ Spawn the `qa-tester` agent to:
 5. **Save to** `design/levels/[level-name].md`.
 
 6. **Output a summary** with: area overview, encounter count, estimated asset
-   list, narrative beats, and any cross-team dependencies or open questions.
+   list, narrative beats, any cross-team dependencies or open questions, open
+   cross-level dependencies (adjacent areas referenced but not yet designed, each
+   marked UNRESOLVED), and accessibility concerns with their resolution status.
+
+## File Write Protocol
+
+All file writes (level design docs, narrative docs, test checklists) are delegated
+to sub-agents spawned via Task. Each sub-agent enforces the "May I write to [path]?"
+protocol. This orchestrator does not write files directly.
+
+Verdict: **COMPLETE** — level design document produced and all team outputs compiled.
+Verdict: **BLOCKED** — one or more agents blocked; partial report produced with unresolved items listed.
+
+## Next Steps
+
+- Run `/design-review design/levels/[level-name].md` to validate the completed level design doc.
+- Run `/dev-story` to implement level content once the design is approved.
+- Run `/qa-plan` to generate a QA test plan for this level.
 
 ## Error Recovery Protocol
 

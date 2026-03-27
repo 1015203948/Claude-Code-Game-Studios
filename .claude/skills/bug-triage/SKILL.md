@@ -226,7 +226,9 @@ After writing:
   can be considered healthy. Run `/sprint-status` to see current capacity."
 - If regression bugs exist: "Regressions found — consider re-opening the
   affected stories in sprint tracking and running `/smoke-check` to re-gate."
-- If no P1 bugs exist: "No P1 bugs — build is in good shape for QA hand-off."
+- If no P1 bugs exist: "No P1 bugs — build is in good shape for QA hand-off." Verdict: **COMPLETE** — triage report written.
+
+If user declined write: Verdict: **BLOCKED** — user declined write.
 
 ---
 

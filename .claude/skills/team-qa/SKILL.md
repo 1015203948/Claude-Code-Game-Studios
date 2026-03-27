@@ -226,3 +226,6 @@ Common blockers:
 ## Output
 
 A summary covering: stories in scope, smoke check result, manual QA results, bugs filed (with IDs and severities), and the final APPROVED / APPROVED WITH CONDITIONS / NOT APPROVED verdict.
+
+Verdict: **COMPLETE** — QA cycle finished.
+Verdict: **BLOCKED** — smoke check failed or critical blocker prevented cycle completion; partial report produced.

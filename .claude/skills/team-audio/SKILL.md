@@ -6,7 +6,10 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
-When this skill is invoked, orchestrate the audio team through a structured pipeline.
+If no argument is provided, output usage guidance and exit without spawning any agents:
+> Usage: `/team-audio [feature or area]` — specify the feature or area to design audio for (e.g., `combat`, `main menu`, `forest biome`, `boss encounter`). Do not use `AskUserQuestion` here; output the guidance directly.
+
+When this skill is invoked with an argument, orchestrate the audio team through a structured pipeline.
 
 **Decision Points:** At each step transition, use `AskUserQuestion` to present
 the user with the subagent's proposals as selectable options. Write the agent's
@@ -88,6 +91,24 @@ Spawn the `gameplay-programmer` agent to:
 
 6. **Output a summary** with: audio event count, estimated asset count,
    implementation tasks, and any open questions between team members.
+
+Verdict: **COMPLETE** — audio design document produced and team pipeline finished.
+
+If the pipeline stops because a dependency is unresolved (e.g., critical accessibility gap or missing GDD not resolved by the user):
+
+Verdict: **BLOCKED** — [reason]
+
+## File Write Protocol
+
+All file writes (audio design docs, SFX specs, implementation files) are delegated
+to sub-agents spawned via Task. Each sub-agent enforces the "May I write to [path]?"
+protocol. This orchestrator does not write files directly.
+
+## Next Steps
+
+- Review the audio design doc with the audio-director before implementation begins.
+- Use `/dev-story` to implement the audio manager and event system once the design is approved.
+- Run `/asset-audit` after audio assets are created to verify naming and format compliance.
 
 ## Error Recovery Protocol
 

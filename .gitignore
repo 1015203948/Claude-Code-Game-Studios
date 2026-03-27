@@ -19,6 +19,10 @@ production/session-state/*.md
 
 expansions/
 
+# === Runtime Artifacts (auto-generated, start empty on fresh clone) ===
+# Created on first use by /consistency-check and /architecture-review
+docs/consistency-failures.md
+
 # === Build Output ===
 build/
 builds/

@@ -8,37 +8,29 @@ allowed-tools: Read, Glob, Grep, AskUserQuestion
 
 # Guided Onboarding
 
-This skill is the entry point for new users. It does NOT assume you have a game
-idea, an engine preference, or any prior experience. It asks first, then routes
-you to the right workflow.
+This skill is read-only — it reports findings but writes no files.
+
+This skill is the entry point for new users. It does NOT assume you have a game idea, an engine preference, or any prior experience. It asks first, then routes you to the right workflow.
 
 ---
 
-## Workflow
+## Phase 1: Detect Project State
 
-### 1. Detect Project State (Silent)
-
-Before asking anything, silently gather context so you can tailor your guidance.
-Do NOT show these results unprompted — they inform your recommendations, not
-the conversation opener.
+Before asking anything, silently gather context so you can tailor your guidance. Do NOT show these results unprompted — they inform your recommendations, not the conversation opener.
 
 Check:
-- **Engine configured?** Read `.claude/docs/technical-preferences.md`. If the
-  Engine field contains `[TO BE CONFIGURED]`, the engine is not set.
+- **Engine configured?** Read `.claude/docs/technical-preferences.md`. If the Engine field contains `[TO BE CONFIGURED]`, the engine is not set.
 - **Game concept exists?** Check for `design/gdd/game-concept.md`.
-- **Source code exists?** Glob for source files in `src/` (`*.gd`, `*.cs`,
-  `*.cpp`, `*.h`, `*.rs`, `*.py`, `*.js`, `*.ts`).
+- **Source code exists?** Glob for source files in `src/` (`*.gd`, `*.cs`, `*.cpp`, `*.h`, `*.rs`, `*.py`, `*.js`, `*.ts`).
 - **Prototypes exist?** Check for subdirectories in `prototypes/`.
 - **Design docs exist?** Count markdown files in `design/gdd/`.
-- **Production artifacts?** Check for files in `production/sprints/` or
-  `production/milestones/`.
+- **Production artifacts?** Check for files in `production/sprints/` or `production/milestones/`.
 
-Store these findings internally. You will use them to validate the user's
-self-assessment and to tailor follow-up recommendations.
+Store these findings internally to validate the user's self-assessment and tailor recommendations.
 
 ---
 
-### 2. Ask Where the User Is
+## Phase 2: Ask Where the User Is
 
 This is the first thing the user sees. Present these 4 options clearly:
 
@@ -47,32 +39,26 @@ This is the first thing the user sees. Present these 4 options clearly:
 > Before I suggest anything, I'd like to understand where you're starting from.
 > Where are you at with your game idea right now?
 >
-> **A) No idea yet** — I don't have a game concept at all. I want to explore
-> and figure out what to make.
+> **A) No idea yet** — I don't have a game concept at all. I want to explore and figure out what to make.
 >
-> **B) Vague idea** — I have a rough theme, feeling, or genre in mind
-> (e.g., "something with space" or "a cozy farming game") but nothing concrete.
+> **B) Vague idea** — I have a rough theme, feeling, or genre in mind (e.g., "something with space" or "a cozy farming game") but nothing concrete.
 >
-> **C) Clear concept** — I know the core idea — genre, basic mechanics, maybe
-> a pitch sentence — but haven't formalized it into documents yet.
+> **C) Clear concept** — I know the core idea — genre, basic mechanics, maybe a pitch sentence — but haven't formalized it into documents yet.
 >
-> **D) Existing work** — I already have design docs, prototypes, code, or
-> significant planning done. I want to organize or continue the work.
+> **D) Existing work** — I already have design docs, prototypes, code, or significant planning done. I want to organize or continue the work.
 
 Wait for the user's answer. Do not proceed until they respond.
 
 ---
 
-### 3. Route Based on Answer
+## Phase 3: Route Based on Answer
 
 #### If A: No idea yet
 
-The user needs creative exploration before anything else. Engine choice,
-technical setup — all of that comes later.
+The user needs creative exploration before anything else.
 
 1. Acknowledge that starting from zero is completely fine
-2. Briefly explain what `/brainstorm` does (guided ideation using professional
-   frameworks — MDA, player psychology, verb-first design)
+2. Briefly explain what `/brainstorm` does (guided ideation using professional frameworks — MDA, player psychology, verb-first design)
 3. Recommend running `/brainstorm open` as the next step
 4. Show the recommended path:
    - `/brainstorm` — discover your game concept
@@ -83,73 +69,52 @@ technical setup — all of that comes later.
 
 #### If B: Vague idea
 
-The user has a seed but needs help growing it into a concept.
-
 1. Ask them to share their vague idea — even a few words is enough
 2. Validate the idea as a starting point (don't judge or redirect)
 3. Recommend running `/brainstorm [their hint]` to develop it
 4. Show the recommended path:
    - `/brainstorm [hint]` — develop the idea into a full concept
    - `/setup-engine` — configure the engine
-   - `/map-systems` — decompose the concept into systems and plan GDD writing order
+   - `/map-systems` — decompose the concept into systems
    - `/prototype` — test the core mechanic
    - `/sprint-plan` — plan the first sprint
 
 #### If C: Clear concept
 
-The user knows what they want to make but hasn't documented it.
-
-1. Ask 2-3 follow-up questions to understand their concept:
+1. Ask 2-3 follow-up questions:
    - What's the genre and core mechanic? (one sentence)
    - Do they have an engine preference, or need help choosing?
    - What's the rough scope? (jam game, small project, large project)
-2. Based on their answers, offer two paths:
-   - **Formalize first**: Run `/brainstorm` to structure the concept into a
-     proper game concept document with pillars, MDA analysis, and scope tiers
-   - **Jump to engine setup**: If they're confident in their concept, go
-     straight to `/setup-engine` and write the GDD manually afterward
-3. Show the recommended path (adapted to their choice):
+2. Offer two paths:
+   - **Formalize first**: Run `/brainstorm` to structure the concept into a proper game concept document
+   - **Jump to engine setup**: Go straight to `/setup-engine` and write the GDD manually afterward
+3. Show the recommended path:
    - `/brainstorm` or `/setup-engine` (their pick)
    - `/design-review` — validate the concept doc
-   - `/map-systems` — decompose the concept into individual systems with dependencies and priorities
-   - `/design-system` — author per-system GDDs (guided, section-by-section)
+   - `/map-systems` — decompose the concept into individual systems
+   - `/design-system` — author per-system GDDs
    - `/architecture-decision` — make first technical decisions
    - `/sprint-plan` — plan the first sprint
 
 #### If D: Existing work
 
-The user has artifacts already. Two questions matter: what phase are they in,
-and are their existing artifacts in a format the template's skills can use.
-
-1. Share what you found in Step 1 (now it's relevant):
+1. Share what you found in Phase 1:
    - "I can see you have [X source files / Y design docs / Z prototypes]..."
    - "Your engine is [configured as X / not yet configured]..."
 
-2. **Distinguish two sub-cases based on what exists:**
-
-   **Sub-case D1 — Artifacts exist but engine is not configured / very early stage**
-   (game concept exists but no GDDs or ADRs):
-   - This is close to a greenfield project. Route normally:
+2. **Sub-case D1 — Early stage** (engine not configured or only a game concept exists):
    - Recommend `/setup-engine` first if engine not configured
    - Then `/project-stage-detect` for a gap inventory
-   - Then pick up the normal pipeline from the detected phase
 
-   **Sub-case D2 — GDDs, ADRs, or stories already exist** (non-trivial existing work):
-   - The project needs a format compliance check, not just an existence check.
-   - Explain the distinction clearly:
-     > "Having files isn't the same as the template's skills being able to use them.
-     > GDDs might be missing required sections. ADRs might lack Status fields that
-     > story validation depends on. `/adopt` checks this specifically."
-   - Recommend this two-step path:
+   **Sub-case D2 — GDDs, ADRs, or stories already exist:**
+   - Explain: "Having files isn't the same as the template's skills being able to use them. GDDs might be missing required sections. `/adopt` checks this specifically."
+   - Recommend:
      1. `/project-stage-detect` — understand what phase and what's missing entirely
-     2. `/adopt` — audit whether existing artifacts are in the right internal format,
-        and get a numbered migration plan to bring them up to standard
-   - Note: `/adopt` is what produces the actionable "what to fix" plan. After that,
-     existing skills handle each fix: `/design-system retrofit`, `/architecture-decision retrofit`, etc.
+     2. `/adopt` — audit whether existing artifacts are in the right internal format
 
 3. Show the recommended path for D2:
    - `/project-stage-detect` — phase detection + existence gaps
-   - `/adopt` — **format compliance audit + migration plan** (the key brownfield tool)
+   - `/adopt` — format compliance audit + migration plan
    - `/setup-engine` — if engine not configured
    - `/design-system retrofit [path]` — fill missing GDD sections
    - `/architecture-decision retrofit [path]` — add missing ADR sections
@@ -158,44 +123,32 @@ and are their existing artifacts in a format the template's skills can use.
 
 ---
 
-### 4. Confirm Before Proceeding
+## Phase 4: Confirm Before Proceeding
 
-After presenting the recommended path, ask the user which step they'd like
-to take first. Never auto-run the next skill.
+After presenting the recommended path, ask the user which step they'd like to take first. Never auto-run the next skill.
 
-> "Would you like to start with [recommended first step], or would you prefer
-> to do something else first?"
+> "Would you like to start with [recommended first step], or would you prefer to do something else first?"
 
 ---
 
-### 5. Hand Off
+## Phase 5: Hand Off
 
-When the user chooses their next step, let them invoke the skill themselves
-or offer to run it for them. Either way, the `/start` skill's job is done
-once the user has a clear next action.
+When the user chooses their next step, let them invoke the skill themselves or offer to run it for them. The `/start` skill's job is done once the user has a clear next action.
+
+Verdict: **COMPLETE** — user oriented and handed off to next step.
 
 ---
 
 ## Edge Cases
 
-- **User picks D but project is empty**: Gently redirect — "It looks like the
-  project is a fresh template with no artifacts yet. Would Path A or B be a
-  better fit?"
-- **User picks A but project has code**: Mention what you found — "I noticed
-  there's already code in `src/`. Did you mean to pick D (existing work)? Or
-  would you like to start fresh with a new concept?"
-- **User is returning (engine configured, concept exists)**: Skip onboarding
-  entirely — "It looks like you're already set up! Your engine is [X] and you
-  have a game concept at `design/gdd/game-concept.md`. Want to pick up where
-  you left off? Try `/sprint-plan` or just tell me what you'd like to work on."
-- **User doesn't fit any option**: Let them describe their situation in their
-  own words and adapt. The 4 options are starting points, not a prison.
+- **User picks D but project is empty**: Gently redirect — "It looks like the project is a fresh template with no artifacts yet. Would Path A or B be a better fit?"
+- **User picks A but project has code**: Mention what you found — "I noticed there's already code in `src/`. Did you mean to pick D (existing work)?"
+- **User is returning (engine configured, concept exists)**: Skip onboarding entirely — "It looks like you're already set up! Your engine is [X] and you have a game concept at `design/gdd/game-concept.md`. Want to pick up where you left off? Try `/sprint-plan` or just tell me what you'd like to work on."
+- **User doesn't fit any option**: Let them describe their situation in their own words and adapt.
 
 ---
 
 ## Collaborative Protocol
-
-This skill follows the collaborative design principle:
 
 1. **Ask first** — never assume the user's state or intent
 2. **Present options** — give clear paths, not mandates

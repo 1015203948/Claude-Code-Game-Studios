@@ -208,6 +208,9 @@ After writing, update `production/session-state/active.md` with:
 - File: design/gdd/systems-index.md
 - Next: Design individual system GDDs
 
+**Verdict: COMPLETE** — systems index written to `design/gdd/systems-index.md`.
+If the user declined: **Verdict: BLOCKED** — user did not approve the write.
+
 ---
 
 ## 7. Phase 6: Design Individual Systems (Handoff to /design-system)

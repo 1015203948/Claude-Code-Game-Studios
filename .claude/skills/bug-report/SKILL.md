@@ -1,19 +1,29 @@
 ---
 name: bug-report
 description: "Creates a structured bug report from a description, or analyzes code to identify potential bugs. Ensures every bug report has full reproduction steps, severity assessment, and context."
-argument-hint: "[description]
-/bug-report analyze [path-to-file]"
+argument-hint: "[description] | analyze [path-to-file]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
 ---
 
-When invoked with a description:
+## Phase 1: Parse Arguments
 
-1. **Parse the description** for key information.
+Determine the mode from the argument:
 
-2. **Search the codebase** for related files using Grep/Glob to add context.
+- No `analyze` keyword → **Description Mode**: generate a structured bug report from the provided description
+- `analyze [path]` → **Analyze Mode**: read the target file(s) and identify potential bugs
 
-3. **Generate the bug report**:
+If no argument is provided, ask the user for a bug description before proceeding.
+
+---
+
+## Phase 2A: Description Mode
+
+1. **Parse the description** for key information: what broke, when, how to reproduce it, and what the expected behavior is.
+
+2. **Search the codebase** for related files using Grep/Glob to add context (affected system, likely files).
+
+3. **Draft the bug report**:
 
 ```markdown
 # Bug Report
@@ -65,11 +75,33 @@ When invoked with a description:
 [Any additional context or observations]
 ```
 
-When invoked with `analyze`:
+---
 
-1. **Read the target file(s)**.
-2. **Identify potential bugs**: null references, off-by-one errors, race
-   conditions, unhandled edge cases, resource leaks, incorrect state
-   transitions.
-3. **For each potential bug**, generate a bug report with the likely trigger
-   scenario and recommended fix.
+## Phase 2B: Analyze Mode
+
+1. **Read the target file(s)** specified in the argument.
+
+2. **Identify potential bugs**: null references, off-by-one errors, race conditions, unhandled edge cases, resource leaks, incorrect state transitions.
+
+3. **For each potential bug**, generate a bug report using the template above, with the likely trigger scenario and recommended fix filled in.
+
+---
+
+## Phase 3: Save Report
+
+Present the completed bug report(s) to the user.
+
+Ask: "May I write this to `production/qa/bugs/BUG-[NNNN].md`?"
+
+If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — bug report filed.
+
+If no, stop here. Verdict: **BLOCKED** — user declined write.
+
+---
+
+## Phase 4: Next Steps
+
+After saving, suggest:
+
+- Run `/bug-triage` to prioritize this bug alongside existing open bugs.
+- If S1 or S2 severity, consider `/hotfix` for an emergency fix workflow.

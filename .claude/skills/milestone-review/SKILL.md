@@ -6,19 +6,22 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
 ---
 
-When this skill is invoked:
+## Phase 1: Load Milestone Data
 
-1. **Read the milestone definition** from `production/milestones/`.
+Read the milestone definition from `production/milestones/`. If the argument is `current`, use the most recently modified milestone file.
 
-2. **Read all sprint reports** for sprints within this milestone from
-   `production/sprints/`.
+Read all sprint reports for sprints within this milestone from `production/sprints/`.
 
-3. **Scan the codebase** for TODO, FIXME, HACK markers that indicate
-   incomplete work.
+---
 
-4. **Check the risk register** at `production/risk-register/`.
+## Phase 2: Scan Codebase Health
 
-5. **Generate the milestone review**:
+- Scan for `TODO`, `FIXME`, `HACK` markers that indicate incomplete work
+- Check the risk register at `production/risk-register/`
+
+---
+
+## Phase 3: Generate the Milestone Review
 
 ```markdown
 # Milestone Review: [Milestone Name]
@@ -89,3 +92,22 @@ When this skill is invoked:
 | # | Action | Owner | Deadline |
 |---|--------|-------|----------|
 ```
+
+---
+
+## Phase 4: Save Review
+
+Present the review to the user.
+
+Ask: "May I write this to `production/milestones/[milestone-name]-review.md`?"
+
+If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — milestone review saved.
+
+If no, stop here. Verdict: **BLOCKED** — user declined write.
+
+---
+
+## Phase 5: Next Steps
+
+- Run `/gate-check` for a formal phase gate verdict if this milestone marks a development phase boundary.
+- Run `/sprint-plan` to adjust the next sprint based on the scope recommendations above.

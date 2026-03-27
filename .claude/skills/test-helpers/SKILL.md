@@ -368,7 +368,7 @@ Ask: "May I write these helper files to `tests/helpers/`?"
 "Skipping `[path]` — already exists. Remove the file manually if you want it
 regenerated."
 
-After writing:
+After writing: Verdict: **COMPLETE** — helper files created.
 
 "Helper files created. To use them in a test:
 - Godot: `class_name` is auto-imported — no explicit import needed
@@ -387,3 +387,9 @@ After writing:
 - **Helpers should reflect the GDD** — bounds and constants in helpers should
   trace to GDD Formulas sections, not invented values
 - **Ask before writing** — always confirm before creating files in `tests/`
+
+## Next Steps
+
+- Run `/test-setup` if the test framework has not been scaffolded yet.
+- Use `/dev-story` to implement stories — helpers reduce boilerplate in new test files.
+- Run `/skill-test` to validate other skills that may need helper coverage.

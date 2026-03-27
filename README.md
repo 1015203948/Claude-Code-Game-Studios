@@ -3,14 +3,14 @@
   <p align="center">
     Turn a single Claude Code session into a full game development studio.
     <br />
-    48 agents. 66 workflows. One coordinated AI team.
+    48 agents. 67 skills. One coordinated AI team.
   </p>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <a href=".claude/agents"><img src="https://img.shields.io/badge/agents-48-blueviolet" alt="48 Agents"></a>
-  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-66-green" alt="66 Skills"></a>
+  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-68-green" alt="68 Skills"></a>
   <a href=".claude/hooks"><img src="https://img.shields.io/badge/hooks-12-orange" alt="12 Hooks"></a>
   <a href=".claude/rules"><img src="https://img.shields.io/badge/rules-11-red" alt="11 Rules"></a>
   <a href="https://docs.anthropic.com/en/docs/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-f5f5f5?logo=anthropic" alt="Built for Claude Code"></a>
@@ -51,10 +51,10 @@ The result: you still make every decision, but now you have a team that asks the
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 48 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
-| **Skills** | 66 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics`, `/create-stories`, `/dev-story`, `/story-done`, etc.) |
+| **Skills** | 68 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics`, `/create-stories`, `/dev-story`, `/story-done`, etc.) |
 | **Hooks** | 12 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit trail, and gap detection |
 | **Rules** | 11 | Path-scoped coding standards enforced when editing gameplay, engine, AI, UI, network code, and more |
-| **Templates** | 35 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
+| **Templates** | 37 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
 
 ## Studio Hierarchy
 
@@ -92,7 +92,7 @@ The template includes agent sets for all three major engines. Use the set that m
 
 ## Slash Commands
 
-Type `/` in Claude Code to access all 66 skills:
+Type `/` in Claude Code to access all 67 skills:
 
 **Onboarding & Navigation**
 `/start` `/help` `/project-stage-detect` `/setup-engine` `/adopt`
@@ -110,7 +110,7 @@ Type `/` in Claude Code to access all 66 skills:
 `/create-epics` `/create-stories` `/dev-story` `/sprint-plan` `/sprint-status` `/story-readiness` `/story-done` `/estimate`
 
 **Reviews & Analysis**
-`/design-review` `/code-review` `/balance-check` `/asset-audit` `/content-audit` `/scope-check` `/perf-profile` `/tech-debt` `/gate-check`
+`/design-review` `/code-review` `/balance-check` `/asset-audit` `/content-audit` `/scope-check` `/perf-profile` `/tech-debt` `/gate-check` `/consistency-check`
 
 **QA & Testing**
 `/qa-plan` `/smoke-check` `/soak-test` `/regression-suite` `/test-setup` `/test-helpers` `/test-evidence-review` `/test-flakiness` `/skill-test`
@@ -171,17 +171,17 @@ CLAUDE.md                           # Master configuration
 .claude/
   settings.json                     # Hooks, permissions, safety rules
   agents/                           # 48 agent definitions (markdown + YAML frontmatter)
-  skills/                           # 66 slash commands (subdirectory per skill)
+  skills/                           # 68 slash commands (subdirectory per skill)
   hooks/                            # 12 hook scripts (bash, cross-platform)
   rules/                            # 11 path-scoped coding standards
   docs/
     workflow-catalog.yaml           # 7-phase pipeline definition (read by /help)
-    templates/                      # 35 document templates
+    templates/                      # 37 document templates
 src/                                # Game source code
 assets/                             # Art, audio, VFX, shaders, data files
 design/                             # GDDs, narrative docs, level designs
 docs/                               # Technical documentation and ADRs
-tests/                              # Test suites
+tests/                              # Test suites (unit, integration, performance, playtest)
 tools/                              # Build and pipeline tools
 prototypes/                         # Throwaway prototypes (isolated from src/)
 production/                         # Sprint plans, milestones, release tracking

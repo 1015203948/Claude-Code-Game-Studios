@@ -217,6 +217,13 @@ The project progresses through these stages:
 
 ## 3. Run the Gate Check
 
+**Before running artifact checks**, read `docs/consistency-failures.md` if it exists.
+Extract entries whose Domain matches the target phase (e.g., if checking
+Systems Design → Technical Setup, pull entries in Economy, Combat, or any GDD domain;
+if checking Technical Setup → Pre-Production, pull entries in Architecture, Engine).
+Carry these as context — recurring conflict patterns in the target domain warrant
+increased scrutiny on those specific checks.
+
 For each item in the target gate:
 
 ### Artifact Checks
@@ -282,6 +289,46 @@ For items that can't be automatically verified, **ask the user**:
 - **CONCERNS**: Minor gaps exist but can be addressed during the next phase
 - **FAIL**: Critical blockers must be resolved before advancing
 ```
+
+---
+
+## 5a. Chain-of-Verification
+
+After drafting the verdict in Phase 5, challenge it before finalising.
+
+**Step 1 — Generate 5 challenge questions** designed to disprove the verdict:
+
+For a **PASS** draft:
+- "Which quality checks did I verify by actually reading a file, vs. inferring they passed?"
+- "Are there MANUAL CHECK NEEDED items I marked PASS without user confirmation?"
+- "Did I confirm all listed artifacts have real content, not just empty headers?"
+- "Could any blocker I dismissed as minor actually prevent the phase from succeeding?"
+- "Which single check am I least confident in, and why?"
+
+For a **CONCERNS** draft:
+- "Could any listed CONCERN be elevated to a blocker given the project's current state?"
+- "Is the concern resolvable within the next phase, or does it compound over time?"
+- "Did I soften any FAIL condition into a CONCERN to avoid a harder verdict?"
+- "Are there artifacts I didn't check that could reveal additional blockers?"
+- "Do all the CONCERNS together create a blocking problem even if each is minor alone?"
+
+For a **FAIL** draft:
+- "Have I accurately separated hard blockers from strong recommendations?"
+- "Are there any PASS items I was too lenient about?"
+- "Am I missing any additional blockers the user should know about?"
+- "Can I provide a minimal path to PASS — the specific 3 things that must change?"
+- "Is the fail condition resolvable, or does it indicate a deeper design problem?"
+
+**Step 2 — Answer each question** independently.
+Do NOT reference the draft verdict text — re-check specific files or ask the user.
+
+**Step 3 — Revise if needed:**
+- If any answer reveals a missed blocker → upgrade verdict (PASS→CONCERNS or CONCERNS→FAIL)
+- If any answer reveals an over-stated blocker → downgrade only if citing specific evidence
+- If answers are consistent → confirm verdict unchanged
+
+**Step 4 — Note the verification** in the final report output:
+`Chain-of-Verification: [N] questions checked — verdict [unchanged | revised from X to Y]`
 
 ---
 

@@ -26,7 +26,7 @@ Run `/review-all-gdds` after completing a set of related GDDs.
 ## Quick Specs (`design/quick-specs/`)
 
 Lightweight specs for tuning changes, minor mechanics, or balance adjustments.
-Use `/quick-design` to author. Template: `.claude/docs/templates/quick-spec.md`
+Use `/quick-design` to author.
 
 ## UX Specs (`design/ux/`)
 

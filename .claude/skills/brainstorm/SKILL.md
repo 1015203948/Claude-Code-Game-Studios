@@ -193,7 +193,9 @@ Ground the concept in reality:
    brainstorm conversation, including the MDA analysis, player motivation
    profile, and flow state design sections.
 
-5. **Save to** `design/gdd/game-concept.md`, creating directories as needed.
+5. Ask: "May I write the game concept document to `design/gdd/game-concept.md`?"
+
+If yes, generate the document using the template at `.claude/docs/templates/game-concept.md`, fill in ALL sections from the brainstorm conversation, and write the file, creating directories as needed.
 
 6. **Suggest next steps** (in this order — this is the professional studio
    pre-production pipeline):
@@ -208,3 +210,5 @@ Ground the concept in reality:
 
 7. **Output a summary** with the chosen concept's elevator pitch, pillars,
    primary player type, engine recommendation, biggest risk, and file path.
+
+Verdict: **COMPLETE** — game concept created and handed off for next steps.

@@ -206,6 +206,6 @@ After writing:
 - **Fix is always the goal** — quarantine is temporary; surface the fix
   direction even when recommending quarantine
 - **Ask before writing** — both the regression-suite update and the report
-  file require explicit approval
+  file require explicit approval. On write: Verdict: **COMPLETE** — flakiness report written. On decline: Verdict: **BLOCKED** — user declined write.
 - **Flakiness in CI is a team problem** — surface the list and recommended
   actions clearly; do not just silently quarantine without the team knowing

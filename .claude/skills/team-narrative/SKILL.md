@@ -5,7 +5,10 @@ argument-hint: "[narrative content description]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion, TodoWrite
 ---
-When this skill is invoked, orchestrate the narrative team through a structured pipeline.
+If no argument is provided, output usage guidance and exit without spawning any agents:
+> Usage: `/team-narrative [narrative content description]` — describe the story content, scene, or narrative area to work on (e.g., `boss encounter cutscene`, `faction intro dialogue`, `tutorial narrative`). Do not use `AskUserQuestion` here; output the guidance directly.
+
+When this skill is invoked with an argument, orchestrate the narrative team through a structured pipeline.
 
 **Decision Points:** At each phase transition, use `AskUserQuestion` to present
 the user with the subagent's proposals as selectable options. Write the agent's
@@ -82,5 +85,24 @@ Common blockers:
 - Scope too large → split into two stories via `/create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 
+## File Write Protocol
+
+All file writes (narrative docs, dialogue files, lore entries) are delegated to
+sub-agents spawned via Task. Each sub-agent enforces the "May I write to [path]?"
+protocol. This orchestrator does not write files directly.
+
 ## Output
+
 A summary report covering: narrative brief status, lore entries created/updated, dialogue lines written, level narrative integration points, consistency review results, and any unresolved contradictions.
+
+Verdict: **COMPLETE** — narrative content delivered.
+
+If the pipeline stops because a dependency is unresolved (e.g., lore contradiction or missing prerequisite not resolved by the user):
+
+Verdict: **BLOCKED** — [reason]
+
+## Next Steps
+
+- Run `/design-review` on the narrative documents for consistency validation.
+- Run `/localize extract` to extract new strings for translation after dialogue is finalized.
+- Run `/dev-story` to implement dialogue triggers and narrative events in-engine.

@@ -236,6 +236,8 @@ After the report:
 - For missing sign-offs: "Manual sign-off is required from [role]. Share
   `[evidence-path]` with them to complete sign-off."
 
+Verdict: **COMPLETE** — evidence review finished. Use CONCERNS if BLOCKING items were found.
+
 ---
 
 ## Collaborative Protocol

@@ -47,6 +47,15 @@ Before designing anything, read and synthesize:
 - `design/ux/interaction-patterns.md` — existing patterns to reuse (not reinvent)
 - `design/accessibility-requirements.md` — committed accessibility tier (e.g., Basic, Enhanced, Full)
 
+**If `design/ux/interaction-patterns.md` does not exist**, surface the gap immediately:
+> "interaction-patterns.md does not exist — no existing patterns to reuse."
+
+Then use `AskUserQuestion` with options:
+- (a) Run `/ux-design patterns` first to establish the pattern library, then continue
+- (b) Proceed without the pattern library — ui-programmer will treat all patterns created as new and add each to a new `design/ux/interaction-patterns.md` at completion
+
+Do NOT invent or assume patterns from the feature name or GDD alone. If the user chooses (b), explicitly instruct ui-programmer in Phase 3 to treat all patterns as new and document them in `design/ux/interaction-patterns.md` when implementation is complete. Note the pattern library status (created / absent / updated) in the final summary report.
+
 Summarize the context in a brief for the ux-designer: what the player is doing, what they need, what constraints apply, and which existing patterns are relevant.
 
 ### Phase 1b: UX Spec Authoring
@@ -141,6 +150,21 @@ Common blockers:
 - Scope too large → split into two stories via `/create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 
+## File Write Protocol
+
+All file writes (UX specs, interaction pattern library updates, implementation files) are
+delegated to sub-agents and sub-skills (`/ux-design`, `ui-programmer`). Each enforces the
+"May I write to [path]?" protocol. This orchestrator does not write files directly.
+
 ## Output
 
 A summary report covering: UX spec status, UX review verdict, visual design status, implementation status, accessibility compliance, input method support, interaction pattern library update status, and any outstanding issues.
+
+Verdict: **COMPLETE** — UI feature delivered through full pipeline (UX spec → visual → implementation → review → polish).
+Verdict: **BLOCKED** — pipeline halted; surface the blocker and its phase before stopping.
+
+## Next Steps
+
+- Run `/ux-review` on the final spec if not yet approved.
+- Run `/code-review` on the UI implementation before closing stories.
+- Run `/team-polish` if visual or audio polish pass is needed.

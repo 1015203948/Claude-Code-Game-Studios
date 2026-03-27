@@ -10,8 +10,10 @@ model: haiku
 
 # Scope Check
 
+This skill is read-only — it reports findings but writes no files.
+
 Compares original planned scope against current state to detect, quantify, and triage
-scope creep. Read-only — never edits files without approval.
+scope creep.
 
 **Argument:** `$ARGUMENTS[0]` — feature name, sprint number, or milestone name.
 

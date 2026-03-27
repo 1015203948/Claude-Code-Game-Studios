@@ -109,6 +109,7 @@ Ask yourself: "What department would handle this in a real studio?"
 | `/perf-profile` | Performance profiling and bottleneck ID |
 | `/tech-debt` | Scan, track, and prioritize tech debt |
 | `/gate-check` | Validate phase readiness (PASS/CONCERNS/FAIL) |
+| `/consistency-check` | Scan all GDDs for cross-document inconsistencies (conflicting stats, names, rules) |
 | `/reverse-document` | Generate design/architecture docs from existing code |
 | `/milestone-review` | Reviews milestone progress |
 | `/retrospective` | Runs sprint/milestone retrospective |
@@ -129,6 +130,18 @@ Ask yourself: "What department would handle this in a real studio?"
 | `/team-polish` | Orchestrate full polish team pipeline |
 | `/team-audio` | Orchestrate full audio team pipeline |
 | `/team-level` | Orchestrate full level creation pipeline |
+| `/team-live-ops` | Orchestrate live-ops team for seasons, events, and post-launch content |
+| `/team-qa` | Orchestrate full QA team cycle — test plan, test cases, smoke check, sign-off |
+| `/qa-plan` | Generate a QA test plan for a sprint or feature |
+| `/bug-triage` | Re-prioritize open bugs, assign to sprints, surface systemic trends |
+| `/smoke-check` | Run critical path smoke test gate before QA hand-off (PASS/FAIL) |
+| `/soak-test` | Generate a soak test protocol for extended play sessions |
+| `/regression-suite` | Map coverage to GDD critical paths, flag gaps, maintain regression suite |
+| `/test-setup` | Scaffold test framework + CI pipeline for the project's engine (run once) |
+| `/test-helpers` | Generate engine-specific test helper libraries and factory functions |
+| `/test-flakiness` | Detect flaky tests from CI history, flag for quarantine or fix |
+| `/test-evidence-review` | Quality review of test files and manual evidence — ADEQUATE/INCOMPLETE/MISSING |
+| `/skill-test` | Validate skill files for compliance and correctness (static / spec / audit) |
 
 ### 4. Use Templates for New Documents
 
@@ -167,6 +180,7 @@ Templates are in `.claude/docs/templates/`:
 - `interaction-pattern-library.md` -- for standard UI controls and game-specific patterns
 - `player-journey.md` -- for 6-phase emotional arc and retention hooks by time scale
 - `difficulty-curve.md` -- for difficulty axes, onboarding ramp, and cross-system interactions
+- `test-evidence.md` -- template for recording manual test evidence (screenshots, walkthrough notes)
 
 Also in `.claude/docs/templates/collaborative-protocols/` (used by agents, not typically edited directly):
 
@@ -253,7 +267,7 @@ CLAUDE.md                          -- Master config (read this first, ~60 lines)
 .claude/
   settings.json                    -- Claude Code hooks and project settings
   agents/                          -- 48 agent definitions (YAML frontmatter)
-  skills/                          -- 66 slash command definitions (YAML frontmatter)
+  skills/                          -- 68 slash command definitions (YAML frontmatter)
   hooks/                           -- 12 hook scripts (.sh) wired by settings.json
   rules/                           -- 11 path-specific rule files
   docs/
@@ -266,5 +280,5 @@ CLAUDE.md                          -- Master config (read this first, ~60 lines)
     workflow-catalog.yaml          -- 7-phase pipeline definition (read by /help)
     setup-requirements.md          -- System prerequisites (Git Bash, jq, Python)
     settings-local-template.md     -- Personal settings.local.json guide
-    templates/                     -- 35 document templates
+    templates/                     -- 37 document templates
 ```

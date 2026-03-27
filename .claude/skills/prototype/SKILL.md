@@ -9,42 +9,57 @@ agent: prototyper
 isolation: worktree
 ---
 
-When this skill is invoked:
+## Phase 1: Define the Question
 
-1. **Read the concept description** from the argument. Identify the core
-   question this prototype must answer. If the concept is vague, state the
-   question explicitly before proceeding.
+Read the concept description from the argument. Identify the core question this prototype must answer. If the concept is vague, state the question explicitly before proceeding — a prototype without a clear question wastes time.
 
-2. **Read CLAUDE.md** for project context and the current tech stack. Understand
-   what engine, language, and frameworks are in use so the prototype is built
-   with compatible tooling.
+---
 
-3. **Create a prototype plan**: Define in 3-5 bullet points what the minimum
-   viable prototype looks like. What is the core question? What is the absolute
-   minimum code needed to answer it? What can be skipped?
+## Phase 2: Load Project Context
 
-4. **Create the prototype directory**: `prototypes/[concept-name]/` where
-   `[concept-name]` is a short, kebab-case identifier derived from the concept.
+Read `CLAUDE.md` for project context and the current tech stack. Understand what engine, language, and frameworks are in use so the prototype is built with compatible tooling.
 
-5. **Implement the prototype** in the isolated directory. Every file must begin
-   with:
-   ```
-   // PROTOTYPE - NOT FOR PRODUCTION
-   // Question: [Core question being tested]
-   // Date: [Current date]
-   ```
-   Standards are intentionally relaxed:
-   - Hardcode values freely
-   - Use placeholder assets
-   - Skip error handling
-   - Use the simplest approach that works
-   - Copy code rather than importing from production
+---
 
-6. **Test the concept**: Run the prototype. Observe behavior. Collect any
-   measurable data (frame times, interaction counts, feel assessments).
+## Phase 3: Plan the Prototype
 
-7. **Generate the Prototype Report** and save it to
-   `prototypes/[concept-name]/REPORT.md`:
+Define in 3-5 bullet points what the minimum viable prototype looks like:
+
+- What is the core question?
+- What is the absolute minimum code needed to answer it?
+- What can be skipped (error handling, polish, architecture)?
+
+Present this plan to the user before building. Ask for confirmation if scope seems unclear.
+
+---
+
+## Phase 4: Implement
+
+Ask: "May I create the prototype directory at `prototypes/[concept-name]/` and begin implementation?"
+
+If yes, create the directory. Every file must begin with:
+
+```
+// PROTOTYPE - NOT FOR PRODUCTION
+// Question: [Core question being tested]
+// Date: [Current date]
+```
+
+Standards are intentionally relaxed:
+
+- Hardcode values freely
+- Use placeholder assets
+- Skip error handling
+- Use the simplest approach that works
+- Copy code rather than importing from production
+
+Run the prototype. Observe behavior. Collect any measurable data (frame times, interaction counts, feel assessments).
+
+---
+
+## Phase 5: Generate Prototype Report
+
+Draft the report:
 
 ```markdown
 ## Prototype Report: [Concept Name]
@@ -87,32 +102,46 @@ When this skill is invoked:
 [Discoveries that affect other systems or future work]
 ```
 
-8. **Delegate the decision to the creative-director**. Spawn a `creative-director`
-   subagent via Task and provide:
-   - The full REPORT.md content
-   - The original design question
-   - Any game pillars or concept doc from `design/gdd/` that are relevant
+Ask: "May I write this report to `prototypes/[concept-name]/REPORT.md`?"
 
-   Ask the creative-director to:
-   - Evaluate the prototype result against the game's creative vision and pillars
-   - Confirm, modify, or override the prototyper's PROCEED / PIVOT / KILL recommendation
-   - If PROCEED: identify any creative constraints for the production implementation
-   - If PIVOT: specify which direction aligns better with the pillars
-   - If KILL: note whether the underlying player need should be addressed differently
+If yes, write the file.
 
-   The creative-director's decision is final. Update the REPORT.md `Recommendation`
-   section with the creative-director's verdict if it differs from the prototyper's.
+---
 
-9. **Output a summary** to the user with: the core question, the result, the
-   prototyper's initial recommendation, and the creative-director's final decision.
-   Link to the full report at `prototypes/[concept-name]/REPORT.md`.
+## Phase 6: Creative Director Review
+
+Delegate the decision to the creative-director. Spawn a `creative-director` subagent via Task and provide:
+
+- The full REPORT.md content
+- The original design question
+- Any game pillars or concept doc from `design/gdd/` that are relevant
+
+Ask the creative-director to:
+
+- Evaluate the prototype result against the game's creative vision and pillars
+- Confirm, modify, or override the prototyper's PROCEED / PIVOT / KILL recommendation
+- If PROCEED: identify any creative constraints for the production implementation
+- If PIVOT: specify which direction aligns better with the pillars
+- If KILL: note whether the underlying player need should be addressed differently
+
+The creative-director's decision is final. Update the REPORT.md `Recommendation` section with the creative-director's verdict if it differs from the prototyper's.
+
+---
+
+## Phase 7: Summary and Next Steps
+
+Output a summary to the user: the core question, the result, the prototyper's initial recommendation, and the creative-director's final decision. Link to the full report at `prototypes/[concept-name]/REPORT.md`.
+
+If **PROCEED**: run `/design-system` to begin the production GDD for this mechanic, or `/architecture-decision` to record key technical decisions before implementation.
+
+If **PIVOT** or **KILL**: no further action needed — the prototype report is the deliverable.
+
+Verdict: **COMPLETE** — prototype finished. Recommendation is PROCEED, PIVOT, or KILL based on findings above.
 
 ### Important Constraints
 
 - Prototype code must NEVER import from production source files
 - Production code must NEVER import from prototype directories
-- If the recommendation is PROCEED, the production implementation must be
-  written from scratch -- prototype code is not refactored into production
+- If the recommendation is PROCEED, the production implementation must be written from scratch — prototype code is not refactored into production
 - Total prototype effort should be timeboxed to 1-3 days equivalent of work
-- If the prototype scope starts growing, stop and reassess whether the
-  question can be simplified
+- If the prototype scope starts growing, stop and reassess whether the question can be simplified

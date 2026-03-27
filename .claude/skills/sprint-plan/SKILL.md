@@ -22,7 +22,7 @@ When this skill is invoked:
 
 For `new`:
 
-5. **Generate a sprint plan** following this format:
+5. **Generate a sprint plan** following this format and present it to the user. Ask: "May I write this sprint plan to `production/sprints/sprint-[N].md`?" If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — sprint plan created. If no: Verdict: **BLOCKED** — user declined write.
 
 ```markdown
 # Sprint [N] -- [Start Date] to [End Date]

@@ -73,6 +73,11 @@ Read all inputs appropriate to the mode:
 
 Report a count: "Loaded [N] GDDs, [M] ADRs, engine: [name + version]."
 
+**Also read `docs/consistency-failures.md`** if it exists. Extract entries with
+Domain matching the systems under review (Architecture, Engine, or any GDD domain
+being covered). Surface recurring patterns as a "Known conflict-prone areas" note
+at the top of the Phase 4 conflict detection output.
+
 ---
 
 ## Phase 2: Extract Technical Requirements from Every GDD
@@ -529,6 +534,24 @@ If yes:
 
 This ensures all future story files can reference stable TR-IDs that persist
 across every subsequent architecture review.
+
+### Reflexion Log Update
+
+After writing the review report, append any 🔴 CONFLICT entries found in Phase 4
+to `docs/consistency-failures.md` (if the file exists):
+
+```markdown
+### [YYYY-MM-DD] — /architecture-review — 🔴 CONFLICT
+**Domain**: Architecture / [specific domain e.g. State Ownership, Performance]
+**Documents involved**: [ADR-NNNN] vs [ADR-MMMM]
+**What happened**: [specific conflict — what each ADR claims]
+**Resolution**: [how it was or should be resolved]
+**Pattern**: [generalised lesson for future ADR authors in this domain]
+```
+
+Only append CONFLICT entries — do not log GAP entries (missing ADRs are expected
+before the architecture is complete). Do not create the file if missing — only
+append when it already exists.
 
 ### Session State Update
 

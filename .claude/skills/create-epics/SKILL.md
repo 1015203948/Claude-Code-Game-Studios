@@ -114,7 +114,9 @@ Options: "Yes, create it", "Skip", "Pause — I need to write ADRs first"
 
 ## 5. Write Epic Files
 
-After approval, write:
+After approval, ask: "May I write the epic file to `production/epics/[epic-slug]/EPIC.md`?"
+
+After user confirms, write:
 
 ### `production/epics/[epic-slug]/EPIC.md`
 
@@ -193,3 +195,8 @@ After writing all epics for the requested scope:
 3. **Ask before writing** — per-epic approval before writing any file
 4. **No invention** — all content comes from GDDs, ADRs, and architecture docs
 5. **Never create stories** — this skill stops at the epic level
+
+After all requested epics are processed:
+
+- **Verdict: COMPLETE** — [N] epic(s) written. Run `/create-stories [epic-slug]` per epic.
+- **Verdict: BLOCKED** — user declined all epics, or no eligible systems found.

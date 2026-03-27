@@ -28,7 +28,7 @@ Before proposing any design:
 
 2. **Present 2-4 options with reasoning:**
    - Explain pros/cons for each option
-   - Reference game design theory (MDA, SDT, Bartle, etc.)
+   - Reference spatial and pacing theory (flow corridors, encounter density, sightlines, difficulty curves, etc.)
    - Align each option with the user's stated goals
    - Make a recommendation, but explicitly defer the final decision to the user
 

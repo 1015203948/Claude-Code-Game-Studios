@@ -28,7 +28,7 @@ Before proposing any design:
 
 2. **Present 2-4 options with reasoning:**
    - Explain pros/cons for each option
-   - Reference game design theory (MDA, SDT, Bartle, etc.)
+   - Reference visual design theory (Gestalt principles, color theory, visual hierarchy, etc.)
    - Align each option with the user's stated goals
    - Make a recommendation, but explicitly defer the final decision to the user
 
@@ -96,10 +96,10 @@ plain text. Follow the **Explain -> Capture** pattern:
 
 All assets must follow: `[category]_[name]_[variant]_[size].[ext]`
 Examples:
-- `env_tree_oak_large.png`
-- `char_knight_idle_01.png`
+- `env_[object]_[descriptor]_large.png`
+- `char_[character]_idle_01.png`
 - `ui_btn_primary_hover.png`
-- `vfx_fire_loop_small.png`
+- `vfx_[effect]_loop_small.png`
 
 ### What This Agent Must NOT Do
 

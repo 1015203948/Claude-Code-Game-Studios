@@ -14,6 +14,7 @@ Or check `README.md` for the version badge.
 ## Table of Contents
 
 - [Upgrade Strategies](#upgrade-strategies)
+- [v0.4.0 → v0.4.1](#v040--v041)
 - [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
 - [v0.1.0 → v0.2.0](#v010--v020)
@@ -75,6 +76,65 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 2. Copy the files listed under **"Safe to overwrite"** directly.
 3. For files under **"Merge carefully"**, open both versions side-by-side
    and manually merge the structural changes while keeping your content.
+
+---
+
+## v0.4.0 → v0.4.1
+
+**Released:** 2026-03-26
+**Commit range:** `04ed5d5..HEAD`
+**Key themes:** Genre-agnostic agents, new skills, skill fixes
+
+### What Changed
+
+| Category | Changes |
+|----------|---------|
+| **New skills (1)** | `/consistency-check` — cross-GDD entity consistency scanner |
+| **Skill fixes (all team-*)** | Added no-argument guards, formal `Verdict: COMPLETE / BLOCKED` keywords, per-step AskUserQuestion gates, adjacent area dependency checks (team-level), ethics enforcement (team-live-ops), NO-GO path with Phase skip (team-release) |
+| **Agent fixes (4)** | Genre-agnostic language in game-designer, systems-designer, economy-designer, live-ops-designer — removed RPG-specific terms |
+
+---
+
+### Files: Safe to Overwrite
+
+**New files to add:**
+```
+.claude/skills/consistency-check/SKILL.md
+```
+
+**Existing files to overwrite (no user content):**
+```
+.claude/skills/team-combat/SKILL.md      ← no-arg guard, verdict keywords, gate improvements
+.claude/skills/team-narrative/SKILL.md   ← no-arg guard, verdict keywords, gate improvements
+.claude/skills/team-ui/SKILL.md          ← no-arg guard, verdict keywords, gate improvements
+.claude/skills/team-release/SKILL.md     ← no-arg guard, verdict keywords, NO-GO path
+.claude/skills/team-polish/SKILL.md      ← no-arg guard, verdict keywords, gate improvements
+.claude/skills/team-audio/SKILL.md       ← no-arg guard, verdict keywords, gate improvements
+.claude/skills/team-level/SKILL.md       ← no-arg guard, verdict keywords, adjacent area checks
+.claude/skills/team-live-ops/SKILL.md    ← no-arg guard, verdict keywords, ethics enforcement
+.claude/skills/team-qa/SKILL.md          ← no-arg guard, verdict keywords, gate improvements
+.claude/skills/map-systems/SKILL.md      ← verdict keywords
+.claude/skills/create-epics/SKILL.md     ← "May I write" protocol fix, verdict keywords
+.claude/skills/create-stories/SKILL.md   ← verdict keywords
+.claude/agents/game-designer.md          ← genre-agnostic language
+.claude/agents/systems-designer.md       ← genre-agnostic language
+.claude/agents/economy-designer.md       ← genre-agnostic language
+.claude/agents/live-ops-designer.md      ← genre-agnostic language
+```
+
+---
+
+### Files: Merge Carefully
+
+No files require manual merging in this release. All changes are to infrastructure files with no user content.
+
+---
+
+### After Upgrading
+
+1. Run `/skill-test catalog` to verify all skills are indexed.
+2. Run `/skill-test lint [skill-name]` after any skill edits to check structural compliance.
+3. If you've customized any team-* skills, review the updated versions — no-argument guard and `Verdict:` keywords are now required for all team-* skills.
 
 ---
 
