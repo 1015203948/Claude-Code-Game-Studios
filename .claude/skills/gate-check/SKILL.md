@@ -144,8 +144,8 @@ The project progresses through these stages:
 - [ ] Architecture document has no unresolved open questions in Foundation or Core layers
 - [ ] All ADRs have Engine Compatibility sections stamped with the engine version
 - [ ] All ADRs have ADR Dependencies sections (even if all fields are "None")
-- [ ] `/bmad-bmm-check-implementation-readiness` has been run or equivalent manual
-      validation confirms GDDs + architecture + epics are coherent
+- [ ] Manual validation confirms GDDs + architecture + epics are coherent
+      (run `/review-all-gdds` and `/architecture-review` if not done recently)
 - [ ] **Core fantasy is delivered** — at least one playtester independently described an experience that matches the Player Fantasy section of the core system GDDs (without being prompted).
 
 **Vertical Slice Validation** (FAIL if any item is NO):

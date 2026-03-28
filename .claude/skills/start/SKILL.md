@@ -61,10 +61,20 @@ The user needs creative exploration before anything else.
 2. Briefly explain what `/brainstorm` does (guided ideation using professional frameworks — MDA, player psychology, verb-first design)
 3. Recommend running `/brainstorm open` as the next step
 4. Show the recommended path:
+   **Concept phase:**
    - `/brainstorm` — discover your game concept
    - `/setup-engine` — configure the engine (brainstorm will recommend one)
-   - `/map-systems` — decompose the concept into systems and plan GDD writing order
-   - `/prototype` — test the core mechanic
+   - `/map-systems` — decompose the concept into systems
+   - `/design-system` — author a GDD for each MVP system
+   - `/review-all-gdds` — cross-system consistency check
+   - `/gate-check` — validate readiness before architecture work
+   **Architecture phase:**
+   - `/architecture-decision` — record key technical decisions (one per system)
+   - `/create-control-manifest` — compile decisions into an actionable rules sheet
+   - `/architecture-review` — validate architecture coverage
+   **Production phase:**
+   - `/create-epics` — map systems to epics
+   - `/create-stories` — break epics into implementable stories
    - `/sprint-plan` — plan the first sprint
 
 #### If B: Vague idea
@@ -73,10 +83,20 @@ The user needs creative exploration before anything else.
 2. Validate the idea as a starting point (don't judge or redirect)
 3. Recommend running `/brainstorm [their hint]` to develop it
 4. Show the recommended path:
+   **Concept phase:**
    - `/brainstorm [hint]` — develop the idea into a full concept
    - `/setup-engine` — configure the engine
    - `/map-systems` — decompose the concept into systems
-   - `/prototype` — test the core mechanic
+   - `/design-system` — author a GDD for each MVP system
+   - `/review-all-gdds` — cross-system consistency check
+   - `/gate-check` — validate readiness before architecture work
+   **Architecture phase:**
+   - `/architecture-decision` — record key technical decisions (one per system)
+   - `/create-control-manifest` — compile decisions into an actionable rules sheet
+   - `/architecture-review` — validate architecture coverage
+   **Production phase:**
+   - `/create-epics` — map systems to epics
+   - `/create-stories` — break epics into implementable stories
    - `/sprint-plan` — plan the first sprint
 
 #### If C: Clear concept
@@ -89,11 +109,20 @@ The user needs creative exploration before anything else.
    - **Formalize first**: Run `/brainstorm` to structure the concept into a proper game concept document
    - **Jump to engine setup**: Go straight to `/setup-engine` and write the GDD manually afterward
 3. Show the recommended path:
+   **Concept phase:**
    - `/brainstorm` or `/setup-engine` (their pick)
    - `/design-review` — validate the concept doc
    - `/map-systems` — decompose the concept into individual systems
-   - `/design-system` — author per-system GDDs
-   - `/architecture-decision` — make first technical decisions
+   - `/design-system` — author a GDD for each MVP system
+   - `/review-all-gdds` — cross-system consistency check
+   - `/gate-check` — validate readiness before architecture work
+   **Architecture phase:**
+   - `/architecture-decision` — record key technical decisions (one per system)
+   - `/create-control-manifest` — compile decisions into an actionable rules sheet
+   - `/architecture-review` — validate architecture coverage
+   **Production phase:**
+   - `/create-epics` — map systems to epics
+   - `/create-stories` — break epics into implementable stories
    - `/sprint-plan` — plan the first sprint
 
 #### If D: Existing work

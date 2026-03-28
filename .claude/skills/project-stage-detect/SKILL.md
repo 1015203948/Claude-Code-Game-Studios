@@ -6,7 +6,7 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write
 context: fork
 model: haiku
-agent: Explore
+# Read-only diagnostic skill — no specialist agent delegation needed
 ---
 
 # Project Stage Detection

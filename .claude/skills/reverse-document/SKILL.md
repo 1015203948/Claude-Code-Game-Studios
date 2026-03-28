@@ -5,7 +5,7 @@ argument-hint: "<type> <path> (e.g., 'design src/gameplay/combat' or 'architectu
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 context: fork
-agent: Explore
+# Read-only diagnostic skill — no specialist agent delegation needed
 ---
 
 # Reverse Documentation

@@ -8,7 +8,7 @@ context: |
   !ls production/sprints/ 2>/dev/null
 ---
 
-When this skill is invoked:
+## Phase 1: Gather Context
 
 1. **Read the current milestone** from `production/milestones/`.
 
@@ -20,9 +20,13 @@ When this skill is invoked:
 
 4. **Check the risk register** at `production/risk-register/`.
 
+---
+
+## Phase 2: Generate Output
+
 For `new`:
 
-5. **Generate a sprint plan** following this format and present it to the user. Ask: "May I write this sprint plan to `production/sprints/sprint-[N].md`?" If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — sprint plan created. If no: Verdict: **BLOCKED** — user declined write.
+**Generate a sprint plan** following this format and present it to the user. Ask: "May I write this sprint plan to `production/sprints/sprint-[N].md`?" If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — sprint plan created. If no: Verdict: **BLOCKED** — user declined write.
 
 ```markdown
 # Sprint [N] -- [Start Date] to [End Date]
@@ -70,7 +74,7 @@ For `new`:
 
 For `status`:
 
-5. **Generate a status report**:
+**Generate a status report**:
 
 ```markdown
 # Sprint [N] Status -- [Date]
@@ -101,7 +105,9 @@ For `status`:
 - [Any new risks identified this sprint]
 ```
 
-### Sprint Status File
+---
+
+## Phase 3: Write Sprint Status File
 
 After generating a new sprint plan, also write `production/sprint-status.yaml`.
 This is the machine-readable source of truth for story status — read by
@@ -142,16 +148,27 @@ Initialize each story from the sprint plan's task tables:
 For `update`: read the existing `sprint-status.yaml`, carry over statuses for
 stories that haven't changed, add new stories, remove dropped ones.
 
-### Scope Reminder
+---
+
+## Phase 4: Scope and Risk Check
 
 After presenting the sprint plan, add:
 
 > **Scope check:** If this sprint includes stories added beyond the original epic scope, run `/scope-check [epic]` to detect scope creep before implementation begins.
 
-When reviewing stories during selection (step 3 above), note any stories that appear outside the original epic goals. If any are uncertain, flag them inline: "Are these stories within the original epic scope? If unsure, `/scope-check` can verify."
-
-### Agent Consultation
+When reviewing stories during selection, note any stories that appear outside the original epic goals. If any are uncertain, flag them inline: "Are these stories within the original epic scope? If unsure, `/scope-check` can verify."
 
 For comprehensive sprint planning, consider consulting:
 - `producer` agent for capacity planning, risk assessment, and cross-department coordination
 - `game-designer` agent for feature prioritization and design readiness assessment
+
+---
+
+## Phase 5: Next Steps
+
+After the sprint plan is written, recommend:
+
+- `/sprint-status` — check progress mid-sprint
+- `/scope-check [epic]` — verify no scope creep before implementation begins
+- `/dev-story [story-file]` — begin implementing the first story
+- `/story-readiness [story-file]` — validate a story is ready before starting it

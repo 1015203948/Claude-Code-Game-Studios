@@ -268,7 +268,7 @@ Use the template structure from `.claude/docs/templates/game-design-document.md`
 
 Ask: "May I create the skeleton file at `design/gdd/[system-name].md`?"
 
-After writing, update `production/session-state/active.md` with:
+After writing, create `production/session-state/active.md` if it does not exist, then update it with:
 - Task: Designing [system-name] GDD
 - Current section: Starting (skeleton created)
 - File: design/gdd/[system-name].md
@@ -602,7 +602,7 @@ Use `AskUserQuestion`:
 
 If yes, invoke the design-review skill on the completed file.
 
-### 5c: Update Systems Index
+### 5d: Update Systems Index
 
 After the GDD is complete (and optionally reviewed):
 

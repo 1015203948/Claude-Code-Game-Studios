@@ -5,7 +5,7 @@ argument-hint: "[path-to-design-doc]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep
 context: fork
-agent: Explore
+# Read-only diagnostic skill — no specialist agent delegation needed
 ---
 
 ## Phase 1: Load Documents
