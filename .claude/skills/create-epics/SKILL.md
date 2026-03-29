@@ -1,7 +1,7 @@
 ---
 name: create-epics
 description: "Translate approved GDDs + architecture into epics — one epic per architectural module. Defines scope, governing ADRs, engine risk, and untraced requirements. Does NOT break into stories — run /create-stories [epic-slug] after each epic is created."
-argument-hint: "[system-name | layer: foundation|core|feature|presentation | all]"
+argument-hint: "[system-name | layer: foundation|core|feature|presentation | all] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
 context: fork
@@ -27,6 +27,9 @@ will have changed.
 ---
 
 ## 1. Parse Arguments
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 **Modes:**
 - `/create-epics all` — process all systems in layer order

@@ -1,7 +1,7 @@
 ---
 name: story-done
 description: "End-of-story completion review. Reads the story file, verifies each acceptance criterion against the implementation, checks for GDD/ADR deviations, prompts code review, updates story status to Complete, and surfaces the next ready story from the sprint."
-argument-hint: "[story-file-path]"
+argument-hint: "[story-file-path] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit
 ---
@@ -19,6 +19,9 @@ forgotten, and the story file reflects actual completion status.
 ---
 
 ## Phase 1: Find the Story
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 **If a file path is provided** (e.g., `/story-done production/epics/core/story-damage-calculator.md`):
 read that file directly.

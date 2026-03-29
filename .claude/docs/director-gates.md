@@ -23,6 +23,47 @@ the verdict using the **Verdict handling** rules below.
 
 ---
 
+## Review Modes
+
+Review intensity controls whether director gates run. It can be set globally
+(persists across sessions) or overridden per skill run.
+
+**Global config**: `production/review-mode.txt` — one word: `full`, `lean`, or `solo`.
+Set once during `/start`. Edit the file directly to change it at any time.
+
+**Per-run override**: any gate-using skill accepts `--review [full|lean|solo]` as an
+argument. This overrides the global config for that run only.
+
+Examples:
+```
+/brainstorm space horror           → uses global mode
+/brainstorm space horror --review full   → forces full mode this run
+/architecture-decision --review solo     → skips all gates this run
+```
+
+| Mode | What runs | Best for |
+|------|-----------|----------|
+| `full` | All gates active — current behaviour | New projects, teams, learning the workflow |
+| `lean` | PHASE-GATEs only (`/gate-check`) — all per-skill gates skipped | Experienced devs who trust their own design work |
+| `solo` | No director gates anywhere | Game jams, prototypes, seasoned solo devs at speed |
+
+**Check pattern — apply before every gate spawn:**
+
+```
+Before spawning gate [GATE-ID]:
+1. If skill was called with --review [mode], use that
+2. Else read production/review-mode.txt
+3. Else default to full
+
+Apply the resolved mode:
+- solo → skip all gates. Note: "[GATE-ID] skipped — Solo mode"
+- lean → skip unless this is a PHASE-GATE (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE)
+         Note: "[GATE-ID] skipped — Lean mode"
+- full → spawn as normal
+```
+
+---
+
 ## Invocation Pattern (copy into any skill)
 
 ```

@@ -267,6 +267,7 @@ This is a **template**, not a locked framework. Everything is meant to be custom
 - **Add rules** — create new path-scoped rules for your project's directory structure
 - **Tune hooks** — adjust validation strictness, add new checks
 - **Pick your engine** — use the Godot, Unity, or Unreal agent set (or none)
+- **Set review intensity** — `full` (all director gates), `lean` (phase gates only), or `solo` (none). Set during `/start` or edit `production/review-mode.txt`. Override per-run with `--review solo` on any skill.
 
 ## Platform Support
 

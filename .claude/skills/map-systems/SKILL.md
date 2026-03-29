@@ -1,7 +1,7 @@
 ---
 name: map-systems
 description: "Decompose a game concept into individual systems, map dependencies, prioritize design order, and create the systems index."
-argument-hint: "[optional: 'next' to pick highest-priority undesigned system, or a system name to hand off to /design-system]"
+argument-hint: "[next | system-name] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, TodoWrite
 ---
@@ -16,6 +16,9 @@ Two modes:
   to create or update the systems index.
 - **`next`**: `/map-systems next` — Pick the highest-priority undesigned system
   from the index and hand off to `/design-system` (Phase 6).
+
+Also extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 ---
 

@@ -1142,6 +1142,33 @@ Ask Claude to create a post-mortem using the template at
 
 These topics apply across all phases.
 
+### Director Review Modes
+
+Director gates are specialist agents that review your work at key workflow steps.
+By default they run at every checkpoint. You can control how much review you get.
+
+**Set your review intensity once during `/start`.** Saved to `production/review-mode.txt`.
+
+| Mode | What runs | Best for |
+|------|-----------|----------|
+| `full` | All director gates at every step | New projects, learning the system |
+| `lean` | Directors only at phase transitions (`/gate-check`) | Experienced devs |
+| `solo` | No director reviews | Game jams, prototypes, maximum speed |
+
+**Override for a single run** without changing your global setting:
+
+```
+/brainstorm space horror --review full
+/architecture-decision --review solo
+```
+
+The `--review` flag works on all gate-using skills. Change the global mode at any
+time by editing `production/review-mode.txt` directly or re-running `/start`.
+
+Full gate definitions and check pattern: `.claude/docs/director-gates.md`
+
+---
+
 ### The Collaboration Protocol
 
 This system is **user-driven collaborative**, not autonomous.

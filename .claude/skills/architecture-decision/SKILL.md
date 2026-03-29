@@ -1,7 +1,7 @@
 ---
 name: architecture-decision
 description: "Creates an Architecture Decision Record (ADR) documenting a significant technical decision, its context, alternatives considered, and consequences. Every major technical choice should have an ADR."
-argument-hint: "[title]"
+argument-hint: "[title] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Task
 ---
@@ -9,6 +9,9 @@ allowed-tools: Read, Glob, Grep, Write, Task
 When this skill is invoked:
 
 ## 0. Parse Arguments — Detect Retrofit Mode
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 **If the argument starts with `retrofit` followed by a file path**
 (e.g., `/architecture-decision retrofit docs/architecture/adr-0001-event-system.md`):

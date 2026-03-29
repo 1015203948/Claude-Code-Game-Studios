@@ -1,7 +1,7 @@
 ---
 name: create-architecture
 description: "Guided, section-by-section authoring of the master architecture document for the game. Reads all GDDs, the systems index, existing ADRs, and the engine reference library to produce a complete architecture blueprint before any code is written. Engine-version-aware: flags knowledge gaps and validates decisions against the pinned engine version."
-argument-hint: "[focus-area: full | layers | data-flow | api-boundaries | adr-audit]"
+argument-hint: "[focus-area: full | layers | data-flow | api-boundaries | adr-audit] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Bash
 context: fork
@@ -16,6 +16,9 @@ It sits between design and implementation, and must exist before sprint planning
 
 **Distinct from `/architecture-decision`**: ADRs record individual point decisions.
 This skill creates the whole-system blueprint that gives ADRs their context.
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 **Argument modes:**
 - **No argument / `full`**: Full guided walkthrough — all sections, start to finish

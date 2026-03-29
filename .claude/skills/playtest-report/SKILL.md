@@ -1,12 +1,15 @@
 ---
 name: playtest-report
 description: "Generates a structured playtest report template or analyzes existing playtest notes into a structured format. Use this to standardize playtest feedback collection and analysis."
-argument-hint: "[new|analyze path-to-notes]"
+argument-hint: "[new|analyze path-to-notes] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
 ---
 
 ## Phase 1: Parse Arguments
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 Determine the mode:
 

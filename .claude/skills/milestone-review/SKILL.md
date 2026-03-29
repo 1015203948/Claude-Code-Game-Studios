@@ -1,9 +1,16 @@
 ---
 name: milestone-review
 description: "Generates a comprehensive milestone progress review including feature completeness, quality metrics, risk assessment, and go/no-go recommendation. Use at milestone checkpoints or when evaluating readiness for a milestone deadline."
-argument-hint: "[milestone-name|current]"
+argument-hint: "[milestone-name|current] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
+---
+
+## Phase 0: Parse Arguments
+
+Extract the milestone name (`current` or a specific name) and any `--review [full|lean|solo]`
+flag. Store the review mode as the override for this run (see `.claude/docs/director-gates.md`).
+
 ---
 
 ## Phase 1: Load Milestone Data

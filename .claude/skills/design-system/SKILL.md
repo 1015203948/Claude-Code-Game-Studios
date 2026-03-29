@@ -1,7 +1,7 @@
 ---
 name: design-system
 description: "Guided, section-by-section GDD authoring for a single game system. Gathers context from existing docs, walks through each required section collaboratively, cross-references dependencies, and writes incrementally to file."
-argument-hint: "<system-name> (e.g., 'movement', 'progression', 'dialogue')"
+argument-hint: "<system-name> [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion, TodoWrite
 ---
@@ -9,6 +9,9 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion, TodoWrite
 When this skill is invoked:
 
 ## 1. Parse Arguments & Validate
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 A system name or retrofit path is **required**. If missing, fail with:
 > "Usage: `/design-system <system-name>` — e.g., `/design-system movement`

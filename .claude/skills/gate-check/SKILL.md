@@ -1,7 +1,7 @@
 ---
 name: gate-check
 description: "Validate readiness to advance between development phases. Produces a PASS/CONCERNS/FAIL verdict with specific blockers and required artifacts. Use when user says 'are we ready to move to X', 'can we advance to production', 'check if we can start the next phase', 'pass the gate'."
-argument-hint: "[target-phase: systems-design | technical-setup | pre-production | production | polish | release]"
+argument-hint: "[target-phase: systems-design | technical-setup | pre-production | production | polish | release] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write
 context: fork
@@ -36,6 +36,11 @@ The project progresses through these stages:
 ## 1. Parse Arguments
 
 **Target phase:** `$ARGUMENTS[0]` (blank = auto-detect current stage, then validate next transition)
+
+Also extract `--review [full|lean|solo]` if present. Note: in `solo` mode,
+director spawns (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE) are skipped —
+gate-check becomes artifact-existence checks only. In `lean` mode, all three
+directors still run (phase gates are the purpose of lean mode).
 
 - **With argument**: `/gate-check production` — validate readiness for that specific phase
 - **No argument**: Auto-detect current stage using the same heuristics as

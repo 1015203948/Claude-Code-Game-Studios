@@ -1,7 +1,7 @@
 ---
 name: prototype
 description: "Rapid prototyping workflow. Skips normal standards to quickly validate a game concept or mechanic. Produces throwaway code and a structured prototype report."
-argument-hint: "[concept-description]"
+argument-hint: "[concept-description] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task
 context: fork
@@ -10,6 +10,9 @@ isolation: worktree
 ---
 
 ## Phase 1: Define the Question
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 Read the concept description from the argument. Identify the core question this prototype must answer. If the concept is vague, state the question explicitly before proceeding — a prototype without a clear question wastes time.
 

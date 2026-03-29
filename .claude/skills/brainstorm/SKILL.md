@@ -1,7 +1,7 @@
 ---
 name: brainstorm
 description: "Guided game concept ideation — from zero idea to a structured game concept document. Uses professional studio ideation techniques, player psychology frameworks, and structured creative exploration."
-argument-hint: "[genre or theme hint, or 'open' for fully open brainstorm]"
+argument-hint: "[genre or theme hint, or 'open'] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, WebSearch, AskUserQuestion
 ---
@@ -10,7 +10,8 @@ When this skill is invoked:
 
 1. **Parse the argument** for an optional genre/theme hint (e.g., `roguelike`,
    `space survival`, `cozy farming`). If `open` or no argument, start from
-   scratch.
+   scratch. Also extract `--review [full|lean|solo]` if present and store as
+   the review mode override for this run (see `.claude/docs/director-gates.md`).
 
 2. **Check for existing concept work**:
    - Read `design/gdd/game-concept.md` if it exists (resume, don't restart)

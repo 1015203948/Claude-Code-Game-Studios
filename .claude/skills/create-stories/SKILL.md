@@ -1,7 +1,7 @@
 ---
 name: create-stories
 description: "Break a single epic into implementable story files. Reads the epic, its GDD, governing ADRs, and control manifest. Each story embeds its GDD requirement TR-ID, ADR guidance, acceptance criteria, story type, and test evidence path. Run after /create-epics for each epic."
-argument-hint: "[epic-slug | epic-path]"
+argument-hint: "[epic-slug | epic-path] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
 context: fork
@@ -26,6 +26,9 @@ then Core, and so on — matching the dependency order.
 ---
 
 ## 1. Parse Argument
+
+Extract `--review [full|lean|solo]` if present and store as the review mode
+override for this run (see `.claude/docs/director-gates.md`).
 
 - `/create-stories [epic-slug]` — e.g. `/create-stories combat`
 - `/create-stories production/epics/combat/EPIC.md` — full path also accepted
