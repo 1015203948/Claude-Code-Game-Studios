@@ -87,6 +87,16 @@ For each story, determine:
 
 ---
 
+## 4b. QA Lead Story Readiness Gate
+
+After decomposing all stories (Step 4 complete) but before presenting them for write approval, spawn `qa-lead` via Task using gate **QL-STORY-READY** (`.claude/docs/director-gates.md`).
+
+Pass: the full story list with acceptance criteria, story types, and TR-IDs; the epic's GDD acceptance criteria for reference.
+
+Present the QA lead's assessment. For each story flagged as GAPS or INADEQUATE, revise the acceptance criteria before proceeding — stories with untestable criteria cannot be implemented correctly. Once all stories reach ADEQUATE, proceed to Step 5.
+
+---
+
 ## 5. Present Stories for Review
 
 Before writing any files, present the full story list:

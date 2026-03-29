@@ -107,6 +107,16 @@ Present the categorized list, then route:
 
 ---
 
+## Phase 3b: Creative Director Player Experience Review
+
+After categorising findings, spawn `creative-director` via Task using gate **CD-PLAYTEST** (`.claude/docs/director-gates.md`).
+
+Pass: the structured report content, game pillars and core fantasy (from `design/gdd/game-concept.md`), the specific hypothesis being tested.
+
+Present the creative director's assessment before saving the report. If CONCERNS or REJECT, add a `## Creative Director Assessment` section to the report capturing the verdict and feedback. If APPROVE, note the approval in the report.
+
+---
+
 ## Phase 4: Save Report
 
 Ask: "May I write this playtest report to `production/qa/playtests/playtest-[date]-[tester].md`?"

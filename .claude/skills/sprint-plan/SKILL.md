@@ -150,17 +150,17 @@ stories that haven't changed, add new stories, remove dropped ones.
 
 ---
 
-## Phase 4: Scope and Risk Check
+## Phase 4: Producer Feasibility Gate
 
-After presenting the sprint plan, add:
+Before finalising the sprint plan, spawn `producer` via Task using gate **PR-SPRINT** (`.claude/docs/director-gates.md`).
+
+Pass: proposed story list (titles, estimates, dependencies), total team capacity in hours/days, any carryover from the previous sprint, milestone constraints and deadline.
+
+Present the producer's assessment. If UNREALISTIC, revise the story selection (defer stories to Should Have or Nice to Have) before asking for write approval. If CONCERNS, surface them and let the user decide whether to adjust.
+
+After handling the producer's verdict, add:
 
 > **Scope check:** If this sprint includes stories added beyond the original epic scope, run `/scope-check [epic]` to detect scope creep before implementation begins.
-
-When reviewing stories during selection, note any stories that appear outside the original epic goals. If any are uncertain, flag them inline: "Are these stories within the original epic scope? If unsure, `/scope-check` can verify."
-
-For comprehensive sprint planning, consider consulting:
-- `producer` agent for capacity planning, risk assessment, and cross-department coordination
-- `game-designer` agent for feature prioritization and design readiness assessment
 
 ---
 

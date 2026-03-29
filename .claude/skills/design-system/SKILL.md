@@ -557,6 +557,17 @@ the source of truth). Verify:
 - Dependencies are listed with interfaces
 - Acceptance criteria are testable
 
+### 5a-bis: Creative Director Pillar Review
+
+Before finalizing the GDD, spawn `creative-director` via Task using gate **CD-GDD-ALIGN** (`.claude/docs/director-gates.md`).
+
+Pass: completed GDD file path, game pillars (from `design/gdd/game-concept.md` or `design/gdd/game-pillars.md`), MDA aesthetics target.
+
+Handle verdict per the standard rules in `director-gates.md`. After resolution, record the verdict in the GDD Status header:
+`> **Creative Director Review (CD-GDD-ALIGN)**: APPROVED [date] / CONCERNS (accepted) [date] / REVISED [date]`
+
+---
+
 ### 5b: Update Entity Registry
 
 Scan the completed GDD for cross-system facts that should be registered:

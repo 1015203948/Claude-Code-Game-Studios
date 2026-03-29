@@ -112,6 +112,16 @@ Options: "Yes, create it", "Skip", "Pause — I need to write ADRs first"
 
 ---
 
+## 4b. Producer Epic Structure Gate
+
+After all epics for the current layer are defined (Step 4 completed for all in-scope systems), and before writing any files, spawn `producer` via Task using gate **PR-EPIC** (`.claude/docs/director-gates.md`).
+
+Pass: the full epic structure summary (all epics, their scope summaries, governing ADR counts), the layer being processed, milestone timeline and team capacity.
+
+Present the producer's assessment. If UNREALISTIC, offer to revise epic boundaries (split overscoped or merge underscoped epics) before writing. If CONCERNS, surface them and let the user decide. Do not write epic files until the producer gate resolves.
+
+---
+
 ## 5. Write Epic Files
 
 After approval, ask: "May I write the epic file to `production/epics/[epic-slug]/EPIC.md`?"

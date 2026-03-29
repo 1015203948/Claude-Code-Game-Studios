@@ -309,6 +309,11 @@ to implement it.]
    - If the specialist identifies a **blocking issue** (wrong API, deprecated approach, engine version incompatibility): revise the Decision and Engine Compatibility sections accordingly, then confirm the changes with the user before proceeding
    - If the specialist finds **minor notes** only: incorporate them into the ADR's Risks subsection
 
+4.6. **Technical Director Strategic Review** — After the engine specialist validation, spawn `technical-director` via Task using gate **TD-ADR** (`.claude/docs/director-gates.md`):
+   - Pass: the ADR file path (or draft content), engine version, domain, any existing ADRs in the same domain
+   - The TD validates architectural coherence (is this decision consistent with the whole system?) — distinct from the engine specialist's API-level check
+   - If CONCERNS or REJECT: revise the Decision or Alternatives sections accordingly before proceeding
+
 5. Ask: "May I write this ADR to `docs/architecture/adr-[NNNN]-[slug].md`?"
 
 If yes, write the file, creating the directory if needed.

@@ -214,24 +214,17 @@ For each deviation found, categorize:
 
 ---
 
-## Phase 5: Code Review Prompt
+## Phase 5: Lead Programmer Code Review Gate
 
-After criteria verification and deviation check, use `AskUserQuestion`:
+Spawn `lead-programmer` via Task using gate **LP-CODE-REVIEW** (`.claude/docs/director-gates.md`).
 
-```
-question: "Implementation verified. Run /code-review on the changed files?"
-options:
-  - "Yes — run /code-review now"
-  - "Skip — I'll review manually"
-  - "Skip — already reviewed"
-```
+Pass: implementation file paths, story file path, relevant GDD section, governing ADR.
 
-If "Yes": list the files to review and say:
-"Run `/code-review [file1] [file2]` to review the implementation before
-marking complete."
+Present the verdict to the user. If CONCERNS, surface them via `AskUserQuestion`:
+- Options: `Revise flagged issues` / `Accept and proceed` / `Discuss further`
+If REJECT, do not proceed to Phase 6 verdict until the issues are resolved.
 
-Do not run code-review inline — surface it and let the developer decide when
-to invoke it.
+If the story has no implementation files yet (verdict is being run before coding is done), skip this phase and note: "LP-CODE-REVIEW skipped — no implementation files found. Run after implementation is complete."
 
 ---
 

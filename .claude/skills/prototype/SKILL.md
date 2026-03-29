@@ -110,21 +110,11 @@ If yes, write the file.
 
 ## Phase 6: Creative Director Review
 
-Delegate the decision to the creative-director. Spawn a `creative-director` subagent via Task and provide:
+Spawn `creative-director` via Task using gate **CD-PLAYTEST** (`.claude/docs/director-gates.md`).
 
-- The full REPORT.md content
-- The original design question
-- Any game pillars or concept doc from `design/gdd/` that are relevant
+Pass: the full REPORT.md content, the original design question, game pillars and core fantasy from `design/gdd/game-concept.md` (if it exists).
 
-Ask the creative-director to:
-
-- Evaluate the prototype result against the game's creative vision and pillars
-- Confirm, modify, or override the prototyper's PROCEED / PIVOT / KILL recommendation
-- If PROCEED: identify any creative constraints for the production implementation
-- If PIVOT: specify which direction aligns better with the pillars
-- If KILL: note whether the underlying player need should be addressed differently
-
-The creative-director's decision is final. Update the REPORT.md `Recommendation` section with the creative-director's verdict if it differs from the prototyper's.
+The creative director evaluates the prototype result against the game's creative vision and pillars, then confirms, modifies, or overrides the prototyper's PROCEED / PIVOT / KILL recommendation. Their verdict is final. Update the REPORT.md `Recommendation` section if the creative director's verdict differs from the prototyper's.
 
 ---
 

@@ -325,6 +325,37 @@ derived from the game concept, GDDs, and technical preferences]
 
 ---
 
+## Phase 7b: Technical Director Sign-Off + Lead Programmer Feasibility Review
+
+After writing the master architecture document, perform an explicit sign-off before handoff.
+
+**Step 1 — Technical Director self-review** (this skill runs as technical-director):
+
+Apply gate **TD-ARCHITECTURE** (`.claude/docs/director-gates.md`) as a self-review. Check all four criteria from that gate definition against the completed document.
+
+**Step 2 — Spawn `lead-programmer` via Task using gate LP-FEASIBILITY (`.claude/docs/director-gates.md`):**
+
+Pass: architecture document path, technical requirements baseline summary, ADR list.
+
+**Step 3 — Present both assessments to the user:**
+
+Show the Technical Director assessment and Lead Programmer verdict side by side.
+
+Use `AskUserQuestion` — "Technical Director and Lead Programmer have reviewed the architecture. How would you like to proceed?"
+Options: `Accept — proceed to handoff` / `Revise flagged items first` / `Discuss specific concerns`
+
+**Step 4 — Record sign-off in the architecture document:**
+
+Update the Document Status section:
+```
+- Technical Director Sign-Off: [date] — APPROVED / APPROVED WITH CONDITIONS
+- Lead Programmer Feasibility: FEASIBLE / CONCERNS ACCEPTED / REVISED
+```
+
+Ask: "May I update the Document Status section in `docs/architecture/architecture.md` with the sign-off?"
+
+---
+
 ## Phase 8: Handoff
 
 After writing the document, provide a clear handoff:

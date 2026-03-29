@@ -95,6 +95,16 @@ Read all sprint reports for sprints within this milestone from `production/sprin
 
 ---
 
+## Phase 3b: Producer Risk Assessment
+
+Before generating the Go/No-Go recommendation, spawn `producer` via Task using gate **PR-MILESTONE** (`.claude/docs/director-gates.md`).
+
+Pass: milestone name and target date, current completion percentage, blocked story count, velocity data from sprint reports (if available), list of cut candidates.
+
+Present the producer's assessment inline within the Go/No-Go section. The producer's verdict (ON TRACK / AT RISK / OFF TRACK) informs the overall recommendation — do not issue a GO against an OFF TRACK producer verdict without explicit user acknowledgement.
+
+---
+
 ## Phase 4: Save Review
 
 Present the review to the user.

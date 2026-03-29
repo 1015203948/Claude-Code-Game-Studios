@@ -32,22 +32,16 @@ Store these findings internally to validate the user's self-assessment and tailo
 
 ## Phase 2: Ask Where the User Is
 
-This is the first thing the user sees. Present these 4 options clearly:
+This is the first thing the user sees. Use `AskUserQuestion` with these exact options so the user can click rather than type:
 
-> **Welcome to Claude Code Game Studios!**
->
-> Before I suggest anything, I'd like to understand where you're starting from.
-> Where are you at with your game idea right now?
->
-> **A) No idea yet** — I don't have a game concept at all. I want to explore and figure out what to make.
->
-> **B) Vague idea** — I have a rough theme, feeling, or genre in mind (e.g., "something with space" or "a cozy farming game") but nothing concrete.
->
-> **C) Clear concept** — I know the core idea — genre, basic mechanics, maybe a pitch sentence — but haven't formalized it into documents yet.
->
-> **D) Existing work** — I already have design docs, prototypes, code, or significant planning done. I want to organize or continue the work.
+- **Prompt**: "Welcome to Claude Code Game Studios! Before I suggest anything, I'd like to understand where you're starting from. Where are you at with your game idea right now?"
+- **Options**:
+  - `A) No idea yet` — I don't have a game concept at all. I want to explore and figure out what to make.
+  - `B) Vague idea` — I have a rough theme, feeling, or genre in mind (e.g., "something with space" or "a cozy farming game") but nothing concrete.
+  - `C) Clear concept` — I know the core idea — genre, basic mechanics, maybe a pitch sentence — but haven't formalized it into documents yet.
+  - `D) Existing work` — I already have design docs, prototypes, code, or significant planning done. I want to organize or continue the work.
 
-Wait for the user's answer. Do not proceed until they respond.
+Wait for the user's selection. Do not proceed until they respond.
 
 ---
 
@@ -58,11 +52,11 @@ Wait for the user's answer. Do not proceed until they respond.
 The user needs creative exploration before anything else.
 
 1. Acknowledge that starting from zero is completely fine
-2. Briefly explain what `/brainstorm` does (guided ideation using professional frameworks — MDA, player psychology, verb-first design)
-3. Recommend running `/brainstorm open` as the next step
+2. Briefly explain what `/brainstorm` does (guided ideation using professional frameworks — MDA, player psychology, verb-first design). Mention that it has two modes: `/brainstorm open` for fully open exploration, or `/brainstorm [hint]` if they have even a vague theme (e.g., "space", "cozy", "horror").
+3. Recommend running `/brainstorm open` as the next step, but invite them to use a hint if something comes to mind
 4. Show the recommended path:
    **Concept phase:**
-   - `/brainstorm` — discover your game concept
+   - `/brainstorm open` — discover your game concept
    - `/setup-engine` — configure the engine (brainstorm will recommend one)
    - `/map-systems` — decompose the concept into systems
    - `/design-system` — author a GDD for each MVP system
@@ -101,13 +95,12 @@ The user needs creative exploration before anything else.
 
 #### If C: Clear concept
 
-1. Ask 2-3 follow-up questions:
-   - What's the genre and core mechanic? (one sentence)
-   - Do they have an engine preference, or need help choosing?
-   - What's the rough scope? (jam game, small project, large project)
-2. Offer two paths:
-   - **Formalize first**: Run `/brainstorm` to structure the concept into a proper game concept document
-   - **Jump to engine setup**: Go straight to `/setup-engine` and write the GDD manually afterward
+1. Ask them to describe their concept in one sentence — genre and core mechanic. Use plain text, not AskUserQuestion (it's an open response).
+2. Acknowledge the concept, then use `AskUserQuestion` to offer two paths:
+   - **Prompt**: "How would you like to proceed?"
+   - **Options**:
+     - `Formalize it first` — Run `/brainstorm [concept]` to structure it into a proper game concept document
+     - `Jump straight in` — Go to `/setup-engine` now and write the GDD manually afterward
 3. Show the recommended path:
    **Concept phase:**
    - `/brainstorm` or `/setup-engine` (their pick)
@@ -154,15 +147,18 @@ The user needs creative exploration before anything else.
 
 ## Phase 4: Confirm Before Proceeding
 
-After presenting the recommended path, ask the user which step they'd like to take first. Never auto-run the next skill.
+After presenting the recommended path, use `AskUserQuestion` to ask the user which step they'd like to take first. Never auto-run the next skill.
 
-> "Would you like to start with [recommended first step], or would you prefer to do something else first?"
+- **Prompt**: "Would you like to start with [recommended first step]?"
+- **Options**:
+  - `Yes, let's start with [recommended first step]`
+  - `I'd like to do something else first`
 
 ---
 
 ## Phase 5: Hand Off
 
-When the user chooses their next step, let them invoke the skill themselves or offer to run it for them. The `/start` skill's job is done once the user has a clear next action.
+When the user confirms their next step, respond with a single short line: "Type `[skill command]` to begin." Nothing else. Do not re-explain the skill or add encouragement. The `/start` skill's job is done.
 
 Verdict: **COMPLETE** — user oriented and handed off to next step.
 

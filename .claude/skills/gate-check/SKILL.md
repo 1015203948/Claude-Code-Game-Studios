@@ -257,6 +257,40 @@ For items that can't be automatically verified, **ask the user**:
 
 ---
 
+## 4b. Director Panel Assessment
+
+Before generating the final verdict, spawn all three directors as **parallel subagents** via Task using the parallel gate protocol from `.claude/docs/director-gates.md`. Issue all three Task calls simultaneously — do not wait for one before starting the next.
+
+**Spawn in parallel:**
+
+1. **`creative-director`** — gate **CD-PHASE-GATE** (`.claude/docs/director-gates.md`)
+2. **`technical-director`** — gate **TD-PHASE-GATE** (`.claude/docs/director-gates.md`)
+3. **`producer`** — gate **PR-PHASE-GATE** (`.claude/docs/director-gates.md`)
+
+Pass to each: target phase name, list of artifacts present, and the context fields listed in that gate's definition.
+
+**Collect all three responses, then present the Director Panel summary:**
+
+```
+## Director Panel Assessment
+
+Creative Director:  [READY / CONCERNS / NOT READY]
+  [feedback]
+
+Technical Director: [READY / CONCERNS / NOT READY]
+  [feedback]
+
+Producer:           [READY / CONCERNS / NOT READY]
+  [feedback]
+```
+
+**Apply to the verdict:**
+- Any director returns NOT READY → verdict is minimum FAIL (user may override with explicit acknowledgement)
+- Any director returns CONCERNS → verdict is minimum CONCERNS
+- All three READY → eligible for PASS (still subject to artifact and quality checks from Section 3)
+
+---
+
 ## 5. Output the Verdict
 
 ```
