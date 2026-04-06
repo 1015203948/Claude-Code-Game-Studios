@@ -3,15 +3,19 @@ name: architecture-decision
 description: "Creates an Architecture Decision Record (ADR) documenting a significant technical decision, its context, alternatives considered, and consequences. Every major technical choice should have an ADR."
 argument-hint: "[title] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Task
+allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 ---
 
 When this skill is invoked:
 
 ## 0. Parse Arguments — Detect Retrofit Mode
 
-Extract `--review [full|lean|solo]` if present and store as the review mode
-override for this run (see `.claude/docs/director-gates.md`).
+Resolve the review mode (once, store for all gate spawns this run):
+1. If `--review [full|lean|solo]` was passed → use that
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 **If the argument starts with `retrofit` followed by a file path**
 (e.g., `/architecture-decision retrofit docs/architecture/adr-0001-event-system.md`):
@@ -163,33 +167,61 @@ or explicitly accepted as an intentional exception.
 
 ## 3. Guide the decision collaboratively
 
-Ask clarifying questions if the title alone is not sufficient. For each major
-section, present 2-4 options with pros/cons before drafting. Do not generate
-the ADR until the key decision is confirmed by the user.
+Before asking anything, derive the skill's best guesses from the context already
+gathered (GDDs read, engine reference loaded, existing ADRs scanned). Then present
+a **confirm/adjust** prompt using `AskUserQuestion` — not open-ended questions.
 
-Key questions to ask:
-- What problem are we solving? What breaks if we don't decide this now?
-- What constraints apply (engine version, platform, performance budget)?
-- What alternatives have you already considered?
-- Which post-cutoff engine features (if any) does this decision depend on?
-- **Which GDD systems motivated this decision?** For each, what specific
-  requirement (rule, formula, performance constraint, integration point) in
-  that GDD cannot be satisfied without this architectural decision?
+**Derive assumptions first:**
+- **Problem**: Infer from the title + GDD context what decision needs to be made
+- **Alternatives**: Propose 2-3 concrete options from engine reference + GDD requirements
+- **Dependencies**: Scan existing ADRs for upstream dependencies; assume None if unclear
+- **GDD linkage**: Extract which GDD systems the title directly relates to
+- **Status**: Always `Proposed` for new ADRs — never ask the user what the status is
 
-If the decision is foundational (no GDD drives it directly), ask:
-- Which GDD systems will this decision constrain or enable?
+**Scope of assumptions tab**: Assumptions cover only: problem framing, alternative approaches, upstream dependencies, GDD linkage, and status. Schema design questions (e.g., "How should spawn timing work?", "Should data be inline or external?") are NOT assumptions — they are design decisions belonging to a separate step after the assumptions are confirmed. Do not include schema design questions in the assumptions AskUserQuestion widget.
 
-This GDD linkage becomes a mandatory "GDD Requirements Addressed" section
-in the ADR. Do not skip it.
+**After assumptions are confirmed**, if the ADR involves schema or data design choices, use a separate multi-tab `AskUserQuestion` to ask each design question independently before drafting.
 
-**Does this ADR have ordering constraints?** Ask:
-- Does this decision depend on any other ADR that isn't yet Accepted? (If
-  so, this ADR cannot be safely implemented until that one is resolved.)
-- Does accepting this ADR unlock or unblock any other pending decisions?
-- Does this ADR block any specific epic or story from starting?
+**Present assumptions with `AskUserQuestion`:**
 
-Record the answers in the **ADR Dependencies** section. If no ordering
-constraints exist, write "None" in each field.
+```
+Here's what I'm assuming before drafting:
+
+Problem: [one-sentence problem statement derived from context]
+Alternatives I'll consider:
+  A) [option derived from engine reference]
+  B) [option derived from GDD requirements]
+  C) [option from common patterns]
+GDD systems driving this: [list derived from context]
+Dependencies: [upstream ADRs if any, otherwise "None"]
+Status: Proposed
+
+[A] Proceed — draft with these assumptions
+[B] Change the alternatives list
+[C] Adjust the GDD linkage
+[D] Add a performance budget constraint
+[E] Something else needs changing first
+```
+
+Do not generate the ADR until the user confirms assumptions or provides corrections.
+
+**After engine specialist and TD reviews return** (Step 4.5/4.6), if unresolved
+decisions remain, present each one as a separate `AskUserQuestion` with the proposed
+options as choices plus a free-text escape:
+
+```
+Decision: [specific unresolved point]
+[A] [option from specialist review]
+[B] [alternative option]
+[C] Different approach — I'll describe it
+```
+
+**ADR Dependencies** — derive from existing ADRs, then confirm:
+- Does this decision depend on any other ADR not yet Accepted?
+- Does it unlock or unblock any other ADR or epic?
+- Does it block any specific epic from starting?
+
+Record answers in the **ADR Dependencies** section. Write "None" for each field if no constraints apply.
 
 ---
 
@@ -312,14 +344,48 @@ to implement it.]
    - If the specialist identifies a **blocking issue** (wrong API, deprecated approach, engine version incompatibility): revise the Decision and Engine Compatibility sections accordingly, then confirm the changes with the user before proceeding
    - If the specialist finds **minor notes** only: incorporate them into the ADR's Risks subsection
 
+**Review mode check** — apply before spawning TD-ADR:
+- `solo` → skip. Note: "TD-ADR skipped — Solo mode." Proceed to Step 4.7 (GDD sync check).
+- `lean` → skip (not a PHASE-GATE). Note: "TD-ADR skipped — Lean mode." Proceed to Step 4.7 (GDD sync check).
+- `full` → spawn as normal.
+
 4.6. **Technical Director Strategic Review** — After the engine specialist validation, spawn `technical-director` via Task using gate **TD-ADR** (`.claude/docs/director-gates.md`):
    - Pass: the ADR file path (or draft content), engine version, domain, any existing ADRs in the same domain
    - The TD validates architectural coherence (is this decision consistent with the whole system?) — distinct from the engine specialist's API-level check
    - If CONCERNS or REJECT: revise the Decision or Alternatives sections accordingly before proceeding
 
-5. Ask: "May I write this ADR to `docs/architecture/adr-[NNNN]-[slug].md`?"
+4.7. **GDD Sync Check** — Before presenting the write approval, scan all GDDs
+referenced in the "GDD Requirements Addressed" section for naming inconsistencies
+with the ADR's Key Interfaces and Decision sections (renamed signals, API methods,
+or data types). If any are found, surface them as a **prominent warning block**
+immediately before the write approval — not as a footnote:
 
-If yes, write the file, creating the directory if needed.
+```
+⚠️ GDD SYNC REQUIRED
+[gdd-filename].md uses names this ADR has renamed:
+  [old_name] → [new_name_from_adr]
+  [old_name_2] → [new_name_2_from_adr]
+The GDD must be updated before or alongside writing this ADR to prevent
+developers reading the GDD from implementing the wrong interface.
+```
+
+If no inconsistencies: skip this block silently.
+
+5. **Write approval** — Use `AskUserQuestion`:
+
+If GDD sync issues were found:
+- "ADR draft is complete. How would you like to proceed?"
+  - [A] Write ADR + update GDD in the same pass
+  - [B] Write ADR only — I'll update the GDD manually
+  - [C] Not yet — I need to review further
+
+If no GDD sync issues:
+- "ADR draft is complete. May I write it?"
+  - [A] Write ADR to `docs/architecture/adr-[NNNN]-[slug].md`
+  - [B] Not yet — I need to review further
+
+If yes to any write option, write the file, creating the directory if needed.
+For option [A] with GDD update: also update the GDD file(s) to use the new names.
 
 6. **Update Architecture Registry**
 
@@ -340,10 +406,50 @@ Registry candidates from this ADR:
   EXISTING (referenced_by update only): player_health → already registered ✅
 ```
 
-Ask: "May I update `docs/registry/architecture.yaml` with these [N] new stances?"
+**Registry append logic**: When writing to `docs/registry/architecture.yaml`, do NOT assume sections are empty. The file may already have entries from previous ADRs written in this session. Before each Edit call:
+1. Read the current state of `docs/registry/architecture.yaml`
+2. Find the correct section (state_ownership, interfaces, forbidden_patterns, api_decisions)
+3. Append the new entry AFTER the last existing entry in that section — do not try to replace a `[]` placeholder that may no longer exist
+4. If the section has entries already, use the closing content of the last entry as the `old_string` anchor, and append the new entry after it
 
-If yes: append new entries. Never modify existing entries — if a stance is
-changing, set the old entry to `status: superseded_by: ADR-[NNNN]` and add
-the new entry.
+**BLOCKING — do not write to `docs/registry/architecture.yaml` without explicit user approval.**
 
-**Next Steps:** Run `/architecture-review` to validate coverage after the ADR is saved. Update any stories that were `Status: Blocked` pending this ADR to `Status: Ready`.
+Ask using `AskUserQuestion`:
+- "May I update `docs/registry/architecture.yaml` with these [N] new stances?"
+  - Options: "Yes — update the registry", "Not yet — I want to review the candidates", "Skip registry update"
+
+Only proceed if the user selects yes. If yes: append new entries. Never modify existing entries — if a stance is
+changing, set the old entry to `status: superseded_by: ADR-[NNNN]` and add the new entry.
+
+---
+
+## 7. Closing Next Steps
+
+After the ADR is written (and registry optionally updated), close with `AskUserQuestion`.
+
+Before generating the widget:
+1. Read `docs/registry/architecture.yaml` — check if any priority ADRs are still unwritten (look for ADRs flagged in technical-preferences.md or systems-index.md as prerequisites)
+2. Check if all prerequisite ADRs are now written. If yes, include a "Start writing GDDs" option.
+3. List ALL remaining priority ADRs as individual options — not just the next one or two.
+
+Widget format:
+```
+ADR-[NNNN] written and registry updated. What would you like to do next?
+[1] Write [next-priority-adr-name] — [brief description from prerequisites list]
+[2] Write [another-priority-adr] — [brief description]  (include ALL remaining ones)
+[N] Start writing GDDs — run `/design-system [first-undesigned-system]` (only show if all prerequisite ADRs are written)
+[N+1] Stop here for this session
+```
+
+If there are no remaining priority ADRs and no undesigned GDD systems, offer only "Stop here" and suggest running `/architecture-review` in a fresh session.
+
+**Always include this fixed notice in the closing output (do NOT omit it):**
+
+> To validate ADR coverage against your GDDs, open a **fresh Claude Code session**
+> and run `/architecture-review`.
+>
+> **Never run `/architecture-review` in the same session as `/architecture-decision`.**
+> The reviewing agent must be independent of the authoring context to give an unbiased
+> assessment. Running it here would invalidate the review.
+
+Update any stories that were `Status: Blocked` pending this ADR to `Status: Ready`.

@@ -4,7 +4,6 @@ description: "Performs an architectural and quality code review on a specified f
 argument-hint: "[path-to-file-or-directory]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Task
-context: fork
 agent: lead-programmer
 ---
 
@@ -82,9 +81,13 @@ Identify the system category (engine, gameplay, AI, networking, UI, tools) and e
 
 ---
 
-## Phase 7: Engine Specialist Review
+## Phase 7: Specialist Reviews (Parallel)
 
-If an engine is configured, spawn engine specialists via Task in parallel with the review above. Determine which specialist applies to each file:
+Spawn all applicable specialists simultaneously via Task — do not wait for one before starting the next.
+
+### Engine Specialists
+
+If an engine is configured, determine which specialist applies to each file and spawn in parallel:
 
 - Primary language files (`.gd`, `.cs`, `.cpp`) → Language/Code Specialist
 - Shader files (`.gdshader`, `.hlsl`, shader graph) → Shader Specialist
@@ -93,7 +96,23 @@ If an engine is configured, spawn engine specialists via Task in parallel with t
 
 Also spawn the **Primary Specialist** for any file touching engine architecture (scene structure, node hierarchy, lifecycle hooks).
 
-Collect findings and include them under `### Engine Specialist Findings`.
+### QA Testability Review
+
+For Logic and Integration stories, also spawn `qa-tester` via Task in parallel with the engine specialists. Pass:
+- The implementation files being reviewed
+- The story's `## QA Test Cases` section (the pre-written test specs from qa-lead)
+- The story's `## Acceptance Criteria`
+
+Ask the qa-tester to evaluate:
+- [ ] Are all test hooks and interfaces exposed (not hidden behind private/internal access)?
+- [ ] Do the QA test cases from the story's `## QA Test Cases` section map to testable code paths?
+- [ ] Are any acceptance criteria untestable as implemented (e.g., hardcoded values, no seam for injection)?
+- [ ] Does the implementation introduce any new edge cases not covered by the existing QA test cases?
+- [ ] Are there any observable side effects that should have a test but don't?
+
+For Visual/Feel and UI stories: qa-tester reviews whether the manual verification steps in `## QA Test Cases` are achievable with the implementation as written — e.g., "is the state the manual checker needs to reach actually reachable?"
+
+Collect all specialist findings before producing output.
 
 ---
 
@@ -104,6 +123,10 @@ Collect findings and include them under `### Engine Specialist Findings`.
 
 ### Engine Specialist Findings: [N/A — no engine configured / CLEAN / ISSUES FOUND]
 [Findings from engine specialist(s), or "No engine configured." if skipped]
+
+### Testability: [N/A — Visual/Feel or Config story / TESTABLE / GAPS / BLOCKING]
+[qa-tester findings: test hooks, coverage gaps, untestable paths, new edge cases]
+[If BLOCKING: implementation must expose [X] before tests in ## QA Test Cases can run]
 
 ### ADR Compliance: [NO ADRS FOUND / COMPLIANT / DRIFT / VIOLATION]
 [List each ADR checked, result, and any deviations with severity]

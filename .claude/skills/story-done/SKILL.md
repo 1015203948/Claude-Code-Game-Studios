@@ -3,7 +3,7 @@ name: story-done
 description: "End-of-story completion review. Reads the story file, verifies each acceptance criterion against the implementation, checks for GDD/ADR deviations, prompts code review, updates story status to Complete, and surfaces the next ready story from the sprint."
 argument-hint: "[story-file-path] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Edit
+allowed-tools: Read, Glob, Grep, Bash, Edit, AskUserQuestion, Task
 ---
 
 # Story Done
@@ -20,8 +20,12 @@ forgotten, and the story file reflects actual completion status.
 
 ## Phase 1: Find the Story
 
-Extract `--review [full|lean|solo]` if present and store as the review mode
-override for this run (see `.claude/docs/director-gates.md`).
+Resolve the review mode (once, store for all gate spawns this run):
+1. If `--review [full|lean|solo]` was passed → use that
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 **If a file path is provided** (e.g., `/story-done production/epics/core/story-damage-calculator.md`):
 read that file directly.
@@ -149,15 +153,19 @@ Based on the Story Type extracted in Phase 2, check for required evidence:
 | **UI** | Manual walkthrough doc OR interaction test in `production/qa/evidence/` | ADVISORY |
 | **Config/Data** | Smoke check pass report in `production/qa/smoke-*.md` | ADVISORY |
 
-**For Logic stories**: use `Glob` to check `tests/unit/[system]/` for a test
-file matching the story slug. If none found:
-- Flag as **BLOCKING**: "Logic story has no unit test file. Expected at
-  `tests/unit/[system]/[story-slug]_test.[ext]`. Create and run the test
-  before marking this story Complete."
+**For Logic stories**: first read the story's **Test Evidence** section to extract the
+exact required file path. Use `Glob` to check that exact path. If the exact path is not
+found, also search `tests/unit/[system]/` broadly (the file may have been placed at a
+slightly different location). If no test file is found at either location:
+- Flag as **BLOCKING**: "Logic story has no unit test file. Story requires it at
+  `[exact-path-from-Test-Evidence-section]`. Create and run the test before marking
+  this story Complete."
 
-**For Integration stories**: check `tests/integration/[system]/` AND
-`production/session-logs/` for a playtest record referencing this story.
-If neither exists: flag as **BLOCKING** (same rule as Logic).
+**For Integration stories**: read the story's **Test Evidence** section for the exact
+required path. Use `Glob` to check that exact path first, then search
+`tests/integration/[system]/` broadly, then check `production/session-logs/` for a
+playtest record referencing this story.
+If none found: flag as **BLOCKING** (same rule as Logic).
 
 **For Visual/Feel and UI stories**: glob `production/qa/evidence/` for a file
 referencing this story. If none: flag as **ADVISORY** —
@@ -217,7 +225,38 @@ For each deviation found, categorize:
 
 ---
 
+## Phase 4b: QA Coverage Gate
+
+**Review mode check** — apply before spawning QL-TEST-COVERAGE:
+- `solo` → skip. Note: "QL-TEST-COVERAGE skipped — Solo mode." Proceed to Phase 5.
+- `lean` → skip (not a PHASE-GATE). Note: "QL-TEST-COVERAGE skipped — Lean mode." Proceed to Phase 5.
+- `full` → spawn as normal.
+
+After completing the deviation checks in Phase 4, spawn `qa-lead` via Task using gate **QL-TEST-COVERAGE** (`.claude/docs/director-gates.md`).
+
+Pass:
+- The story file path and story type
+- Test file paths found during Phase 3 (exact paths, or "none found")
+- The story's `## QA Test Cases` section (the pre-written test specs from story creation)
+- The story's `## Acceptance Criteria` list
+
+The qa-lead reviews whether the tests actually cover what was specified — not just whether files exist.
+
+Apply the verdict:
+- **ADEQUATE** → proceed to Phase 5
+- **GAPS** → flag as **ADVISORY**: "QA lead identified coverage gaps: [list]. Story can complete but gaps should be addressed in a follow-up story."
+- **INADEQUATE** → flag as **BLOCKING**: "QA lead: critical logic is untested. Verdict cannot be COMPLETE until coverage improves. Specific gaps: [list]."
+
+Skip this phase for Config/Data stories (no code tests required).
+
+---
+
 ## Phase 5: Lead Programmer Code Review Gate
+
+**Review mode check** — apply before spawning LP-CODE-REVIEW:
+- `solo` → skip. Note: "LP-CODE-REVIEW skipped — Solo mode." Proceed to Phase 6 (completion report).
+- `lean` → skip (not a PHASE-GATE). Note: "LP-CODE-REVIEW skipped — Lean mode." Proceed to Phase 6 (completion report).
+- `full` → spawn as normal.
 
 Spawn `lead-programmer` via Task using gate **LP-CODE-REVIEW** (`.claude/docs/director-gates.md`).
 
@@ -346,13 +385,25 @@ Run `/story-readiness [path]` to confirm a story is implementation-ready
 before starting.
 ```
 
-If no more stories are ready in this sprint:
-"No more stories ready in this sprint. Consider running `/sprint-status` to
-assess sprint health."
+If no more Must Have stories remain in this sprint (all are Complete or Blocked):
 
-If all Must Have stories are complete:
-"All Must Have stories are complete. Consider running `/milestone-review` or
-pulling from the Should Have list."
+```
+### Sprint Close-Out Sequence
+
+All Must Have stories are complete. QA sign-off is required before advancing.
+Run these in order:
+
+1. `/smoke-check sprint` — verify the critical path still works end-to-end
+2. `/team-qa sprint` — full QA cycle: test case execution, bug triage, sign-off report
+3. `/gate-check` — advance to the next phase once QA approves
+
+Do not run `/gate-check` until `/team-qa` returns APPROVED or APPROVED WITH CONDITIONS.
+```
+
+If there are Should Have stories still unstarted, surface them alongside the close-out sequence so the user can choose: close the sprint now, or pull in more work first.
+
+If no more stories are ready but Must Have stories are still In Progress (not Complete):
+"No more stories ready to start — [N] Must Have stories still in progress. Continue implementing those before sprint close-out."
 
 ---
 

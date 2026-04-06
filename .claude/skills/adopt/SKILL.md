@@ -4,7 +4,6 @@ description: "Brownfield onboarding — audits existing project artifacts for te
 argument-hint: "[focus: full | gdds | adrs | stories | infra]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, AskUserQuestion
-context: fork
 agent: technical-director
 ---
 
@@ -37,7 +36,10 @@ wrong internal format.
 
 ## Phase 1: Detect Project State
 
-Read silently before presenting anything.
+Emit one line before reading: `"Scanning project artifacts..."` — this confirms the
+skill is running during the silent read phase.
+
+Then read silently before presenting anything else.
 
 ### Existence check
 - `production/stage.txt` — if present, read it (authoritative phase)
@@ -48,6 +50,7 @@ Read silently before presenting anything.
 - Count story files: `production/epics/**/*.md` (excluding EPIC.md)
 - `.claude/docs/technical-preferences.md` — engine configured?
 - `docs/engine-reference/` — engine reference docs present?
+- Glob `docs/adoption-plan-*.md` — note the filename of the most recent prior plan if any exist
 
 ### Infer phase (if no stage.txt)
 Use the same heuristic as `/project-stage-detect`:
@@ -58,9 +61,15 @@ Use the same heuristic as `/project-stage-detect`:
 - game-concept.md exists → Concept
 - Nothing → Fresh (not a brownfield project — suggest `/start`)
 
-If the project appears fresh (no artifacts at all), stop:
-> "This looks like a fresh project with no existing artifacts. Run `/start`
-> instead — `/adopt` is for projects that already have work to migrate."
+If the project appears fresh (no artifacts at all), use `AskUserQuestion`:
+- "This looks like a fresh project — no existing artifacts found. `/adopt` is for
+  projects with work to migrate. What would you like to do?"
+  - "Run `/start` — begin guided first-time onboarding"
+  - "My artifacts are in a non-standard location — help me find them"
+  - "Cancel"
+
+Then stop — do not proceed with the audit regardless of which option the user picks
+(each option leads to a different skill or manual investigation).
 
 Report: "Detected phase: [phase]. Found: [N] GDDs, [M] ADRs, [P] stories."
 
@@ -247,7 +256,26 @@ Gap counts:
 Estimated remediation: [X blocking items × ~Y min each = roughly Z hours]
 ```
 
-Ask: "May I write the full migration plan to `docs/adoption-plan-[date].md`?"
+Before asking to write, show a **Gap Preview**:
+- List every BLOCKING gap as a one-line bullet describing the actual problem
+  (e.g. `systems-index.md: 3 rows have parenthetical status values`,
+  `adr-0002.md: missing ## Status section`). No counts — show the actual items.
+- Show HIGH / MEDIUM / LOW as counts only (e.g. `HIGH: 4, MEDIUM: 2, LOW: 1`).
+
+This gives the user enough context to judge scope before committing to writing the file.
+
+If a prior adoption plan was detected in Phase 1, add a note:
+> "A previous plan exists at `docs/adoption-plan-[prior-date].md`. The new plan will
+> reflect current project state — it does not diff against the prior run."
+
+Use `AskUserQuestion`:
+- "Ready to write the migration plan?"
+  - "Yes — write `docs/adoption-plan-[date].md`"
+  - "Show me the full plan preview first (don't write yet)"
+  - "Cancel — I'll handle migration manually"
+
+If the user picks "Show me the full plan preview", output the complete plan as a
+fenced markdown block. Then ask again with the same three options.
 
 ---
 
@@ -261,7 +289,7 @@ If approved, write `docs/adoption-plan-[date].md` with this structure:
 > **Generated**: [date]
 > **Project phase**: [phase]
 > **Engine**: [name + version, or "Not configured"]
-> **Template version**: v0.4.0+
+> **Template version**: v1.0+
 
 Work through these steps in order. Check off each item as you complete it.
 Re-run `/adopt` anytime to check remaining gaps.
@@ -334,29 +362,69 @@ are resolved. The new run will reflect the current state of the project.
 
 ---
 
+## Phase 6b: Set Review Mode
+
+After writing the adoption plan (or if the user cancels writing), check whether
+`production/review-mode.txt` exists.
+
+**If it exists**: Read it and note the current mode — "Review mode is already set to `[current]`." — skip the prompt.
+
+**If it does not exist**: Use `AskUserQuestion`:
+
+- **Prompt**: "One more setup step: how much design review would you like as you work through the workflow?"
+- **Options**:
+  - `Full` — Director specialists review at each key workflow step. Best for teams, learning the workflow, or when you want thorough feedback on every decision.
+  - `Lean (recommended)` — Directors only at phase gate transitions (/gate-check). Skips per-skill reviews. Balanced for solo devs and small teams.
+  - `Solo` — No director reviews at all. Maximum speed. Best for game jams, prototypes, or if reviews feel like overhead.
+
+Write the choice to `production/review-mode.txt` immediately after selection — no separate "May I write?" needed:
+- `Full` → write `full`
+- `Lean (recommended)` → write `lean`
+- `Solo` → write `solo`
+
+Create the `production/` directory if it does not exist.
+
+---
+
 ## Phase 7: Offer First Action
 
 After writing the plan, don't stop there. Pick the single highest-priority gap
-and offer to handle it immediately:
+and offer to handle it immediately using `AskUserQuestion`. Choose the first
+branch that applies:
 
-If there are parenthetical status values in systems-index.md:
-> "The most urgent fix is the systems-index.md status values — this breaks
-> multiple skills right now. I can fix these in-place in under 2 minutes.
-> Shall I edit the file now?"
-
-If ADRs are missing Status fields:
-> "The most urgent fix is adding Status fields to your ADRs. Shall I start
-> with `docs/architecture/adr-0001.md` using `/architecture-decision retrofit`?"
-
-If GDDs are missing Acceptance Criteria:
-> "The most important GDD gap is missing Acceptance Criteria — without these,
-> `/create-stories` can't generate stories. Shall I start with
-> `design/gdd/[highest-priority-system].md` using `/design-system retrofit`?"
-
+**If there are parenthetical status values in systems-index.md:**
 Use `AskUserQuestion`:
-- "What would you like to do now?"
-  - Options: "Fix [most urgent gap] now", "Review the full plan first",
-    "I'll work through the plan myself", "Run `/project-stage-detect` for broader context"
+- "The most urgent fix is `systems-index.md` — [N] rows have parenthetical status
+  values (e.g. `Needs Revision (see notes)`) that break /gate-check,
+  /create-stories, and /architecture-review right now. I can fix these in-place."
+  - "Fix it now — edit systems-index.md"
+  - "I'll fix it myself"
+  - "Done — leave me with the plan"
+
+**If ADRs are missing `## Status` (and no parenthetical issue):**
+Use `AskUserQuestion`:
+- "The most urgent fix is adding `## Status` to [N] ADR(s): [list filenames].
+  Without it, /story-readiness silently passes all ADR checks. Start with
+  [first affected filename]?"
+  - "Yes — retrofit [first affected filename] now"
+  - "Retrofit all [N] ADRs one by one"
+  - "I'll handle ADRs myself"
+
+**If GDDs are missing Acceptance Criteria (and no blocking issues above):**
+Use `AskUserQuestion`:
+- "The most urgent gap is missing Acceptance Criteria in [N] GDD(s):
+  [list filenames]. Without them, /create-stories can't generate stories.
+  Start with [highest-priority GDD filename]?"
+  - "Yes — add Acceptance Criteria to [GDD filename] now"
+  - "Do all [N] GDDs one by one"
+  - "I'll handle GDDs myself"
+
+**If no BLOCKING or HIGH gaps exist:**
+Use `AskUserQuestion`:
+- "No blocking gaps — this project is template-compatible. What next?"
+  - "Walk me through the medium-priority improvements"
+  - "Run /project-stage-detect for a broader health check"
+  - "Done — I'll work through the plan at my own pace"
 
 ---
 

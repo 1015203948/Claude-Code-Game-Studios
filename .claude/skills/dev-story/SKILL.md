@@ -3,8 +3,7 @@ name: dev-story
 description: "Read a story file and implement it. Loads the full context (story, GDD requirement, ADR guidelines, control manifest), routes to the right programmer agent for the system and engine, implements the code and test, and confirms each acceptance criterion. The core implementation skill — run after /story-readiness, before /code-review and /story-done."
 argument-hint: "[story-path]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash, Task
-context: fork
+allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion
 ---
 
 # Dev Story
@@ -15,11 +14,14 @@ drives implementation to completion — including writing the test.
 
 **The loop for every story:**
 ```
+/qa-plan sprint           ← define test requirements before sprint begins
 /story-readiness [path]   ← validate before starting
 /dev-story [path]         ← implement it  (this skill)
 /code-review [files]      ← review it
 /story-done [path]        ← verify and close it
 ```
+
+**After all sprint stories are done:** run `/team-qa sprint` to execute the full QA cycle and get a sign-off verdict before advancing the project stage.
 
 **Output:** Source code + test file in the project's `src/` and `tests/` directories.
 
@@ -38,7 +40,17 @@ If not found, ask: "Which story are we implementing?" Glob
 
 ## Phase 2: Load Full Context
 
-Read everything in this order — do not start implementation until all is loaded:
+**Before loading any context, verify required files exist.** Extract the ADR path from the story's `ADR Governing Implementation` field, then check:
+
+| File | Path | If missing |
+|------|------|------------|
+| TR registry | `docs/architecture/tr-registry.yaml` | **STOP** — "TR registry not found. Run `/create-epics` to generate it." |
+| Governing ADR | path from story's ADR field | **STOP** — "ADR file [path] not found. Run `/architecture-decision` to create it, or correct the filename in the story's ADR field." |
+| Control manifest | `docs/architecture/control-manifest.md` | **WARN and continue** — "Control manifest not found — layer rules cannot be checked. Run `/create-control-manifest`." |
+
+If the TR registry or governing ADR is missing, set the story status to **BLOCKED** in the session state and do not spawn any programmer agent.
+
+Read all of the following simultaneously — these are independent reads. Do not start implementation until all context is loaded:
 
 ### The story file
 Extract and hold:
@@ -71,9 +83,16 @@ Read `docs/architecture/control-manifest.md`. Extract the rules for this story's
 - Performance guardrails
 
 Check: does the story's embedded Manifest Version match the current manifest header date?
-If they differ: "Story was written against manifest v[story-date]. Current manifest is
-v[current-date]. New rules may apply — reviewing the diff before implementing."
-Read the manifest carefully for any new rules added since the story was written.
+If they differ, use `AskUserQuestion` before proceeding:
+- Prompt: "Story was written against manifest v[story-date]. Current manifest is v[current-date]. New rules may apply. How do you want to proceed?"
+- Options:
+  - `[A] Update story manifest version and implement with current rules (Recommended)`
+  - `[B] Implement with old rules — I accept the risk of non-compliance`
+  - `[C] Stop here — I want to review the manifest diff first`
+
+If [A]: edit the story file's `Manifest Version:` field to the current manifest date before spawning the programmer. Then read the manifest carefully for new rules.
+If [B]: read the manifest carefully for new rules anyway, and note the version mismatch in the Phase 6 summary under "Deviations".
+If [C]: stop. Do not spawn any agent. Let the user review and re-run `/dev-story`.
 
 ### Engine reference
 Read `.claude/docs/technical-preferences.md`:
@@ -88,6 +107,9 @@ Read `.claude/docs/technical-preferences.md`:
 
 Based on the story's **Layer**, **Type**, and **system name**, determine which
 specialist to spawn via Task.
+
+**Config/Data stories — skip agent spawning entirely:**
+If the story's Type is `Config/Data`, no programmer agent or engine specialist is needed. Jump directly to Phase 4 (Config/Data note). The implementation is a data file edit — no routing table evaluation, no engine specialist.
 
 ### Primary agent routing table
 

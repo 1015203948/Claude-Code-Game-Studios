@@ -3,13 +3,17 @@ name: milestone-review
 description: "Generates a comprehensive milestone progress review including feature completeness, quality metrics, risk assessment, and go/no-go recommendation. Use at milestone checkpoints or when evaluating readiness for a milestone deadline."
 argument-hint: "[milestone-name|current] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 ---
 
 ## Phase 0: Parse Arguments
 
-Extract the milestone name (`current` or a specific name) and any `--review [full|lean|solo]`
-flag. Store the review mode as the override for this run (see `.claude/docs/director-gates.md`).
+Extract the milestone name (`current` or a specific name) and resolve the review mode (once, store for all gate spawns this run):
+1. If `--review [full|lean|solo]` was passed → use that
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 ---
 
@@ -103,6 +107,11 @@ Read all sprint reports for sprints within this milestone from `production/sprin
 ---
 
 ## Phase 3b: Producer Risk Assessment
+
+**Review mode check** — apply before spawning PR-MILESTONE:
+- `solo` → skip. Note: "PR-MILESTONE skipped — Solo mode." Present the Go/No-Go section without a producer verdict.
+- `lean` → skip (not a PHASE-GATE). Note: "PR-MILESTONE skipped — Lean mode." Present the Go/No-Go section without a producer verdict.
+- `full` → spawn as normal.
 
 Before generating the Go/No-Go recommendation, spawn `producer` via Task using gate **PR-MILESTONE** (`.claude/docs/director-gates.md`).
 

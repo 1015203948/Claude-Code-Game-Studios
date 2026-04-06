@@ -3,13 +3,17 @@ name: playtest-report
 description: "Generates a structured playtest report template or analyzes existing playtest notes into a structured format. Use this to standardize playtest feedback collection and analysis."
 argument-hint: "[new|analyze path-to-notes] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 ---
 
 ## Phase 1: Parse Arguments
 
-Extract `--review [full|lean|solo]` if present and store as the review mode
-override for this run (see `.claude/docs/director-gates.md`).
+Resolve the review mode (once, store for all gate spawns this run):
+1. If `--review [full|lean|solo]` was passed → use that
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 Determine the mode:
 
@@ -111,6 +115,11 @@ Present the categorized list, then route:
 ---
 
 ## Phase 3b: Creative Director Player Experience Review
+
+**Review mode check** — apply before spawning CD-PLAYTEST:
+- `solo` → skip. Note: "CD-PLAYTEST skipped — Solo mode." Proceed to Phase 4 (save the report).
+- `lean` → skip (not a PHASE-GATE). Note: "CD-PLAYTEST skipped — Lean mode." Proceed to Phase 4 (save the report).
+- `full` → spawn as normal.
 
 After categorising findings, spawn `creative-director` via Task using gate **CD-PLAYTEST** (`.claude/docs/director-gates.md`).
 

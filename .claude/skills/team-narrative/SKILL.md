@@ -19,6 +19,7 @@ The user must approve before moving to the next phase.
 - **narrative-director** — Story arcs, character design, dialogue strategy, narrative vision
 - **writer** — Dialogue writing, lore entries, item descriptions, in-game text
 - **world-builder** — World rules, faction design, history, geography, environmental storytelling
+- **art-director** — Character visual design, environmental visual storytelling, cutscene/cinematic tone
 - **level-designer** — Level layouts that serve the narrative, pacing, environmental storytelling beats
 
 ## How to Delegate
@@ -27,6 +28,7 @@ Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: narrative-director` — Story arcs, character design, narrative vision
 - `subagent_type: writer` — Dialogue writing, lore entries, in-game text
 - `subagent_type: world-builder` — World rules, faction design, history, geography
+- `subagent_type: art-director` — Character visual profiles, environmental visual storytelling, cinematic tone
 - `subagent_type: level-designer` — Level layouts that serve the narrative, pacing
 - `subagent_type: localization-lead` — i18n validation, string key compliance, translation headroom
 
@@ -43,9 +45,10 @@ Delegate to **narrative-director**:
 - Output: narrative brief with story requirements
 
 ### Phase 2: World Foundation (parallel)
-Delegate in parallel:
+Delegate in parallel — issue all three Task calls simultaneously before waiting for any result:
 - **world-builder**: Create or update lore entries for factions, locations, and history relevant to this content. Cross-reference against existing lore for contradictions. Set canon level for new entries.
 - **writer**: Draft character dialogue using voice profiles. Ensure all lines are under 120 characters, use named placeholders for variables, and are localization-ready.
+- **art-director**: Define character visual design direction for key characters appearing in this content (silhouette, visual archetype, distinguishing features). Specify environmental visual storytelling elements for each key space (prop composition, lighting notes, spatial arrangement). Define tone palette and cinematic direction for any cutscenes or scripted sequences.
 
 ### Phase 3: Level Narrative Integration
 Delegate to **level-designer**:

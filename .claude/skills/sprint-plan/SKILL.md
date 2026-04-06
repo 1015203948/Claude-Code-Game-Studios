@@ -3,15 +3,19 @@ name: sprint-plan
 description: "Generates a new sprint plan or updates an existing one based on the current milestone, completed work, and available capacity. Pulls context from production documents and design backlogs."
 argument-hint: "[new|update|status] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit
+allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion
 context: |
   !ls production/sprints/ 2>/dev/null
 ---
 
 ## Phase 0: Parse Arguments
 
-Extract the mode argument (`new`, `update`, or `status`) and any `--review [full|lean|solo]`
-flag. Store the review mode as the override for this run (see `.claude/docs/director-gates.md`).
+Extract the mode argument (`new`, `update`, or `status`) and resolve the review mode (once, store for all gate spawns this run):
+1. If `--review [full|lean|solo]` was passed → use that
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 ---
 
@@ -33,7 +37,7 @@ flag. Store the review mode as the override for this run (see `.claude/docs/dire
 
 For `new`:
 
-**Generate a sprint plan** following this format and present it to the user. Ask: "May I write this sprint plan to `production/sprints/sprint-[N].md`?" If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — sprint plan created. If no: Verdict: **BLOCKED** — user declined write.
+**Generate a sprint plan** following this format and present it to the user. Do NOT ask to write yet — the producer feasibility gate (Phase 4) runs first and may require revisions before the file is written.
 
 ```markdown
 # Sprint [N] -- [Start Date] to [End Date]
@@ -74,6 +78,10 @@ For `new`:
 ## Definition of Done for this Sprint
 - [ ] All Must Have tasks completed
 - [ ] All tasks pass acceptance criteria
+- [ ] QA plan exists (`production/qa/qa-plan-sprint-[N].md`)
+- [ ] All Logic/Integration stories have passing unit/integration tests
+- [ ] Smoke check passed (`/smoke-check sprint`)
+- [ ] QA sign-off report: APPROVED or APPROVED WITH CONDITIONS (`/team-qa sprint`)
 - [ ] No S1 or S2 bugs in delivered features
 - [ ] Design documents updated for any deviations
 - [ ] Code reviewed and merged
@@ -159,23 +167,62 @@ stories that haven't changed, add new stories, remove dropped ones.
 
 ## Phase 4: Producer Feasibility Gate
 
+**Review mode check** — apply before spawning PR-SPRINT:
+- `solo` → skip. Note: "PR-SPRINT skipped — Solo mode." Proceed to Phase 5 (QA plan gate).
+- `lean` → skip (not a PHASE-GATE). Note: "PR-SPRINT skipped — Lean mode." Proceed to Phase 5 (QA plan gate).
+- `full` → spawn as normal.
+
 Before finalising the sprint plan, spawn `producer` via Task using gate **PR-SPRINT** (`.claude/docs/director-gates.md`).
 
 Pass: proposed story list (titles, estimates, dependencies), total team capacity in hours/days, any carryover from the previous sprint, milestone constraints and deadline.
 
 Present the producer's assessment. If UNREALISTIC, revise the story selection (defer stories to Should Have or Nice to Have) before asking for write approval. If CONCERNS, surface them and let the user decide whether to adjust.
 
-After handling the producer's verdict, add:
+After handling the producer's verdict, ask: "May I write this sprint plan to `production/sprints/sprint-[N].md`?" If yes, write the file, creating the directory if needed. Verdict: **COMPLETE** — sprint plan created. If no: Verdict: **BLOCKED** — user declined write.
+
+After writing, add:
 
 > **Scope check:** If this sprint includes stories added beyond the original epic scope, run `/scope-check [epic]` to detect scope creep before implementation begins.
 
 ---
 
-## Phase 5: Next Steps
+## Phase 5: QA Plan Gate
 
-After the sprint plan is written, recommend:
+Before closing the sprint plan, check whether a QA plan exists for this sprint.
 
+Use `Glob` to look for `production/qa/qa-plan-sprint-[N].md` or any file in `production/qa/` referencing this sprint number.
+
+**If a QA plan is found**: note it in the sprint plan output — "QA Plan: `[path]`" — and proceed.
+
+**If no QA plan exists**: do not silently proceed. Surface this explicitly:
+
+> "This sprint has no QA plan. A sprint plan without a QA plan means test requirements are undefined — developers won't know what 'done' looks like from a QA perspective, and the sprint cannot pass the Production → Polish gate without one.
+>
+> Run `/qa-plan sprint` now, before starting any implementation. It takes one session and produces the test case requirements each story needs."
+
+Use `AskUserQuestion`:
+- Prompt: "No QA plan found for this sprint. How do you want to proceed?"
+- Options:
+  - `[A] Run /qa-plan sprint now — I'll do that before starting implementation (Recommended)`
+  - `[B] Skip for now — I understand QA sign-off will be blocked at the Production → Polish gate`
+
+If [A]: close with "Sprint plan written. Run `/qa-plan sprint` next — then begin implementation."
+If [B]: add a warning block to the sprint plan document:
+
+```markdown
+> ⚠️ **No QA Plan**: This sprint was started without a QA plan. Run `/qa-plan sprint`
+> before the last story is implemented. The Production → Polish gate requires a QA
+> sign-off report, which requires a QA plan.
+```
+
+---
+
+## Phase 6: Next Steps
+
+After the sprint plan is written and QA plan status is resolved:
+
+- `/qa-plan sprint` — **required before implementation begins** — defines test cases per story so developers implement against QA specs, not a blank slate
+- `/story-readiness [story-file]` — validate a story is ready before starting it
+- `/dev-story [story-file]` — begin implementing the first story
 - `/sprint-status` — check progress mid-sprint
 - `/scope-check [epic]` — verify no scope creep before implementation begins
-- `/dev-story [story-file]` — begin implementing the first story
-- `/story-readiness [story-file]` — validate a story is ready before starting it

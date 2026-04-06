@@ -38,7 +38,10 @@ Always provide full context in each agent's prompt (game concept, pillars, exist
 
 3. **Orchestrate the level design team** in sequence:
 
-### Step 1: Narrative Context (narrative-director + world-builder)
+### Step 1: Narrative + Visual Direction (narrative-director + world-builder + art-director, parallel)
+
+Spawn all three agents simultaneously — issue all three Task calls before waiting for any result.
+
 Spawn the `narrative-director` agent to:
 - Define the narrative purpose of this area (what story beats happen here?)
 - Identify key characters, dialogue triggers, and lore elements
@@ -49,15 +52,29 @@ Spawn the `world-builder` agent to:
 - Define environmental storytelling opportunities
 - Specify any world rules that affect gameplay in this area
 
-**Gate**: Use `AskUserQuestion` to present Step 1 outputs and confirm before proceeding to Step 2.
+Spawn the `art-director` agent to:
+- Establish visual theme targets for this area — these are INPUTS to layout, not outputs of it
+- Define the color temperature and lighting mood for this area (how does it differ from adjacent areas?)
+- Specify shape language direction (angular fortress? organic cave? decayed grandeur?)
+- Name the primary visual landmarks that will orient the player
+- Read `design/art/art-bible.md` if it exists — anchor all direction in the established art bible
+
+**The art-director's visual targets from Step 1 must be passed to the level-designer in Step 2** as explicit constraints. Layout decisions happen within the visual direction, not before it.
+
+**Gate**: Use `AskUserQuestion` to present all three Step 1 outputs (narrative brief, lore foundation, visual direction targets) and confirm before proceeding to Step 2.
 
 ### Step 2: Layout and Encounter Design (level-designer)
-Spawn the `level-designer` agent to:
-- Design the spatial layout (critical path, optional paths, secrets)
-- Define pacing curve (tension peaks, rest areas, exploration zones)
+Spawn the `level-designer` agent with the full Step 1 output as context:
+- Narrative brief (from narrative-director)
+- Lore foundation (from world-builder)
+- **Visual direction targets (from art-director)** — layout must work within these targets, not contradict them
+
+The level-designer should:
+- Design the spatial layout (critical path, optional paths, secrets) — ensuring primary routes align with the visual landmark targets from Step 1
+- Define pacing curve (tension peaks, rest areas, exploration zones) — coordinated with the emotional arc from narrative-director
 - Place encounters with difficulty progression
 - Design environmental puzzles or navigation challenges
-- Define points of interest and landmarks for wayfinding
+- Define points of interest and landmarks for wayfinding — these must match the visual landmarks the art-director specified
 - Specify entry/exit points and connections to adjacent areas
 
 **Adjacent area dependency check**: After the layout is produced, check `design/levels/` for each adjacent area referenced by the level-designer. If any referenced area's `.md` file does not exist, surface the gap:
@@ -81,13 +98,16 @@ Spawn the `systems-designer` agent to:
 
 **Gate**: Use `AskUserQuestion` to present Step 3 outputs and confirm before proceeding to Step 4.
 
-### Step 4: Visual Direction and Accessibility (parallel)
-Spawn the `art-director` agent to:
-- Define the visual theme and color palette for the area
-- Specify lighting mood and time-of-day settings
-- List required art assets (environment props, unique assets)
-- Define visual landmarks and sight lines
-- Specify any special VFX needs (weather, particles, fog)
+### Step 4: Production Concepts + Accessibility (art-director + accessibility-specialist, parallel)
+
+**Note**: The art-director's directional pass (visual theme, color targets, mood) happened in Step 1. This pass is location-specific production concepts — given the finalized layout, what does each specific space look like?
+
+Spawn the `art-director` agent with the finalized layout from Step 2:
+- Produce location-specific concept specs for key spaces (entrance, key encounter zones, landmarks, exits)
+- Specify which art assets are unique to this area vs. shared from the global pool
+- Define sight-line and lighting setups per key space (these are now layout-informed, not directional)
+- Specify VFX needs that are specific to this area's layout (weather volumes, particles, atmospheric effects)
+- Flag any locations where the layout creates visual direction conflicts with the Step 1 targets — surface these as production risks
 
 Spawn the `accessibility-specialist` agent in parallel to:
 - Review the level layout for navigation clarity (can players orient themselves without relying on color alone?)

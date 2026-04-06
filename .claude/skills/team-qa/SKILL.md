@@ -3,7 +3,7 @@ name: team-qa
 description: "Orchestrate the QA team through a full testing cycle. Coordinates qa-lead (strategy + test plan) and qa-tester (test case writing + bug reporting) to produce a complete QA package for a sprint or feature. Covers: test plan generation, test case writing, smoke check gate, manual QA execution, and sign-off report."
 argument-hint: "[sprint | feature: system-name]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Task
+allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 agent: qa-lead
 ---
 
@@ -53,10 +53,15 @@ Prompt the qa-lead to:
 - Identify which stories require automated test evidence vs. manual QA
 - Flag any stories with missing acceptance criteria or missing test evidence that would block QA
 - Estimate manual QA effort (number of test sessions needed)
-- Produce a strategy summary table:
+- Check `tests/smoke/` for smoke test scenarios; for each, assess whether it can be verified given the current build. Produce a smoke check verdict: **PASS** / **PASS WITH WARNINGS [list]** / **FAIL [list of failures]**
+- Produce a strategy summary table and smoke check result:
 
   | Story | Type | Automated Required | Manual Required | Blocker? |
   |-------|------|--------------------|-----------------|----------|
+
+  **Smoke Check**: [PASS / PASS WITH WARNINGS / FAIL] — [details if not PASS]
+
+If the smoke check result is **FAIL**, the qa-lead must list the failures prominently. QA cannot proceed past the strategy phase with a failed smoke check.
 
 Present the qa-lead's full strategy to the user, then use `AskUserQuestion`:
 
@@ -66,9 +71,12 @@ options:
   - "Looks good — proceed to test plan"
   - "Adjust story types before proceeding"
   - "Skip blocked stories and proceed with the rest"
+  - "Smoke check failed — fix issues and re-run /team-qa"
   - "Cancel — resolve blockers first"
 ```
 
+If smoke check **FAIL**: do not proceed to Phase 3. Surface the failures and stop. The user must fix them and re-run `/team-qa`.
+If smoke check **PASS WITH WARNINGS**: note the warnings for the sign-off report and continue.
 If blockers are present: list them explicitly. The user may choose to skip blocked stories or cancel the cycle.
 
 ### Phase 3: Test Plan Generation
@@ -88,26 +96,9 @@ Ask: "May I write the QA plan to `production/qa/qa-plan-[sprint]-[date].md`?"
 
 Write only after receiving approval.
 
-### Phase 4: Smoke Check Gate
+### Phase 4: Test Case Writing (qa-tester)
 
-Before any manual QA begins, run the smoke check.
-
-Spawn `qa-lead` via Task with instructions to:
-- Review the `tests/smoke/` directory for the current smoke test list
-- Check whether each smoke test scenario can be verified given the current build
-- Produce a smoke check result: **PASS** / **PASS WITH WARNINGS** / **FAIL**
-
-Report the result to the user:
-
-- **PASS**: "Smoke check passed. Proceeding to test case writing."
-- **PASS WITH WARNINGS**: "Smoke check passed with warnings: [list issues]. These are non-blocking. Proceeding — note these for the sign-off report."
-- **FAIL**: "Smoke check failed. QA cannot begin until these issues are resolved:
-  [list failures]
-  Fix them and re-run `/smoke-check`, or re-run `/team-qa` once resolved."
-
-On FAIL: stop the cycle and surface the list of failures. Do not proceed.
-
-### Phase 5: Test Case Writing (qa-tester)
+> **Smoke check** is performed as part of Phase 2 (QA Strategy). If the smoke check returned FAIL in Phase 2, the cycle was stopped there. This phase only runs when the Phase 2 smoke check was PASS or PASS WITH WARNINGS.
 
 For each story requiring manual QA (Visual/Feel, UI, Integration without automated tests):
 

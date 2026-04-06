@@ -43,9 +43,9 @@ Examples:
 
 | Mode | What runs | Best for |
 |------|-----------|----------|
-| `full` | All gates active — current behaviour | New projects, teams, learning the workflow |
-| `lean` | PHASE-GATEs only (`/gate-check`) — all per-skill gates skipped | Experienced devs who trust their own design work |
-| `solo` | No director gates anywhere | Game jams, prototypes, seasoned solo devs at speed |
+| `full` | All gates active — every workflow step reviewed | Teams, learning users, or when you want thorough director feedback at every step |
+| `lean` | PHASE-GATEs only (`/gate-check`) — per-skill gates skipped | **Default** — solo devs and small teams; directors review at milestones only |
+| `solo` | No director gates anywhere | Game jams, prototypes, maximum speed |
 
 **Check pattern — apply before every gate spawn:**
 
@@ -66,7 +66,18 @@ Apply the resolved mode:
 
 ## Invocation Pattern (copy into any skill)
 
+**MANDATORY: Resolve review mode before every gate spawn.** Never spawn a gate without checking. The resolved mode is determined once per skill run:
+1. If skill was called with `--review [mode]`, use that
+2. Else read `production/review-mode.txt`
+3. Else default to `lean`
+
+Apply the resolved mode:
+- `solo` → **skip all gates**. Note in output: `[GATE-ID] skipped — Solo mode`
+- `lean` → **skip unless this is a PHASE-GATE** (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE). Note: `[GATE-ID] skipped — Lean mode`
+- `full` → spawn as normal
+
 ```
+# Apply mode check, then:
 Spawn `[agent-name]` via Task:
 - Gate: [GATE-ID] (see .claude/docs/director-gates.md)
 - Context: [fields listed under that gate]
@@ -76,6 +87,7 @@ Spawn `[agent-name]` via Task:
 For parallel spawning (multiple directors at the same gate point):
 
 ```
+# Apply mode check for each gate first, then spawn all that survive:
 Spawn all [N] agents simultaneously via Task — issue all Task calls before
 waiting for any result. Collect all verdicts before proceeding.
 ```
@@ -524,6 +536,86 @@ is invoked
 
 ---
 
+## Tier 1 — Art Director Gates
+
+Agent: `art-director` | Model tier: Sonnet | Domain: Visual identity, art bible, visual production readiness
+
+---
+
+### AD-CONCEPT-VISUAL — Visual Identity Anchor
+
+**Trigger**: After game pillars are locked (brainstorm Phase 4), in parallel with CD-PILLARS
+
+**Context to pass**:
+- Game concept (elevator pitch, core fantasy, unique hook)
+- Full pillar set with names, definitions, and design tests
+- Target platform (if known)
+- Any reference games or visual touchstones mentioned by the user
+
+**Prompt**:
+> "Based on these game pillars and core concept, propose 2-3 distinct visual identity
+> directions. For each direction provide: (1) a one-line visual rule that could guide
+> all visual decisions (e.g., 'everything must move', 'beauty is in the decay'), (2)
+> mood and atmosphere targets, (3) shape language (sharp/rounded/organic/geometric
+> emphasis), (4) color philosophy (palette direction, what colors mean in this world).
+> Be specific — avoid generic descriptions. One direction should directly serve the
+> primary design pillar. Name each direction. Recommend which best serves the stated
+> pillars and explain why."
+
+**Verdicts**: CONCEPTS (multiple valid options — user selects) / STRONG (one direction clearly dominant) / CONCERNS (pillars don't provide enough direction to differentiate visual identity yet)
+
+---
+
+### AD-ART-BIBLE — Art Bible Sign-Off
+
+**Trigger**: After the art bible is drafted (`/art-bible`), before asset production begins
+
+**Context to pass**:
+- Art bible path (`design/art/art-bible.md`)
+- Game pillars and core fantasy
+- Platform and performance constraints (from `.claude/docs/technical-preferences.md` if configured)
+- Visual identity anchor chosen during brainstorm (from `design/gdd/game-concept.md`)
+
+**Prompt**:
+> "Review this art bible for completeness and internal consistency. Does the color
+> system match the mood targets? Does the shape language follow from the visual
+> identity statement? Are the asset standards achievable within the platform
+> constraints? Does the character design direction give artists enough to work from
+> without over-specifying? Are there contradictions between sections? Would an
+> outsourcing team be able to produce assets from this document without additional
+> briefing? Return APPROVE (art bible is production-ready), CONCERNS [specific
+> sections needing clarification], or REJECT [fundamental inconsistencies that must
+> be resolved before asset production begins]."
+
+**Verdicts**: APPROVE / CONCERNS / REJECT
+
+---
+
+### AD-PHASE-GATE — Visual Readiness at Phase Transition
+
+**Trigger**: Always at `/gate-check` — spawn in parallel with CD-PHASE-GATE, TD-PHASE-GATE, and PR-PHASE-GATE
+
+**Context to pass**:
+- Target phase name
+- List of all art/visual artifacts present (file paths)
+- Visual identity anchor from `design/gdd/game-concept.md` (if present)
+- Art bible path if it exists (`design/art/art-bible.md`)
+
+**Prompt**:
+> "Review the current project state for [target phase] gate readiness from a visual
+> direction perspective. Is the visual identity established and documented at the
+> level this phase requires? Are the right visual artifacts in place? Would visual
+> teams be able to begin their work without visual direction gaps that cause costly
+> rework later? Are there visual decisions that are being deferred past their latest
+> responsible moment? Return READY, CONCERNS [specific visual direction gaps that
+> could cause production rework], or NOT READY [visual blockers that must exist
+> before this phase can succeed — specify what artifact is missing and why it
+> matters at this stage]."
+
+**Verdicts**: READY / CONCERNS / NOT READY
+
+---
+
 ## Tier 2 — Lead Gates
 
 These gates are invoked by orchestration skills and senior skills when a domain
@@ -678,8 +770,9 @@ Spawn in parallel (issue all Task calls before waiting for any result):
 1. creative-director  → gate CD-PHASE-GATE
 2. technical-director → gate TD-PHASE-GATE
 3. producer           → gate PR-PHASE-GATE
+4. art-director       → gate AD-PHASE-GATE
 
-Collect all three verdicts, then apply escalation rules:
+Collect all four verdicts, then apply escalation rules:
 - Any NOT READY / REJECT → overall verdict minimum FAIL
 - Any CONCERNS → overall verdict minimum CONCERNS
 - All READY / APPROVE → eligible for PASS (still subject to artifact checks)
@@ -704,10 +797,10 @@ When a new gate is needed for a new skill or workflow:
 
 | Stage | Required Gates | Optional Gates |
 |-------|---------------|----------------|
-| **Concept** | CD-PILLARS | TD-FEASIBILITY, PR-SCOPE |
+| **Concept** | CD-PILLARS, AD-CONCEPT-VISUAL | TD-FEASIBILITY, PR-SCOPE |
 | **Systems Design** | TD-SYSTEM-BOUNDARY, CD-SYSTEMS, PR-SCOPE, CD-GDD-ALIGN (per GDD) | ND-CONSISTENCY, AD-VISUAL |
-| **Technical Setup** | TD-ARCHITECTURE, TD-ADR (per ADR), LP-FEASIBILITY | TD-ENGINE-RISK |
-| **Pre-Production** | PR-EPIC, QL-STORY-READY (per story), PR-SPRINT, all three PHASE-GATE (via gate-check) | CD-PLAYTEST |
-| **Production** | LP-CODE-REVIEW (per story), QL-STORY-READY, PR-SPRINT (per sprint) | PR-MILESTONE, QL-TEST-COVERAGE |
-| **Polish** | QL-TEST-COVERAGE, CD-PLAYTEST, PR-MILESTONE | |
-| **Release** | All three PHASE-GATE (via gate-check) | QL-TEST-COVERAGE |
+| **Technical Setup** | TD-ARCHITECTURE, TD-ADR (per ADR), LP-FEASIBILITY, AD-ART-BIBLE | TD-ENGINE-RISK |
+| **Pre-Production** | PR-EPIC, QL-STORY-READY (per story), PR-SPRINT, all four PHASE-GATEs (via gate-check) | CD-PLAYTEST |
+| **Production** | LP-CODE-REVIEW (per story), QL-STORY-READY, PR-SPRINT (per sprint) | PR-MILESTONE, QL-TEST-COVERAGE, AD-VISUAL |
+| **Polish** | QL-TEST-COVERAGE, CD-PLAYTEST, PR-MILESTONE | AD-VISUAL |
+| **Release** | All four PHASE-GATEs (via gate-check) | QL-TEST-COVERAGE |

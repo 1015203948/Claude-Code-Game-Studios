@@ -4,7 +4,6 @@ description: "Lightweight design spec for small changes — tuning adjustments, 
 argument-hint: "[brief description of the change]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit
-context: fork
 ---
 
 # Quick Design
@@ -55,8 +54,10 @@ Before drafting anything, read the relevant context:
 
 - Search `design/gdd/` for the GDD most relevant to this change. Read the
   sections that this change would affect.
-- Read `design/gdd/systems-index.md` to understand where this system sits in
-  the dependency graph and what tier it belongs to.
+- Check whether `design/gdd/systems-index.md` exists. If it does, read it to
+  understand where this system sits in the dependency graph and what tier it
+  belongs to. If it does not exist, note "No systems index found — skipping
+  dependency tier check." and continue.
 - Check `design/quick-specs/` for any prior quick specs that touched this
   system — avoid contradicting them.
 - If this is a Tuning change, also check `assets/data/` for the data file that

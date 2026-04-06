@@ -3,8 +3,7 @@ name: ux-design
 description: "Guided, section-by-section UX spec authoring for a screen, flow, or HUD. Reads game concept, player journey, and relevant GDDs to provide context-aware design guidance. Produces ux-spec.md (per screen/flow) or hud-design.md using the studio templates."
 argument-hint: "[screen/flow name] or 'hud' or 'patterns'"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion
-context: fork
+allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Task
 agent: ux-designer
 ---
 
@@ -81,9 +80,8 @@ so you can reference them rather than reinvent them.
 
 ### 2f: Art Bible
 
-Check for `docs/art-bible.md` or `design/art-bible.md`. If found, read the
-visual direction section. UX layout must align with the aesthetic commitments
-already made.
+Check for `design/art/art-bible.md`. If found, read the visual direction
+section. UX layout must align with the aesthetic commitments already made.
 
 ### 2g: Accessibility Requirements
 
@@ -162,6 +160,18 @@ Ask: "May I create the skeleton file at `design/ux/[filename].md`?"
 
 ---
 
+## Navigation Position
+
+[To be designed]
+
+---
+
+## Entry & Exit Points
+
+[To be designed]
+
+---
+
 ## Layout Specification
 
 ### Information Hierarchy
@@ -194,6 +204,18 @@ Ask: "May I create the skeleton file at `design/ux/[filename].md`?"
 
 ---
 
+## Events Fired
+
+[To be designed]
+
+---
+
+## Transitions & Animations
+
+[To be designed]
+
+---
+
 ## Data Requirements
 
 [To be designed]
@@ -201,6 +223,18 @@ Ask: "May I create the skeleton file at `design/ux/[filename].md`?"
 ---
 
 ## Accessibility
+
+[To be designed]
+
+---
+
+## Localization Considerations
+
+[To be designed]
+
+---
+
+## Acceptance Criteria
 
 [To be designed]
 
@@ -383,6 +417,40 @@ Offer to map this against the journey phases if the player journey doc exists.
 
 ---
 
+#### Section B2: Navigation Position
+
+Where does this screen sit in the game's navigation hierarchy? This is a one-paragraph orientation map — not a full flow diagram.
+
+**Questions to ask**:
+- "Is this screen accessed from the main menu, from pause, from within gameplay, or from another screen?"
+- "Is it a top-level destination (always reachable) or a context-dependent one (only accessible in certain states)?"
+- "Can the player reach this screen from more than one place in the game?"
+
+Present as: "This screen lives at: [root] → [parent] → [this screen]" plus any alternate entry paths.
+
+---
+
+#### Section B3: Entry & Exit Points
+
+Map every way the player can arrive at and leave this screen.
+
+**Questions to ask**:
+- "What are all the ways a player can reach this screen?" (List each trigger: button press, game event, redirect from another screen, etc.)
+- "What can the player do to exit? What happens when they do?" (Back button, confirm action, timeout, game event)
+- "Are there any exits that are one-way — where the player cannot return to this screen without starting over?"
+
+Present as two tables:
+
+| Entry Source | Trigger | Player carries this context |
+|---|---|---|
+| [screen/event] | [how] | [state/data they arrive with] |
+
+| Exit Destination | Trigger | Notes |
+|---|---|---|
+| [screen/event] | [how] | [any irreversible state changes] |
+
+---
+
 #### Section C: Layout Specification
 
 This is the largest and most interactive section. Work through it in sub-sections:
@@ -459,6 +527,41 @@ an existing UX spec or note it as a spec dependency.
 
 ---
 
+#### Section E2: Events Fired
+
+For every player action in the Interaction Map, document the corresponding event the game or analytics system should fire — or explicitly note "no event" if none applies.
+
+**Questions to ask**:
+- "For each action, should the game fire an analytics event, trigger a game-state change, or both?"
+- "Are there any actions that should NOT fire an event — and is that a deliberate choice?"
+
+Present as a table alongside the Interaction Map:
+
+| Player Action | Event Fired | Payload / Data |
+|---|---|---|
+| [action] | [EventName] or none | [data passed with event] |
+
+Flag any action that modifies persistent game state (save data, progress, economy) — these need explicit attention from the architecture team.
+
+---
+
+#### Section E3: Transitions & Animations
+
+Specify how the screen enters and exits, and how it responds to state changes.
+
+**Questions to ask**:
+- "How does this screen appear? (fade in, slide from right, instant pop, scale from button)"
+- "How does it dismiss? (fade out, slide back, cut)"
+- "Are there any in-screen state transitions that need animation? (loading spinner, success state, error flash)"
+- "Is there any animation that could cause motion sickness — and does the game have a reduced-motion option?"
+
+Minimum required:
+- Screen enter transition
+- Screen exit transition
+- At least one state-change animation if the screen has multiple states
+
+---
+
 #### Section F: Data Requirements
 
 Cross-reference the GDD UI Requirements sections gathered in Phase 2.
@@ -496,6 +599,45 @@ Walk through the ux-designer agent's standard checklist for this screen:
 Use `AskUserQuestion` to surface any open questions on accessibility tier:
 - "Has the accessibility tier been committed to for this project?"
   - Options: "Yes, read from requirements doc", "Not yet — let's flag it as a question", "Skip accessibility section for now"
+
+---
+
+#### Section H: Localization Considerations
+
+Document constraints that affect how this screen behaves when text is translated.
+
+**Questions to ask**:
+- "Which text elements on this screen are the longest? What is the maximum character count that fits the layout?"
+- "Are there any elements where text length is layout-critical — e.g., a button label that must stay on one line?"
+- "Are there any elements that display numbers, dates, or currencies that need locale-specific formatting?"
+
+Note: aim to flag any element where a 40% text expansion (common in translations from English to German or French) would break the layout. Mark those as HIGH PRIORITY for the localization engineer.
+
+---
+
+#### Section I: Acceptance Criteria
+
+Write at least 5 specific, testable criteria that a QA tester can verify without reading any other design document. These become the pass/fail conditions for `/story-done`.
+
+**Format**: Use checkboxes. Each criterion must be verifiable by a human tester:
+
+```
+- [ ] Screen opens within [X]ms from [trigger]
+- [ ] [Element] displays correctly at [minimum] and [maximum] values
+- [ ] [Navigation action] correctly routes to [destination screen]
+- [ ] Error state appears when [condition] and shows [specific message or icon]
+- [ ] Keyboard/gamepad navigation reaches all interactive elements in logical order
+- [ ] [Accessibility requirement] is met — e.g., "all interactive elements have focus indicators"
+```
+
+**Minimum required**:
+- 1 performance criterion (load/open time)
+- 1 navigation criterion (at least one entry or exit path verified)
+- 1 error/empty state criterion
+- 1 accessibility criterion (per committed tier)
+- 1 criterion specific to this screen's core purpose
+
+Ask the user to confirm: "Do these criteria cover what would actually make this screen 'done' for your QA process?"
 
 ---
 
@@ -699,13 +841,22 @@ Update `production/session-state/active.md` with:
 
 ### 6b: Suggest Next Step
 
-Use `AskUserQuestion`:
-- "The spec is complete. What's next?"
+Before presenting options, state clearly:
+
+> "This spec should be validated with `/ux-review` before it enters the
+> implementation pipeline. The Pre-Production gate requires all key screen specs
+> to have a review verdict."
+
+Then use `AskUserQuestion`:
+- "Run `/ux-review [filename]` now, or do something else first?"
   - Options:
-    - "Run `/ux-review` to validate this spec"
-    - "Design another screen"
+    - "Run `/ux-review` now — validate this spec"
+    - "Design another screen first, then review all specs together"
     - "Update the interaction pattern library with new patterns from this spec"
     - "Stop here for this session"
+
+If the user picks "Design another screen first", add a note: "Reminder: run
+`/ux-review` on all completed specs before running `/gate-check pre-production`."
 
 ### 6c: Cross-Link Related Specs
 
@@ -740,7 +891,7 @@ specific sub-topics, additional context or coordination may be needed:
 | Implementation feasibility (engine constraints) | `ui-programmer` — before finalizing component inventory |
 | Gameplay data requirements | `game-designer` — when data ownership is unclear |
 | Narrative/lore visible in the UI | `narrative-director` — for flavor text, item names, lore panels |
-| Accessibility tier decisions | `ux-designer` (owns this) |
+| Accessibility tier decisions | Handled by this session — owned by ux-designer |
 
 When delegating to another agent via the Task tool:
 - Provide: screen name, game concept summary, the specific question needing expert input

@@ -58,18 +58,24 @@ The user needs creative exploration before anything else.
    **Concept phase:**
    - `/brainstorm open` — discover your game concept
    - `/setup-engine` — configure the engine (brainstorm will recommend one)
+   - `/art-bible` — define visual identity (uses the Visual Identity Anchor brainstorm produces)
    - `/map-systems` — decompose the concept into systems
    - `/design-system` — author a GDD for each MVP system
    - `/review-all-gdds` — cross-system consistency check
    - `/gate-check` — validate readiness before architecture work
    **Architecture phase:**
-   - `/architecture-decision` — record key technical decisions (one per system)
+   - `/create-architecture` — produce the master architecture blueprint and Required ADR list
+   - `/architecture-decision (×N)` — record key technical decisions, following the Required ADR list
    - `/create-control-manifest` — compile decisions into an actionable rules sheet
    - `/architecture-review` — validate architecture coverage
-   **Production phase:**
+   **Pre-Production phase:**
+   - `/ux-design` — author UX specs for key screens (main menu, HUD, core interactions)
+   - `/prototype` — build a throwaway prototype to validate the core mechanic
+   - `/playtest-report (×1+)` — document each vertical slice playtest session
    - `/create-epics` — map systems to epics
    - `/create-stories` — break epics into implementable stories
    - `/sprint-plan` — plan the first sprint
+   **Production phase:** → pick up stories with `/dev-story`
 
 #### If B: Vague idea
 
@@ -80,18 +86,24 @@ The user needs creative exploration before anything else.
    **Concept phase:**
    - `/brainstorm [hint]` — develop the idea into a full concept
    - `/setup-engine` — configure the engine
+   - `/art-bible` — define visual identity (uses the Visual Identity Anchor brainstorm produces)
    - `/map-systems` — decompose the concept into systems
    - `/design-system` — author a GDD for each MVP system
    - `/review-all-gdds` — cross-system consistency check
    - `/gate-check` — validate readiness before architecture work
    **Architecture phase:**
-   - `/architecture-decision` — record key technical decisions (one per system)
+   - `/create-architecture` — produce the master architecture blueprint and Required ADR list
+   - `/architecture-decision (×N)` — record key technical decisions, following the Required ADR list
    - `/create-control-manifest` — compile decisions into an actionable rules sheet
    - `/architecture-review` — validate architecture coverage
-   **Production phase:**
+   **Pre-Production phase:**
+   - `/ux-design` — author UX specs for key screens (main menu, HUD, core interactions)
+   - `/prototype` — build a throwaway prototype to validate the core mechanic
+   - `/playtest-report (×1+)` — document each vertical slice playtest session
    - `/create-epics` — map systems to epics
    - `/create-stories` — break epics into implementable stories
    - `/sprint-plan` — plan the first sprint
+   **Production phase:** → pick up stories with `/dev-story`
 
 #### If C: Clear concept
 
@@ -103,20 +115,26 @@ The user needs creative exploration before anything else.
      - `Jump straight in` — Go to `/setup-engine` now and write the GDD manually afterward
 3. Show the recommended path:
    **Concept phase:**
-   - `/brainstorm` or `/setup-engine` (their pick)
+   - `/brainstorm` or `/setup-engine` — (their pick from step 2)
+   - `/art-bible` — define visual identity (after brainstorm if run, or after concept doc exists)
    - `/design-review` — validate the concept doc
    - `/map-systems` — decompose the concept into individual systems
    - `/design-system` — author a GDD for each MVP system
    - `/review-all-gdds` — cross-system consistency check
    - `/gate-check` — validate readiness before architecture work
    **Architecture phase:**
-   - `/architecture-decision` — record key technical decisions (one per system)
+   - `/create-architecture` — produce the master architecture blueprint and Required ADR list
+   - `/architecture-decision (×N)` — record key technical decisions, following the Required ADR list
    - `/create-control-manifest` — compile decisions into an actionable rules sheet
    - `/architecture-review` — validate architecture coverage
-   **Production phase:**
+   **Pre-Production phase:**
+   - `/ux-design` — author UX specs for key screens (main menu, HUD, core interactions)
+   - `/prototype` — build a throwaway prototype to validate the core mechanic
+   - `/playtest-report (×1+)` — document each vertical slice playtest session
    - `/create-epics` — map systems to epics
    - `/create-stories` — break epics into implementable stories
    - `/sprint-plan` — plan the first sprint
+   **Production phase:** → pick up stories with `/dev-story`
 
 #### If D: Existing work
 
@@ -155,15 +173,15 @@ Check if `production/review-mode.txt` already exists.
 
 - **Prompt**: "One setup choice: how much design review would you want as you work through the workflow?"
 - **Options**:
-  - `Full (recommended)` — Director specialists review at each key workflow step. Best for new projects or when you want structured feedback on your decisions.
-  - `Lean` — Directors only at phase gate transitions (/gate-check). Skips per-skill reviews. For experienced users who trust their own design work.
+  - `Full` — Director specialists review at each key workflow step. Best for teams, learning the workflow, or when you want thorough feedback on every decision.
+  - `Lean (recommended)` — Directors only at phase gate transitions (/gate-check). Skips per-skill reviews. Balanced approach for solo devs and small teams.
   - `Solo` — No director reviews at all. Maximum speed. Best for game jams, prototypes, or if the reviews feel like overhead.
 
 Write the choice to `production/review-mode.txt` immediately after the user
 selects — no separate "May I write?" needed, as the write is a direct
 consequence of the selection:
-- `Full (recommended)` → write `full`
-- `Lean` → write `lean`
+- `Full` → write `full`
+- `Lean (recommended)` → write `lean`
 - `Solo` → write `solo`
 
 Create the `production/` directory if it does not exist.
@@ -193,7 +211,7 @@ Verdict: **COMPLETE** — user oriented and handed off to next step.
 
 - **User picks D but project is empty**: Gently redirect — "It looks like the project is a fresh template with no artifacts yet. Would Path A or B be a better fit?"
 - **User picks A but project has code**: Mention what you found — "I noticed there's already code in `src/`. Did you mean to pick D (existing work)?"
-- **User is returning (engine configured, concept exists)**: Skip onboarding entirely — "It looks like you're already set up! Your engine is [X] and you have a game concept at `design/gdd/game-concept.md`. Review mode: `[read from production/review-mode.txt, or 'full (default)' if missing]`. Want to pick up where you left off? Try `/sprint-plan` or just tell me what you'd like to work on."
+- **User is returning (engine configured, concept exists)**: Skip onboarding entirely — "It looks like you're already set up! Your engine is [X] and you have a game concept at `design/gdd/game-concept.md`. Review mode: `[read from production/review-mode.txt, or 'lean (default)' if missing]`. Want to pick up where you left off? Try `/sprint-plan` or just tell me what you'd like to work on."
 - **User doesn't fit any option**: Let them describe their situation in their own words and adapt.
 
 ---

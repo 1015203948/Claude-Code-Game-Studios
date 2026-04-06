@@ -14,6 +14,7 @@ Or check `README.md` for the version badge.
 ## Table of Contents
 
 - [Upgrade Strategies](#upgrade-strategies)
+- [v0.4.x → v1.0](#v04x--v10)
 - [v0.4.0 → v0.4.1](#v040--v041)
 - [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
@@ -76,6 +77,152 @@ Best when: you didn't use git to set up the template (just downloaded a zip).
 2. Copy the files listed under **"Safe to overwrite"** directly.
 3. For files under **"Merge carefully"**, open both versions side-by-side
    and manually merge the structural changes while keeping your content.
+
+---
+
+## v0.4.1
+
+**Released:** 2026-04-02
+**Key themes:** Art direction integration, asset specification pipeline
+
+### What Changed
+
+| Category | Changes |
+|----------|---------|
+| **New skill** | `/art-bible` — guided section-by-section visual identity authoring (9 sections). Mandatory art-director Task spawn per section. AD-ART-BIBLE sign-off gate. Required at Technical Setup phase. |
+| **New skill** | `/asset-spec` — per-asset visual spec and AI generation prompt generator. Reads art bible + GDD/level/character docs. Writes `design/assets/specs/` files and `design/assets/asset-manifest.md`. Full/lean/solo modes. |
+| **New director gates (3)** | `AD-CONCEPT-VISUAL` (brainstorm Phase 4), `AD-ART-BIBLE` (art bible sign-off), `AD-PHASE-GATE` (gate-check panel) |
+| **`/brainstorm` update** | Added `Task` to allowed-tools (was missing — blocked all director spawning). Art-director now spawns in parallel with creative-director after pillars lock. Visual Identity Anchor written to game-concept.md. |
+| **`/gate-check` update** | Art-director added as 4th parallel director (AD-PHASE-GATE). Visual artifact checks: Visual Identity Anchor (Concept gate), art bible (Technical Setup gate), AD-ART-BIBLE sign-off + character visual profiles (Pre-Production gate). |
+| **`/team-level` update** | Art-director added to Step 1 parallel spawn (visual direction before layout). Level-designer now receives art-director targets as explicit constraints. Step 4 art-director role corrected to production-concepts only. |
+| **`/team-narrative` update** | Art-director added to Phase 2 parallel spawn (character visual design, environmental storytelling, cinematic tone). |
+| **`/design-system` update** | Routing table expanded with art-director + technical-artist for Combat, UI, Dialogue, Animation/VFX, Character categories. Visual/Audio section now mandatory (with art-director Task spawn) for 7 system categories. |
+| **`workflow-catalog.yaml`** | `/art-bible` added to Technical Setup (required). `/asset-spec` added to Pre-Production (optional, repeatable). |
+
+### Files: Safe to Overwrite
+
+**New files to add:**
+```
+.claude/skills/art-bible/SKILL.md
+.claude/skills/asset-spec/SKILL.md
+.claude/docs/director-gates.md
+```
+
+**Existing files to overwrite (no user content):**
+```
+.claude/skills/brainstorm/SKILL.md
+.claude/skills/gate-check/SKILL.md
+.claude/skills/team-level/SKILL.md
+.claude/skills/team-narrative/SKILL.md
+.claude/skills/design-system/SKILL.md
+.claude/docs/workflow-catalog.yaml
+README.md
+UPGRADING.md
+```
+
+### Files: Merge Carefully
+
+None — all changes are to infrastructure files with no user content.
+
+---
+
+## v0.4.x → v1.0
+
+**Released:** 2026-03-29
+**Commit range:** `6c041ac..HEAD`
+**Key themes:** Director gates system, gate intensity modes, Godot C# specialist
+
+### What Changed
+
+| Category | Changes |
+|----------|---------|
+| **New system** | Director gates — named review checkpoints shared across all workflow skills. Defined in `.claude/docs/director-gates.md` |
+| **New feature** | Gate intensity modes: `full` (all director gates), `lean` (phase gates only), `solo` (no directors). Set globally via `production/review-mode.txt` during `/start`, or override per-run with `--review [mode]` on any gate-using skill |
+| **New agent** | `godot-csharp-specialist` — C# code quality in Godot 4 projects |
+| **Skill updates (13)** | All gate-using skills now parse `--review [full\|lean\|solo]` and include it in their argument-hint: `brainstorm`, `map-systems`, `design-system`, `architecture-decision`, `create-architecture`, `create-epics`, `create-stories`, `sprint-plan`, `milestone-review`, `playtest-report`, `prototype`, `story-done`, `gate-check` |
+| **`/start` update** | Added Phase 3b — sets review mode during onboarding, writes `production/review-mode.txt` |
+| **`/setup-engine` update** | Language selection step for Godot (GDScript vs C#) |
+| **Docs** | `director-gates.md` — full gate catalog; `WORKFLOW-GUIDE.md` — Director Review Modes section; `README.md` — review intensity customization |
+
+---
+
+### Files: Safe to Overwrite
+
+**New files to add:**
+```
+.claude/agents/godot-csharp-specialist.md
+.claude/docs/director-gates.md
+```
+
+**Existing files to overwrite (no user content):**
+```
+.claude/skills/brainstorm/SKILL.md
+.claude/skills/map-systems/SKILL.md
+.claude/skills/design-system/SKILL.md
+.claude/skills/architecture-decision/SKILL.md
+.claude/skills/create-architecture/SKILL.md
+.claude/skills/create-epics/SKILL.md
+.claude/skills/create-stories/SKILL.md
+.claude/skills/sprint-plan/SKILL.md
+.claude/skills/milestone-review/SKILL.md
+.claude/skills/playtest-report/SKILL.md
+.claude/skills/prototype/SKILL.md
+.claude/skills/story-done/SKILL.md
+.claude/skills/gate-check/SKILL.md
+.claude/skills/start/SKILL.md
+.claude/skills/quick-design/SKILL.md
+.claude/skills/setup-engine/SKILL.md
+README.md
+docs/WORKFLOW-GUIDE.md
+UPGRADING.md
+```
+
+---
+
+### Files: Merge Carefully
+
+No files require manual merging in this release. All changes are to infrastructure files with no user content.
+
+---
+
+### New Features
+
+#### Director Gates System
+
+All major workflow skills now reference named gate checkpoints defined in
+`.claude/docs/director-gates.md`. Gates are identified by domain prefix and name
+(e.g., `CD-CONCEPT`, `TD-ARCHITECTURE`, `LP-CODE-REVIEW`). Each gate defines
+which director to spawn, what inputs to pass, what verdicts mean, and how
+lean/solo modes affect it.
+
+Skills spawn gates using `Task` with the gate ID and documented inputs, rather
+than embedding director prompts inline. This keeps skill bodies clean and makes
+gate behavior consistent across all workflow phases.
+
+#### Gate Intensity Modes
+
+Three modes let you control how much director review you get:
+
+- **`full`** (default) — all director gates run at every review checkpoint
+- **`lean`** — per-skill director reviews are skipped; phase gates at `/gate-check` still run
+- **`solo`** — no director gates anywhere; `/gate-check` checks artifact existence only
+
+Set globally during `/start` (writes `production/review-mode.txt`). Override any
+individual run with `--review [mode]` on any gate-using skill:
+
+```
+/design-system combat --review lean
+/gate-check concept --review full
+/brainstorm my-game-idea --review solo
+```
+
+---
+
+### After Upgrading
+
+1. Run `/start` once to set your preferred review mode — or create `production/review-mode.txt` manually with `full`, `lean`, or `solo`.
+2. If you're mid-project, review `.claude/docs/director-gates.md` to understand which gates apply to your current phase.
+3. Run `/skill-test static all` to verify all skills pass structural checks.
 
 ---
 

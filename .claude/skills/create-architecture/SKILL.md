@@ -3,8 +3,7 @@ name: create-architecture
 description: "Guided, section-by-section authoring of the master architecture document for the game. Reads all GDDs, the systems index, existing ADRs, and the engine reference library to produce a complete architecture blueprint before any code is written. Engine-version-aware: flags knowledge gaps and validates decisions against the pinned engine version."
 argument-hint: "[focus-area: full | layers | data-flow | api-boundaries | adr-audit] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash
-context: fork
+allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion, Task
 agent: technical-director
 ---
 
@@ -17,8 +16,12 @@ It sits between design and implementation, and must exist before sprint planning
 **Distinct from `/architecture-decision`**: ADRs record individual point decisions.
 This skill creates the whole-system blueprint that gives ADRs their context.
 
-Extract `--review [full|lean|solo]` if present and store as the review mode
-override for this run (see `.claude/docs/director-gates.md`).
+Resolve the review mode (once, store for all gate spawns this run):
+1. If `--review [full|lean|solo]` was passed → use that
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 **Argument modes:**
 - **No argument / `full`**: Full guided walkthrough — all sections, start to finish
@@ -335,6 +338,11 @@ After writing the master architecture document, perform an explicit sign-off bef
 **Step 1 — Technical Director self-review** (this skill runs as technical-director):
 
 Apply gate **TD-ARCHITECTURE** (`.claude/docs/director-gates.md`) as a self-review. Check all four criteria from that gate definition against the completed document.
+
+**Review mode check** — apply before spawning LP-FEASIBILITY:
+- `solo` → skip. Note: "LP-FEASIBILITY skipped — Solo mode." Proceed to Phase 8 handoff.
+- `lean` → skip (not a PHASE-GATE). Note: "LP-FEASIBILITY skipped — Lean mode." Proceed to Phase 8 handoff.
+- `full` → spawn as normal.
 
 **Step 2 — Spawn `lead-programmer` via Task using gate LP-FEASIBILITY (`.claude/docs/director-gates.md`):**
 

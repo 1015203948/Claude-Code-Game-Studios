@@ -3,7 +3,7 @@ name: setup-engine
 description: "Configure the project's game engine and version. Pins the engine in CLAUDE.md, detects knowledge gaps, and populates engine reference docs via WebSearch when the version is beyond the LLM's training data."
 argument-hint: "[engine] | [engine version] | refresh | upgrade [old-version] [new-version] | no args for guided selection"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Task
+allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Task, AskUserQuestion
 ---
 
 When this skill is invoked:
@@ -230,10 +230,15 @@ Example filled section:
 ```
 
 ### Remaining Sections
-- Performance Budgets: Leave as `[TO BE CONFIGURED]` with a suggestion:
-  > "Typical targets: 60fps / 16.6ms frame budget. Want to set these now?"
-- Testing: Suggest engine-appropriate framework (GUT for Godot, NUnit for Unity, etc.)
-- Forbidden Patterns / Allowed Libraries: Leave as placeholder
+- **Performance Budgets**: Use `AskUserQuestion`:
+  - Prompt: "Should I set default performance budgets now, or leave them for later?"
+  - Options: `[A] Set defaults now (60fps, 16.6ms frame budget, engine-appropriate draw call limit)` / `[B] Leave as [TO BE CONFIGURED] — I'll set these when I know my target hardware`
+  - If [A]: populate with the suggested defaults. If [B]: leave as placeholder.
+- **Testing**: Suggest engine-appropriate framework (GUT for Godot, NUnit for Unity, etc.) — ask before adding.
+- **Forbidden Patterns**: Leave as placeholder — do NOT pre-populate.
+- **Allowed Libraries**: Leave as placeholder — do NOT pre-populate dependencies the project does not currently need. Only add a library here when it is actively being integrated, not speculatively.
+
+> **Guardrail**: Never add speculative dependencies to Allowed Libraries. For example, do NOT add GodotSteam unless Steam integration is actively beginning in this session. Post-launch integrations should be added to Allowed Libraries when that work begins, not during engine setup.
 
 ### Engine Specialists Routing
 
@@ -571,6 +576,7 @@ Verdict: **COMPLETE** — engine configured and reference docs populated.
 - If reference docs already exist for a different engine, ask before replacing
 - Always show the user what you're about to change before making CLAUDE.md edits
 - If WebSearch returns ambiguous results, show the user and let them decide
+- When the user chose **GDScript**: copy the GDScript CLAUDE.md template from Appendix A1 exactly. NEVER add "C++ via GDExtension" to the Language field. GDScript projects may use GDExtension, but it is not a primary project language. The `godot-gdextension-specialist` in the routing table is available for when native extensions are needed — it does not make C++ a project language.
 
 ---
 
@@ -585,10 +591,12 @@ All Godot-specific variants for language-dependent configuration. Referenced fro
 **GDScript:**
 ```markdown
 - **Engine**: Godot [version]
-- **Language**: GDScript (primary), C++ via GDExtension (performance-critical)
+- **Language**: GDScript
 - **Build System**: SCons (engine), Godot Export Templates
 - **Asset Pipeline**: Godot Import System + custom resource pipeline
 ```
+
+> **Guardrail**: When using this GDScript template, write the Language field as exactly "`GDScript`" — no additions. Do NOT append "C++ via GDExtension" or any other language. The C# template below includes GDExtension because C# projects commonly wrap native code; GDScript projects do not.
 
 **C#:**
 ```markdown

@@ -27,6 +27,29 @@ the artifact globs that indicate completion.
 
 ---
 
+## Step 1b: Find Skills Not in the Catalog
+
+After reading the catalog, Glob `.claude/skills/*/SKILL.md` to get the full list
+of installed skills. For each file, extract the `name:` field from its frontmatter.
+
+Compare against the `command:` values in the catalog. Any skill whose name does
+not appear as a catalog command is an **uncataloged skill** — still usable but not
+part of the phase-gated workflow.
+
+Collect these for the output in Step 7 — show them as a footer block:
+
+```
+### Also installed (not in workflow)
+- `/skill-name` — [description from SKILL.md frontmatter]
+- `/skill-name` — [description]
+```
+
+Only show this block if at least one uncataloged skill exists. Limit to the 10
+most relevant based on the user's current phase (QA skills in production, team
+skills in production/polish, etc.).
+
+---
+
 ## Step 2: Determine Current Phase
 
 Check in this order:

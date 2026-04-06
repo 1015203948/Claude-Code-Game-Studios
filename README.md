@@ -3,14 +3,14 @@
   <p align="center">
     Turn a single Claude Code session into a full game development studio.
     <br />
-    48 agents. 67 skills. One coordinated AI team.
+    49 agents. 70 skills. One coordinated AI team.
   </p>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
-  <a href=".claude/agents"><img src="https://img.shields.io/badge/agents-48-blueviolet" alt="48 Agents"></a>
-  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-68-green" alt="68 Skills"></a>
+  <a href=".claude/agents"><img src="https://img.shields.io/badge/agents-49-blueviolet" alt="49 Agents"></a>
+  <a href=".claude/skills"><img src="https://img.shields.io/badge/skills-70-green" alt="70 Skills"></a>
   <a href=".claude/hooks"><img src="https://img.shields.io/badge/hooks-12-orange" alt="12 Hooks"></a>
   <a href=".claude/rules"><img src="https://img.shields.io/badge/rules-11-red" alt="11 Rules"></a>
   <a href="https://docs.anthropic.com/en/docs/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-f5f5f5?logo=anthropic" alt="Built for Claude Code"></a>
@@ -50,11 +50,11 @@ The result: you still make every decision, but now you have a team that asks the
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Agents** | 48 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
-| **Skills** | 68 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics`, `/create-stories`, `/dev-story`, `/story-done`, etc.) |
+| **Agents** | 49 | Specialized subagents across design, programming, art, audio, narrative, QA, and production |
+| **Skills** | 70 | Slash commands for every workflow phase (`/start`, `/design-system`, `/create-epics`, `/create-stories`, `/dev-story`, `/story-done`, etc.) |
 | **Hooks** | 12 | Automated validation on commits, pushes, asset changes, session lifecycle, agent audit trail, and gap detection |
 | **Rules** | 11 | Path-scoped coding standards enforced when editing gameplay, engine, AI, UI, network code, and more |
-| **Templates** | 37 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
+| **Templates** | 39 | Document templates for GDDs, UX specs, ADRs, sprint plans, HUD design, accessibility, and more |
 
 ## Studio Hierarchy
 
@@ -92,13 +92,16 @@ The template includes agent sets for all three major engines. Use the set that m
 
 ## Slash Commands
 
-Type `/` in Claude Code to access all 67 skills:
+Type `/` in Claude Code to access all 70 skills:
 
 **Onboarding & Navigation**
 `/start` `/help` `/project-stage-detect` `/setup-engine` `/adopt`
 
 **Game Design**
 `/brainstorm` `/map-systems` `/design-system` `/quick-design` `/review-all-gdds` `/propagate-design-change`
+
+**Art & Assets**
+`/art-bible` `/asset-spec` `/asset-audit`
 
 **UX & Interface Design**
 `/ux-design` `/ux-review`
@@ -110,10 +113,10 @@ Type `/` in Claude Code to access all 67 skills:
 `/create-epics` `/create-stories` `/dev-story` `/sprint-plan` `/sprint-status` `/story-readiness` `/story-done` `/estimate`
 
 **Reviews & Analysis**
-`/design-review` `/code-review` `/balance-check` `/asset-audit` `/content-audit` `/scope-check` `/perf-profile` `/tech-debt` `/gate-check` `/consistency-check`
+`/design-review` `/code-review` `/balance-check` `/content-audit` `/scope-check` `/perf-profile` `/tech-debt` `/gate-check` `/consistency-check`
 
 **QA & Testing**
-`/qa-plan` `/smoke-check` `/soak-test` `/regression-suite` `/test-setup` `/test-helpers` `/test-evidence-review` `/test-flakiness` `/skill-test`
+`/qa-plan` `/smoke-check` `/soak-test` `/regression-suite` `/test-setup` `/test-helpers` `/test-evidence-review` `/test-flakiness` `/skill-test` `/skill-improve`
 
 **Production**
 `/milestone-review` `/retrospective` `/bug-report` `/bug-triage` `/reverse-document` `/playtest-report`
@@ -171,12 +174,13 @@ CLAUDE.md                           # Master configuration
 .claude/
   settings.json                     # Hooks, permissions, safety rules
   agents/                           # 48 agent definitions (markdown + YAML frontmatter)
-  skills/                           # 68 slash commands (subdirectory per skill)
+  skills/                           # 70 slash commands (subdirectory per skill)
   hooks/                            # 12 hook scripts (bash, cross-platform)
   rules/                            # 11 path-scoped coding standards
+  statusline.sh                     # Status line script (context%, model, stage, epic breadcrumb)
   docs/
     workflow-catalog.yaml           # 7-phase pipeline definition (read by /help)
-    templates/                      # 37 document templates
+    templates/                      # 39 document templates
 src/                                # Game source code
 assets/                             # Art, audio, VFX, shaders, data files
 design/                             # GDDs, narrative docs, level designs
@@ -217,18 +221,20 @@ You stay in control. The agents provide structure and expertise, not autonomy.
 
 | Hook | Trigger | What It Does |
 |------|---------|--------------|
-| `validate-commit.sh` | `git commit` | Checks for hardcoded values, TODO format, JSON validity, design doc sections |
-| `validate-push.sh` | `git push` | Warns on pushes to protected branches |
-| `validate-assets.sh` | File writes in `assets/` | Validates naming conventions and JSON structure |
-| `session-start.sh` | Session open | Loads sprint context and recent git activity |
-| `detect-gaps.sh` | Session open | Detects fresh projects (suggests `/start`) and missing documentation when code/prototypes exist |
+| `validate-commit.sh` | PreToolUse (Bash) | Checks for hardcoded values, TODO format, JSON validity, design doc sections — exits early if the command is not `git commit` |
+| `validate-push.sh` | PreToolUse (Bash) | Warns on pushes to protected branches — exits early if the command is not `git push` |
+| `validate-assets.sh` | PostToolUse (Write/Edit) | Validates naming conventions and JSON structure — exits early if the file is not in `assets/` |
+| `session-start.sh` | Session open | Shows current branch and recent commits for orientation |
+| `detect-gaps.sh` | Session open | Detects fresh projects (suggests `/start`) and missing design docs when code or prototypes exist |
 | `pre-compact.sh` | Before compaction | Preserves session progress notes |
 | `post-compact.sh` | After compaction | Reminds Claude to restore session state from `active.md` |
 | `notify.sh` | Notification event | Shows Windows toast notification via PowerShell |
-| `session-stop.sh` | Session close | Logs accomplishments |
+| `session-stop.sh` | Session close | Archives `active.md` to session log and records git activity |
 | `log-agent.sh` | Agent spawned | Audit trail start — logs subagent invocation |
 | `log-agent-stop.sh` | Agent stops | Audit trail stop — completes subagent record |
-| `validate-skill-change.sh` | Skill file written | Advises running `/skill-test` after any `.claude/skills/` change |
+| `validate-skill-change.sh` | PostToolUse (Write/Edit) | Advises running `/skill-test` after any `.claude/skills/` change |
+
+> **Note**: `validate-commit.sh`, `validate-assets.sh`, and `validate-skill-change.sh` fire on every Bash/Write tool call and exit immediately (exit 0) when the command or file path is not relevant. This is normal hook behavior — not a performance concern.
 
 **Permission rules** in `settings.json` auto-allow safe operations (git status, test runs) and block dangerous ones (force push, `rm -rf`, reading `.env` files).
 
@@ -280,7 +286,7 @@ Tested on **Windows 10** with Git Bash. All hooks use POSIX-compatible patterns 
 
 ---
 
-*This project is under active development. The agent architecture, skills, and coordination system are solid and usable today — but there's more coming.*
+*Built for Claude Code. Maintained and extended — contributions welcome via [GitHub Discussions](https://github.com/Donchitos/Claude-Code-Game-Studios/discussions).*
 
 ## License
 

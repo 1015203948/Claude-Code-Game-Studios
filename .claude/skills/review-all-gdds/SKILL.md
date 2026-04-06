@@ -3,9 +3,7 @@ name: review-all-gdds
 description: "Holistic cross-GDD consistency and game design review. Reads all system GDDs simultaneously and checks for contradictions between them, stale references, ownership conflicts, formula incompatibilities, and game design theory violations (dominant strategies, economic imbalance, cognitive overload, pillar drift). Run after all MVP GDDs are written, before architecture begins."
 argument-hint: "[focus: full | consistency | design-theory | since-last-review]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash
-context: fork
-agent: game-designer
+allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion, Task
 model: opus
 ---
 
@@ -546,16 +544,16 @@ FAIL: One or more blocking issues must be resolved before architecture begins.
 
 ## Phase 6: Write Report and Flag GDDs
 
-Ask: "May I write this review to `design/gdd/gdd-cross-review-[date].md`?"
+Use `AskUserQuestion` for write permission:
+- Prompt: "May I write this review to `design/gdd/gdd-cross-review-[date].md`?"
+- Options: `[A] Yes — write the report` / `[B] No — skip`
 
-If any GDDs are flagged for revision:
-
-Ask: "Should I update the systems index to mark these GDDs as needing revision?"
-- If yes: for each flagged GDD, update its Status field in systems-index.md
-  to "Needs Revision" with a short note in the adjacent Notes/Description column.
+If any GDDs are flagged for revision, use a second `AskUserQuestion`:
+- Prompt: "Should I update the systems index to mark these GDDs as needing revision? ([list of flagged GDDs])"
+- Options: `[A] Yes — update systems index` / `[B] No — leave as-is`
+- If yes: update each flagged GDD's Status field in systems-index.md to "Needs Revision".
   (Do NOT append parentheticals to the status value — other skills match "Needs Revision"
   as an exact string and parentheticals break that match.)
-  Ask approval before writing.
 
 ### Session State Update
 
@@ -577,18 +575,27 @@ Confirm in conversation: "Session state updated."
 
 ## Phase 7: Handoff
 
-After the report is written:
+After all file writes are complete, use `AskUserQuestion` for a closing widget.
 
-- **If FAIL**: "Resolve the blocking issues in the flagged GDDs, then re-run
-  `/review-all-gdds` to confirm they're cleared before starting architecture."
-- **If CONCERNS**: "Warnings are present but not blocking. You may proceed to
-  `/create-architecture` and resolve warnings in parallel, or resolve them now
-  for a cleaner baseline."
-- **If PASS**: "GDDs are internally consistent. Run `/create-architecture` to
-  begin translating the design into an engine-aware technical blueprint."
+Before building options, check project state:
+- Are there any Warning-level items that are simple edits (flagged with "30-second edit", "brief addition", or similar)? → offer inline quick-fix option
+- Are any GDDs in the "Flagged for Revision" table? → offer /design-review option for each
+- Read systems-index.md for the next system with Status: Not Started → offer /design-system option
+- Is the verdict PASS or CONCERNS? → offer /gate-check or /create-architecture
 
-Gate reminder: `/gate-check technical-setup` now requires a PASS or CONCERNS
-verdict from this review before architecture work can begin.
+Build the option list dynamically — only include options that apply:
+
+**Option pool:**
+- `[_] Apply quick fix: [W-XX description] in [gdd-name].md — [effort estimate]` (one option per simple-edit warning; only for Warning-level, not Blocking)
+- `[_] Run /design-review [flagged-gdd-path] — address flagged warnings` (one per flagged GDD, if any)
+- `[_] Run /design-system [next-system] — next in design order` (always include, name the actual system)
+- `[_] Run /create-architecture — begin architecture (verdict is PASS/CONCERNS)` (include if verdict is not FAIL)
+- `[_] Run /gate-check — validate Systems Design phase gate` (include if verdict is PASS)
+- `[_] Stop here`
+
+Assign letters A, B, C… only to included options. Mark the most pipeline-advancing option as `(recommended)`.
+
+Never end the skill with plain text. Always close with this widget.
 
 ---
 

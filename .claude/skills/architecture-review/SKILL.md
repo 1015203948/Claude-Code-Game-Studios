@@ -3,8 +3,7 @@ name: architecture-review
 description: "Validates completeness and consistency of the project architecture against all GDDs. Builds a traceability matrix mapping every GDD technical requirement to ADRs, identifies coverage gaps, detects cross-ADR conflicts, verifies engine compatibility consistency across all decisions, and produces a PASS/CONCERNS/FAIL verdict. The architecture equivalent of /design-review."
 argument-hint: "[focus: full | coverage | consistency | engine | single-gdd path/to/gdd.md]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Task
-context: fork
+allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 agent: technical-director
 model: opus
 ---
@@ -452,10 +451,11 @@ FAIL: Critical gaps (Foundation/Core layer requirements uncovered),
 
 ## Phase 8: Write and Update Traceability Index
 
-Ask: "May I write this review to `docs/architecture/architecture-review-[date].md`?"
-
-Also ask: "May I update `docs/architecture/architecture-traceability.md` with the
-current matrix? This is the living index that future reviews update incrementally."
+Use `AskUserQuestion` for the write approval:
+- "Review complete. What would you like to write?"
+  - [A] Write all three files (review report + traceability index + TR registry)
+  - [B] Write review report only — `docs/architecture/architecture-review-[date].md`
+  - [C] Don't write anything yet — I need to review the findings first
 
 ### RTM Output (rtm mode only)
 
@@ -596,7 +596,7 @@ Engine: [name + version]
 
 ## Phase 9: Handoff
 
-After completing the review:
+After completing the review and writing approved files, present:
 
 1. **Immediate actions**: List the top 3 ADRs to create (highest-impact gaps first,
    Foundation layer before Feature layer)
@@ -604,6 +604,12 @@ After completing the review:
    pre-production` to advance"
 3. **Rerun trigger**: "Re-run `/architecture-review` after each new ADR is written
    to verify coverage improves"
+
+Then close with `AskUserQuestion`:
+- "Architecture review complete. What would you like to do next?"
+  - [A] Write a missing ADR — open a fresh session and run `/architecture-decision [system]`
+  - [B] Run `/gate-check pre-production` — if all blocking gaps are resolved
+  - [C] Stop here for this session
 
 ---
 

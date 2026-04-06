@@ -3,8 +3,7 @@ name: create-epics
 description: "Translate approved GDDs + architecture into epics — one epic per architectural module. Defines scope, governing ADRs, engine risk, and untraced requirements. Does NOT break into stories — run /create-stories [epic-slug] after each epic is created."
 argument-hint: "[system-name | layer: foundation|core|feature|presentation | all] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
-context: fork
+allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 agent: technical-director
 ---
 
@@ -28,8 +27,12 @@ will have changed.
 
 ## 1. Parse Arguments
 
-Extract `--review [full|lean|solo]` if present and store as the review mode
-override for this run (see `.claude/docs/director-gates.md`).
+Resolve the review mode (once, store for all gate spawns this run):
+1. If `--review [full|lean|solo]` was passed → use that
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 **Modes:**
 - `/create-epics all` — process all systems in layer order
@@ -55,14 +58,16 @@ Grep pattern="## Summary" glob="design/gdd/*.md" output_mode="content" -A 5
 For `layer:` or `[system-name]` modes: filter to only in-scope GDDs based on
 the Summary quick-reference. Skip full-reading anything out of scope.
 
-### Step 2b — Full document load
+### Step 2b — Full document load (in-scope systems only)
+
+Using the Step 2a grep results, identify which systems are in scope. Read full documents **only for in-scope systems** — do not read GDDs or ADRs for out-of-scope systems or layers.
 
 Read for in-scope systems:
 
 - `design/gdd/systems-index.md` — authoritative system list, layers, priority
-- In-scope GDDs (Approved or Designed status)
+- In-scope GDDs only (Approved or Designed status, filtered by Step 2a results)
 - `docs/architecture/architecture.md` — module ownership and API boundaries
-- All Accepted ADRs — read the "GDD Requirements Addressed", "Decision", and "Engine Compatibility" sections
+- Accepted ADRs **whose domains cover in-scope systems only** — read the "GDD Requirements Addressed", "Decision", and "Engine Compatibility" sections; skip ADRs for unrelated domains
 - `docs/architecture/control-manifest.md` — manifest version date from header
 - `docs/architecture/tr-registry.yaml` — for tracing requirements to ADR coverage
 - `docs/engine-reference/[engine]/VERSION.md` — engine name, version, risk levels
@@ -116,6 +121,11 @@ Options: "Yes, create it", "Skip", "Pause — I need to write ADRs first"
 ---
 
 ## 4b. Producer Epic Structure Gate
+
+**Review mode check** — apply before spawning PR-EPIC:
+- `solo` → skip. Note: "PR-EPIC skipped — Solo mode." Proceed to Step 5 (write epic files).
+- `lean` → skip (not a PHASE-GATE). Note: "PR-EPIC skipped — Lean mode." Proceed to Step 5 (write epic files).
+- `full` → spawn as normal.
 
 After all epics for the current layer are defined (Step 4 completed for all in-scope systems), and before writing any files, spawn `producer` via Task using gate **PR-EPIC** (`.claude/docs/director-gates.md`).
 

@@ -84,27 +84,71 @@ Use the Task tool to request sign-off in parallel:
 - `subagent_type: qa-tester` — Run targeted regression tests on the affected system
 - `subagent_type: producer` — Approve deployment timing and communication plan
 
+All three must return APPROVE before proceeding. If any returns CONCERNS or REJECT, do not deploy — surface the issue and resolve it first.
+
 ---
 
-## Phase 6: Summary
+## Phase 5b: QA Re-Entry Gate
 
-Output a summary with: severity, root cause, fix applied, testing status, and what approvals are still needed before deployment.
+After approvals, determine the QA scope required before deploying the hotfix. Spawn `qa-lead` via Task with:
+- The hotfix description and affected system
+- The regression test results from Phase 5
+- A list of all systems that touch the changed files (use Grep to find callers)
+
+Ask qa-lead: **Is a full smoke check sufficient, or does this fix require a targeted team-qa pass?**
+
+Apply the verdict:
+- **Smoke check sufficient** — run `/smoke-check` against the hotfix build. If PASS, proceed to Phase 6.
+- **Targeted QA pass required** — run `/team-qa [affected-system]` scoped to the changed system only. If QA returns APPROVED or APPROVED WITH CONDITIONS, proceed to Phase 6.
+- **Full QA required** — S1 fixes that touch core systems may require a full `/team-qa sprint`. This delays deployment but prevents a bad patch.
+
+Do not skip this gate. A hotfix that breaks something else is worse than the original bug.
+
+---
+
+## Phase 6: Update Bug Status and Deploy
+
+Update the original bug file if one exists:
+
+```markdown
+## Fix Record
+**Fixed in**: hotfix/[branch-name] — [commit hash or description]
+**Fixed date**: [date]
+**Status**: Fixed — Pending Verification
+```
+
+Set `**Status**: Fixed — Pending Verification` in the bug file header.
+
+Output a deployment summary:
+
+```
+## Hotfix Ready to Deploy: [short-name]
+
+**Severity**: [S1/S2]
+**Root cause**: [one line]
+**Fix**: [one line]
+**QA gate**: [Smoke check PASS / Team-QA APPROVED]
+**Approvals**: lead-programmer ✓ / qa-tester ✓ / producer ✓
+**Rollback plan**: [from Phase 2 record]
+
+Merge to: release branch AND development branch
+Next: /bug-report verify [BUG-ID] after deploy to confirm resolution
+```
 
 ### Rules
-- Hotfixes must be the MINIMUM change to fix the issue — no cleanup, no refactoring, no "while we're here" changes
+- Hotfixes must be the MINIMUM change to fix the issue — no cleanup, no refactoring
 - Every hotfix must have a rollback plan documented before deployment
 - Hotfix branches merge to BOTH the release branch AND the development branch
 - All hotfixes require a post-incident review within 48 hours
-- If the fix is complex enough to need more than 4 hours, escalate to technical-director for a scope decision
+- If the fix is complex enough to need more than 4 hours, escalate to `technical-director`
 
 ---
 
-## Phase 7: Next Steps
+## Phase 7: Post-Deploy Verification
 
-Verdict: **COMPLETE** — hotfix applied and backported.
+After deploying, run `/bug-report verify [BUG-ID]` to confirm the fix resolved the issue in the deployed build.
 
-After the fix is approved and merged:
+If VERIFIED FIXED: run `/bug-report close [BUG-ID]` to formally close it.
+If STILL PRESENT: the hotfix failed — immediately re-open, assess rollback, and escalate.
 
-- Run `/smoke-check` to verify critical paths are intact.
-- Run `/code-review` on the hotfix diff before merging to main.
-- Schedule a post-incident review within 48 hours.
+Schedule a post-incident review within 48 hours using `/retrospective hotfix`.

@@ -1,10 +1,9 @@
 ---
 name: skill-test
 description: "Validate skill files for structural compliance and behavioral correctness. Three modes: static (linter), spec (behavioral), audit (coverage report)."
-argument-hint: "static [skill-name | all] | spec [skill-name] | audit"
+argument-hint: "static [skill-name | all] | spec [skill-name] | category [skill-name | all] | audit"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write
-context: fork
 ---
 
 # Skill Test
@@ -13,13 +12,14 @@ Validates `.claude/skills/*/SKILL.md` files for structural compliance and
 behavioral correctness. No external dependencies — runs entirely within the
 existing skill/hook/template architecture.
 
-**Three modes:**
+**Four modes:**
 
 | Mode | Command | Purpose | Token Cost |
 |------|---------|---------|------------|
 | `static` | `/skill-test static [name\|all]` | Structural linter — 7 compliance checks per skill | Low (~1k/skill) |
 | `spec` | `/skill-test spec [name]` | Behavioral verifier — evaluates assertions in test spec | Medium (~5k/skill) |
-| `audit` | `/skill-test audit` | Coverage report — which skills have specs, last test dates | Low (~2k total) |
+| `category` | `/skill-test category [name\|all]` | Category rubric — checks skill against its category-specific metrics | Low (~2k/skill) |
+| `audit` | `/skill-test audit` | Coverage report — skills, agent specs, last test dates | Low (~3k total) |
 
 ---
 
@@ -30,7 +30,9 @@ Determine mode from the first argument:
 - `static [name]` → run 7 structural checks on one skill
 - `static all` → run 7 structural checks on all skills (Glob `.claude/skills/*/SKILL.md`)
 - `spec [name]` → read skill + test spec, evaluate assertions
-- `audit` (or no argument) → read catalog, list all skills, show coverage
+- `category [name]` → run category-specific rubric from `CCGS Skill Testing Framework/quality-rubric.md`
+- `category all` → run category rubric for every skill that has a `category:` in catalog
+- `audit` (or no argument) → read catalog, list all skills and agents, show coverage
 
 If argument is missing or unrecognized, output usage and stop.
 
@@ -137,13 +139,14 @@ Aggregate Verdict: N WARNINGS / N FAILURES
 ### Step 1 — Locate Files
 
 Find skill at `.claude/skills/[name]/SKILL.md`.
-Find spec at `tests/skills/[name].md`.
+Look up the spec path from `CCGS Skill Testing Framework/catalog.yaml` — use the
+`spec:` field for the matching skill entry.
 
 If either is missing:
 - Missing skill: "Skill '[name]' not found in `.claude/skills/`."
-- Missing spec: "No test spec found for '[name]'. Run `/skill-test audit` to see
-  coverage gaps, or create a spec using the template at
-  `.claude/docs/templates/skill-test-spec.md`."
+- Missing spec path in catalog: "No spec path set for '[name]' in catalog.yaml."
+- Spec file not found at path: "Spec file missing at [path]. Run `/skill-test audit`
+  to see coverage gaps."
 
 ### Step 2 — Read Both Files
 
@@ -177,7 +180,7 @@ For **Protocol Compliance** assertions (always present):
 ```
 === Skill Spec Test: /[name] ===
 Date: [date]
-Spec: tests/skills/[name].md
+Spec: CCGS Skill Testing Framework/skills/[category]/[name].md
 
 Case 1: [Happy Path — name]
   Fixture: [summary]
@@ -201,14 +204,70 @@ Overall Verdict: FAIL (1 case failed, 1 warning)
 
 ### Step 5 — Offer to Write Results
 
-"May I write these results to `tests/results/skill-test-spec-[name]-[date].md`
-and update `tests/skills/catalog.yaml`?"
+"May I write these results to `CCGS Skill Testing Framework/results/skill-test-spec-[name]-[date].md`
+and update `CCGS Skill Testing Framework/catalog.yaml`?"
 
 If yes:
-- Write results file to `tests/results/`
-- Update the skill's entry in `tests/skills/catalog.yaml`:
+- Write results file to `CCGS Skill Testing Framework/results/`
+- Update the skill's entry in `CCGS Skill Testing Framework/catalog.yaml`:
   - `last_spec: [date]`
   - `last_spec_result: PASS|PARTIAL|FAIL`
+
+---
+
+## Phase 2D: Category Mode — Rubric Evaluation
+
+### Step 1 — Locate Skill and Category
+
+Find skill at `.claude/skills/[name]/SKILL.md`.
+Look up `category:` field in `CCGS Skill Testing Framework/catalog.yaml`.
+
+If skill not found: "Skill '[name]' not found."
+If no `category:` field: "No category assigned for '[name]' in catalog.yaml.
+Add `category: [name]` to the skill entry first."
+
+For `category all`: collect all skills with a `category:` field and process each.
+`category: utility` skills are evaluated against U1 (static checks pass) and U2
+(gate mode correct if applicable) only — skip to the static mode for U1.
+
+### Step 2 — Read Rubric Section
+
+Read `CCGS Skill Testing Framework/quality-rubric.md`.
+Extract the section matching the skill's category (e.g., `### gate`, `### team`).
+
+### Step 3 — Read Skill
+
+Read the skill's `SKILL.md` fully.
+
+### Step 4 — Evaluate Rubric Metrics
+
+For each metric in the category's rubric table:
+1. Check whether the skill's written instructions clearly satisfy the criterion
+2. Mark PASS, FAIL, or WARN
+3. For FAIL/WARN, identify the exact gap in the skill text (quote the relevant section
+   or note its absence)
+
+### Step 5 — Output Report
+
+```
+=== Skill Category Check: /[name] ([category]) ===
+
+Metric G1 — Review mode read:      PASS
+Metric G2 — Full mode directors:   FAIL
+  Gap: Phase 3 spawns only CD-PHASE-GATE; TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE absent
+Metric G3 — Lean mode: PHASE-GATE only: PASS
+Metric G4 — Solo mode: no directors:    PASS
+Metric G5 — No auto-advance:       PASS
+
+Verdict: FAIL (1 failure, 0 warnings)
+Fix: Add TD-PHASE-GATE, PR-PHASE-GATE, and AD-PHASE-GATE to the full-mode director
+     panel in Phase 3.
+```
+
+### Step 6 — Offer to Update Catalog
+
+"May I update `CCGS Skill Testing Framework/catalog.yaml` to record this category check
+(`last_category`, `last_category_result`) for [name]?"
 
 ---
 
@@ -216,63 +275,68 @@ If yes:
 
 ### Step 1 — Read Catalog
 
-Read `tests/skills/catalog.yaml`. If missing, note that catalog doesn't exist
+Read `CCGS Skill Testing Framework/catalog.yaml`. If missing, note that catalog doesn't exist
 yet (first-run state).
 
-### Step 2 — Enumerate All Skills
+### Step 2 — Enumerate All Skills and Agents
 
 Glob `.claude/skills/*/SKILL.md` to get the complete list of skills.
 Extract skill name from each path (directory name).
 
-### Step 3 — Build Coverage Table
+Also read the `agents:` section from `CCGS Skill Testing Framework/catalog.yaml` to get the
+complete list of agents.
+
+### Step 3 — Build Skill Coverage Table
 
 For each skill:
-- Check if a spec file exists at `tests/skills/[name].md`
-- Look up `last_static`, `last_static_result`, `last_spec`, `last_spec_result`
-  from catalog (or mark as "never" if not in catalog)
-- Assign priority:
-  - `critical` — gate-check, design-review, story-readiness, story-done, review-all-gdds, architecture-review
-  - `high` — create-epics, create-stories, dev-story, create-control-manifest, propagate-design-change, story-done
-  - `medium` — team-* skills, sprint-plan, sprint-status
-  - `low` — all others
+- Check if a spec file exists (use the `spec:` path from catalog, or glob `CCGS Skill Testing Framework/skills/*/[name].md`)
+- Look up `last_static`, `last_static_result`, `last_spec`, `last_spec_result`,
+  `last_category`, `last_category_result`, `category` from catalog (or mark as
+  "never" / "—" if not in catalog)
+- Priority comes from catalog `priority:` field (critical/high/medium/low)
+
+### Step 3b — Build Agent Coverage Table
+
+For each agent in catalog's `agents:` section:
+- Check if a spec file exists (use the `spec:` path from catalog, or glob `CCGS Skill Testing Framework/agents/*/[name].md`)
+- Look up `last_spec`, `last_spec_result`, `category` from catalog
 
 ### Step 4 — Output Report
 
 ```
 === Skill Test Coverage Audit ===
 Date: [date]
-Total skills: 52
-Specs written: 4 (7.7%)
-Never tested (static): 48
 
-Coverage Table:
-Skill                  | Has Spec | Last Static      | Static Result | Last Spec        | Spec Result | Priority
------------------------|----------|------------------|---------------|------------------|-------------|----------
-gate-check             | YES      | never            | —             | never            | —           | critical
-design-review          | YES      | never            | —             | never            | —           | critical
-story-readiness        | YES      | never            | —             | never            | —           | critical
-story-done             | YES      | never            | —             | never            | —           | critical
-architecture-review    | NO       | never            | —             | never            | —           | critical
-review-all-gdds        | NO       | never            | —             | never            | —           | critical
+SKILLS (72 total)
+Specs written: 72 (100%) | Never static tested: 72 | Never category tested: 72
+
+Skill                  | Cat      | Has Spec | Last Static | S.Result | Last Cat | C.Result | Priority
+-----------------------|----------|----------|-------------|----------|----------|----------|----------
+gate-check             | gate     | YES      | never       | —        | never    | —        | critical
+design-review          | review   | YES      | never       | —        | never    | —        | critical
 ...
 
-Top 5 Priority Gaps (no spec, critical/high priority):
-1. /architecture-review — critical, no spec
-2. /review-all-gdds — critical, no spec
-3. /create-epics — high, no spec
-4. /create-stories — high, no spec
-5. /dev-story — high, no spec
-4. /propagate-design-change — high, no spec
-5. /sprint-plan — medium, no spec
+AGENTS (49 total)
+Agent specs written: 49 (100%)
 
-Coverage: 4/52 specs (7.7%)
+Agent                  | Category   | Has Spec | Last Spec   | Result
+-----------------------|------------|----------|-------------|--------
+creative-director      | director   | YES      | never       | —
+technical-director     | director   | YES      | never       | —
+...
+
+Top 5 Priority Gaps (skills with no spec, critical/high priority):
+(none if all specs are written)
+
+Skill coverage:  72/72 specs (100%)
+Agent coverage:  49/49 specs (100%)
 ```
 
 No file writes in audit mode.
 
 Offer: "Would you like to run `/skill-test static all` to check structural
-compliance across all skills? Or `/skill-test spec [name]` to run a specific
-behavioral test?"
+compliance across all skills? `/skill-test category all` to run category rubric
+checks? Or `/skill-test spec [name]` to run a specific behavioral test?"
 
 ---
 
@@ -284,9 +348,9 @@ After any mode completes, offer contextual follow-up:
   correctness if a test spec exists."
 - After `static all` with failures: "Address NON-COMPLIANT skills first. Run
   `/skill-test static [name]` individually for detailed remediation guidance."
-- After `spec [name]` PASS: "Update `tests/skills/catalog.yaml` to record this
+- After `spec [name]` PASS: "Update `CCGS Skill Testing Framework/catalog.yaml` to record this
   pass date. Consider running `/skill-test audit` to find the next spec gap."
 - After `spec [name]` FAIL: "Review the failing assertions and update the skill
   or the test spec to resolve the mismatch."
 - After `audit`: "Start with the critical-priority gaps. Use the spec template
-  at `.claude/docs/templates/skill-test-spec.md` to create new specs."
+  at `CCGS Skill Testing Framework/templates/skill-test-spec.md` to create new specs."
