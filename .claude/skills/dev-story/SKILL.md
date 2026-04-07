@@ -94,6 +94,27 @@ If [A]: edit the story file's `Manifest Version:` field to the current manifest 
 If [B]: read the manifest carefully for new rules anyway, and note the version mismatch in the Phase 6 summary under "Deviations".
 If [C]: stop. Do not spawn any agent. Let the user review and re-run `/dev-story`.
 
+### Dependency validation
+
+After extracting the **Dependencies** list from the story file, validate each:
+
+1. Glob `production/epics/**/*.md` to find each dependency story file.
+2. Read its `Status:` field.
+3. If any dependency has Status other than `Complete` or `Done`:
+   - Use `AskUserQuestion`:
+     - Prompt: "Story '[current story]' depends on '[dependency title]' which is currently [status], not Complete. How do you want to proceed?"
+     - Options:
+       - `[A] Proceed anyway — I accept the dependency risk`
+       - `[B] Stop — I'll complete the dependency first`
+       - `[C] The dependency is done but status wasn't updated — mark it Complete and continue`
+   - If [B]: set story status to **BLOCKED** in session state and stop. Do not spawn any programmer agent.
+   - If [C]: ask "May I update [dependency path] Status to Complete?" before continuing.
+   - If [A]: note in Phase 6 summary under "Deviations": "Implemented with incomplete dependency: [dependency title] — [status]."
+
+If a dependency file cannot be found: warn "Dependency story not found: [path]. Verify the path or create the story file."
+
+---
+
 ### Engine reference
 Read `.claude/docs/technical-preferences.md`:
 - `Engine:` value — determines which programmer agents to use
@@ -292,3 +313,11 @@ Common blockers:
 - **Ask before large structural decisions** — if the story requires an
   architectural pattern not covered by the ADR, surface it before implementing:
   "The ADR doesn't specify how to handle [case]. My plan is [X]. Proceed?"
+
+---
+
+## Recommended Next Steps
+
+- Run `/code-review [file1] [file2]` to review the implementation before closing the story
+- Run `/story-done [story-path]` to verify acceptance criteria and mark the story complete
+- After all sprint stories are done: run `/team-qa sprint` for the full QA cycle before advancing the project stage

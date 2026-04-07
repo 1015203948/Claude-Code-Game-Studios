@@ -32,16 +32,20 @@ auto-advancing stage and must respect the three review modes.
 
 **Skills**: design-review, architecture-review, review-all-gdds
 
-Review skills read documents and produce structured verdicts. They are strictly
-read-only and must never trigger director gates themselves.
+Review skills read documents and produce structured verdicts. They are primarily
+read-only and must not trigger director gates during the analysis phase.
 
 | Metric | PASS criteria |
 |---|---|
-| **R1 — Read-only enforcement** | `allowed-tools` does not include `Write` or `Edit`; skill never offers to modify the reviewed document |
+| **R1 — Read-only enforcement** | Skill does not modify the reviewed document without explicit user approval; any write operations (review logs, index updates) are gated behind "May I write" |
 | **R2 — 8-section check** | Skill evaluates all 8 required GDD sections (or equivalent architectural sections) explicitly |
 | **R3 — Correct verdict vocabulary** | Verdict is exactly one of: APPROVED / NEEDS REVISION / MAJOR REVISION NEEDED (design) or PASS / CONCERNS / FAIL (architecture) |
-| **R4 — No director gates** | Skill does not spawn any director gate regardless of review mode; it IS the review |
+| **R4 — No director gates during analysis** | Skill does not spawn director gates during its analysis phases; post-analysis director review (as in architecture-review) is acceptable when the skill's scope and stakes warrant it |
 | **R5 — Structured findings** | Output contains a per-section status table or checklist before the final verdict |
+
+> **Exceptions:**
+> - `design-review`: Has `Write, Edit` in allowed-tools to support an optional "Revise now" path (all writes gated behind user approval) and to write review logs. R1 is satisfied because the reviewed document is never silently modified.
+> - `architecture-review`: Spawns TD-ARCHITECTURE and LP-FEASIBILITY gates after its analysis is complete. This is intentional — architecture review is high-stakes and benefits from director sign-off. R4 is satisfied because the gates run post-analysis, not during it.
 
 ---
 
@@ -49,16 +53,21 @@ read-only and must never trigger director gates themselves.
 
 **Skills**: design-system, quick-design, architecture-decision, ux-design, ux-review, art-bible, create-architecture
 
-Authoring skills create or update design documents section by section. They must
-collaborate before writing and handle both new and existing (retrofit) documents.
+Authoring skills create or update design documents collaboratively. Full GDD/UX
+authoring skills use a section-by-section cycle; lightweight authoring skills use
+a single-draft pattern appropriate to their smaller scope.
 
 | Metric | PASS criteria |
 |---|---|
-| **A1 — Section-by-section cycle** | Skill authors one section at a time, presenting content for approval before proceeding to the next |
-| **A2 — May-I-write per section** | Skill asks "May I write this to [filepath]?" before each section write, not just once at the end |
-| **A3 — Retrofit mode** | Skill detects if the target file already exists and offers to update specific sections rather than overwriting the whole document |
+| **A1 — Section-by-section cycle** | Full authoring skills (design-system, ux-design, art-bible) author one section at a time, presenting content for approval before proceeding to the next. Lightweight skills (quick-design, architecture-decision, create-architecture) may draft the complete document then ask for approval — single-draft is acceptable for documents under ~4 hours of implementation scope. |
+| **A2 — May-I-write per section** | Full authoring skills ask "May I write this to [filepath]?" before each section write. Lightweight skills ask once for the complete document. |
+| **A3 — Retrofit mode** | Skill detects if the target file already exists and offers to update specific sections rather than overwriting the whole document. Lightweight skills (quick-design) that always create new files are exempt. |
 | **A4 — Director gate at correct tier** | If a director gate is defined for this skill (e.g., CD-GDD-ALIGN, TD-ADR), it runs at the correct mode threshold (full/lean) — NOT in solo |
-| **A5 — Skeleton-first** | Skill creates a file skeleton with all section headers before filling content, to preserve progress on session interruption |
+| **A5 — Skeleton-first** | Full authoring skills create a file skeleton with all section headers before filling content, to preserve progress on session interruption. Lightweight skills are exempt. |
+
+> **Full authoring skills** (must pass all 5 metrics): `design-system`, `ux-design`, `art-bible`
+> **Lightweight authoring skills** (A1, A2, A5 use single-draft pattern; A3 exempt for new-file-only skills): `quick-design`, `architecture-decision`, `create-architecture`
+> **Review-mode skill** (evaluated against review metrics): `ux-review`
 
 ---
 

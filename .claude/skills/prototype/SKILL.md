@@ -146,3 +146,12 @@ Verdict: **COMPLETE** — prototype finished. Recommendation is PROCEED, PIVOT, 
 - If the recommendation is PROCEED, the production implementation must be written from scratch — prototype code is not refactored into production
 - Total prototype effort should be timeboxed to 1-3 days equivalent of work
 - If the prototype scope starts growing, stop and reassess whether the question can be simplified
+
+---
+
+## Recommended Next Steps
+
+- **If PROCEED**: Run `/design-system [mechanic]` to author the production GDD, or `/architecture-decision` to record key technical decisions before implementation
+- **If PIVOT**: Run `/prototype [revised-concept]` to test the adjusted direction
+- **If KILL**: No further action required — the prototype report is the deliverable
+- Run `/playtest-report` to formally document any playtest sessions conducted during prototyping

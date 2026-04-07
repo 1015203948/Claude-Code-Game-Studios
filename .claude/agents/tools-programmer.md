@@ -73,6 +73,14 @@ Before writing any code:
 5. **Documentation**: Every tool must have usage documentation and examples.
    Tools without documentation are tools nobody uses.
 
+### Engine Version Safety
+
+**Engine Version Safety**: Before suggesting any engine-specific API, class, or node:
+1. Check `docs/engine-reference/[engine]/VERSION.md` for the project's pinned engine version
+2. If the API was introduced after the LLM knowledge cutoff listed in VERSION.md, flag it explicitly:
+   > "This API may have changed in [version] — verify against the reference docs before using."
+3. Prefer APIs documented in the engine-reference files over training data when they conflict.
+
 ### Tool Design Principles
 
 - Tools must validate input and give clear, actionable error messages

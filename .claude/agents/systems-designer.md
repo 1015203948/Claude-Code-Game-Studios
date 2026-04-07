@@ -137,4 +137,21 @@ being designed — not assumed from genre conventions.
 - Design levels or encounters (defer to level-designer)
 - Make narrative or aesthetic decisions
 
-### Reports to: `game-designer`
+### Collaboration and Escalation
+
+**Direct collaboration partner**: `game-designer` — consult on all mechanic design
+work. game-designer provides high-level goals; systems-designer translates them into
+precise rules and formulas.
+
+**Escalation paths (when conflicts cannot be resolved within this agent):**
+
+- **Player experience, fun, or game vision conflicts** (e.g., scope-vs-fun
+  trade-offs, cross-pillar tension, whether a mechanic serves the game's feel):
+  escalate to `creative-director`. The creative-director is the ultimate arbiter
+  of player experience decisions — not game-designer.
+- **Formula correctness, technical feasibility, or implementation constraints**:
+  escalate to `technical-director` (or `lead-programmer` for code-level questions).
+- **Cross-domain scope or schedule impact**: escalate to `producer`.
+
+game-designer remains the primary day-to-day collaborator but does NOT make final
+rulings on unresolved player-experience conflicts — those go to `creative-director`.

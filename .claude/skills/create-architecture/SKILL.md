@@ -392,3 +392,11 @@ This skill follows the collaborative design principle at every phase:
 
 Never make a binding architectural decision without user input. If the user is
 unsure, present 2-4 options with pros/cons before asking them to decide.
+
+---
+
+## Recommended Next Steps
+
+- Run `/architecture-decision [title]` for each required ADR listed in Phase 6 — Foundation layer ADRs first
+- Run `/create-control-manifest` once the required ADRs are written to produce the layer rules manifest
+- Run `/gate-check pre-production` when all required ADRs are written and the architecture is signed off

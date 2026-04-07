@@ -25,7 +25,30 @@ Extract from game-concept.md:
 - **Visual Identity Anchor** section if present (from brainstorm Phase 4 art-director output)
 - Target platform (if noted)
 
-Read `design/art/art-bible.md` if it exists — this is **resume mode**. Read which sections already have real content vs. placeholders. Only work on missing sections.
+**Retrofit mode detection**: Glob `design/art/art-bible.md`. If the file exists:
+- Read it in full
+- For each of the 9 sections, check whether the body contains real content (more than a `[To be designed]` placeholder or similar) vs. is empty/placeholder
+- Build a section status table:
+
+```
+Section | Status
+--------|--------
+1. Visual Identity Statement | [Complete / Empty / Placeholder]
+2. Color Palette | ...
+3. Lighting & Atmosphere | ...
+4. Character Art Direction | ...
+5. Environment & Level Art | ...
+6. UI Visual Language | ...
+7. VFX & Particle Style | ...
+8. Asset Standards | ...
+9. Style Prohibitions | ...
+```
+
+- Present this table to the user:
+  > "Found existing art bible at `design/art/art-bible.md`. [N] sections are complete, [M] need content. I'll work on the incomplete sections only — existing content will not be touched."
+- Only work on sections with Status: Empty or Placeholder. Do not re-author sections that are already complete.
+
+If the file does not exist, this is a fresh authoring session — proceed normally.
 
 Read `.claude/docs/technical-preferences.md` if it exists — extract performance budgets and engine for asset standard constraints.
 
@@ -212,3 +235,14 @@ Every section follows: **Question → Options → Decision → Draft (from art-d
 - Write each section to file immediately after approval — do not batch
 - Surface all agent disagreements to the user — never silently resolve conflicts between art-director and technical-artist
 - The art bible is a constraint document: it restricts future decisions in exchange for visual coherence. Every section should feel like it narrows the solution space productively.
+
+---
+
+## Recommended Next Steps
+
+After the art bible is approved:
+- Run `/map-systems` to decompose the concept into game systems before authoring GDDs
+- Run `/setup-engine` if the engine is not yet configured (asset standards may need revisiting after engine selection)
+- Run `/design-system [first-system]` to start authoring per-system GDDs
+- Run `/consistency-check` once GDDs exist to validate them against the art bible's visual rules
+- Run `/create-architecture` to produce the master architecture document

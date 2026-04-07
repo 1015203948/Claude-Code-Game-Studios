@@ -830,3 +830,12 @@ shows context at or above 70%. If so, append this notice to the response:
 > sections are written to `design/gdd/[system-name].md`. When you're ready to continue,
 > open a fresh Claude Code session and run `/design-system [system-name]` — it will
 > detect which sections are complete and resume from the next one.
+
+---
+
+## Recommended Next Steps
+
+- Run `/design-review design/gdd/[system-name].md` in a **fresh session** to validate the completed GDD independently
+- Run `/consistency-check` to verify this GDD's values don't conflict with other GDDs
+- Run `/map-systems next` to move to the next highest-priority undesigned system
+- Run `/gate-check pre-production` when all MVP GDDs are authored and reviewed

@@ -264,3 +264,11 @@ Redirect to the full pipeline if any of the following are true:
 
 In those cases: "This change has grown beyond quick-spec scope. I recommend
 using `/design-system` to author a full GDD for this."
+
+---
+
+## Recommended Next Steps
+
+- Run `/story-readiness [story-path]` to validate the story before implementation begins — reference this spec in the story's GDD Reference field
+- Run `/dev-story [story-path]` to implement once the story passes readiness checks
+- If the change is larger than expected, run `/design-system [system-name]` to author a full GDD instead

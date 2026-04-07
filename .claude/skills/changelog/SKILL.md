@@ -3,7 +3,7 @@ name: changelog
 description: "Auto-generates a changelog from git commits, sprint data, and design documents. Produces both internal and player-facing versions."
 argument-hint: "[version|sprint-number]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash, Write
 context: |
   !git log --oneline -30 2>/dev/null
   !git tag --list --sort=-v:refname 2>/dev/null | head -5
@@ -43,6 +43,11 @@ Categorize every change into one of these categories:
 - **Bug Fixes**: Corrections to broken behavior
 - **Balance Changes**: Tuning of gameplay values, difficulty, economy
 - **Known Issues**: Issues the team is aware of but have not yet resolved
+- **Miscellaneous**: Changes that do not fit the above categories, or commits whose messages are too vague to classify confidently
+
+For each commit, check whether the message contains a task ID or story reference
+(e.g. `[STORY-123]`, `TR-`, `#NNN`, or similar). Count commits that lack any task reference
+and include this count in the Phase 4 Metrics section as: `Commits without task reference: [N]`.
 
 ---
 
@@ -79,6 +84,10 @@ Commits: [Count] ([first-hash]..[last-hash])
 - [What was cleaned up and why]
   - Commits: [hashes]
 
+## Miscellaneous
+- [Change that didn't fit other categories, or vague commit message]
+  - Commits: [hashes]
+
 ## Known Issues
 - [Issue description] -- [Severity] -- [ETA for fix if known]
 
@@ -87,6 +96,7 @@ Commits: [Count] ([first-hash]..[last-hash])
 - Files changed: [N]
 - Lines added: [N]
 - Lines removed: [N]
+- Commits without task reference: [N]
 ```
 
 ---
@@ -129,9 +139,26 @@ Report issues at [link].
 
 Output both changelogs to the user. The internal changelog is the primary working document. The player-facing changelog is ready for community posting after review.
 
-This skill is read-only — it outputs to conversation but does not write files. To save the output, copy it manually or use `/patch-notes` which includes a save step.
+---
 
-Verdict: **COMPLETE** — changelog generated.
+## Phase 7: Offer File Write
+
+After presenting the changelogs, ask the user:
+
+> "May I write this changelog to `docs/CHANGELOG.md`?
+> [A] Yes, append this entry (recommended if the file already exists)
+> [B] Yes, overwrite the file entirely
+> [C] No — I'll copy it manually"
+
+- Check whether `docs/CHANGELOG.md` exists before asking. If it does, default the
+  recommendation to **[A] append**.
+- If the user selects [A]: append the new internal changelog entry to the top of
+  the existing file (newest entries first).
+- If the user selects [B]: overwrite the file with the new changelog.
+- If the user selects [C]: stop here without writing.
+
+After a successful write: Verdict: **CHANGELOG WRITTEN** — changelog saved to `docs/CHANGELOG.md`.
+If the user declines: Verdict: **COMPLETE** — changelog generated.
 
 ---
 

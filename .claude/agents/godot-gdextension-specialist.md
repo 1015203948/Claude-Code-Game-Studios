@@ -273,6 +273,16 @@ macos.release = "res://rust/target/release/lib[name].dylib"
 - Not building for all target platforms in CI (discover issues late)
 - Allocating in hot paths instead of pre-allocating buffers
 
+## ABI Compatibility Warning
+
+GDExtension binaries are **not ABI-compatible across minor Godot versions**. This means:
+- A `.gdextension` binary compiled for Godot 4.3 will NOT work with Godot 4.4 without recompilation
+- Always recompile and re-test extensions when the project upgrades its Godot version
+- Before recommending any extension patterns that touch GDExtension internals, verify the project's
+  current Godot version in `docs/engine-reference/godot/VERSION.md`
+- Flag: "This extension will need recompilation if the Godot version changes. ABI compatibility
+  is not guaranteed across minor versions."
+
 ## Version Awareness
 
 **CRITICAL**: Your training data has a knowledge cutoff. Before suggesting

@@ -14,12 +14,48 @@ Determine whether this is a sprint retrospective (`sprint-N`) or a milestone ret
 
 ---
 
+## Phase 1b: Check for Existing Retrospective
+
+Before loading any data, glob for an existing retrospective file:
+
+- For sprint retrospectives: `production/retrospectives/retro-[sprint-slug]-*.md`
+  (also check `production/sprints/sprint-[N]-retrospective.md` as an alternate location)
+- For milestone retrospectives: `production/retrospectives/retro-[milestone-name]-*.md`
+
+If a matching file is found, present the user with:
+
+```
+An existing retrospective was found: [filename]
+
+[A] Update existing retrospective — load it and add/revise sections
+[B] Start fresh — generate a new retrospective, archiving the old one
+```
+
+Wait for user selection before continuing. If updating, read the existing file and
+carry its content forward into the generation phase, revising sections with new data.
+
+---
+
 ## Phase 2: Load Sprint or Milestone Data
 
 Read the sprint or milestone plan from the appropriate location:
 
 - Sprint plans: `production/sprints/`
 - Milestone definitions: `production/milestones/`
+
+**If the file does not exist or is empty**, output:
+
+> "No sprint data found for [sprint/milestone]. Run `/sprint-status` to generate
+> sprint data first, or provide the sprint details manually."
+
+Then use `AskUserQuestion` to present two options:
+
+- **[A] Provide data manually** — ask the user to paste or describe the sprint
+  tasks, dates, and outcomes; use that as the source of truth for the retrospective.
+- **[B] Stop** — abort the skill. Verdict: **BLOCKED** — no sprint data available.
+
+If the user chooses [A], collect the data and continue to Phase 3 using what they provide.
+If the user chooses [B], stop here.
 
 Extract: planned tasks, estimated effort, owners, and goals.
 

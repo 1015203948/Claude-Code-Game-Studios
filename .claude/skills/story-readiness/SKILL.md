@@ -3,7 +3,7 @@ name: story-readiness
 description: "Validate that a story file is implementation-ready. Checks for embedded GDD requirements, ADR references, engine notes, clear acceptance criteria, and no open design questions. Produces READY / NEEDS WORK / BLOCKED verdict with specific gaps. Use when user says 'is this story ready', 'can I start on this story', 'is story X ready to implement'."
 argument-hint: "[story-file-path or 'all' or 'sprint']"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, AskUserQuestion
+allowed-tools: Read, Glob, Grep, AskUserQuestion, Task
 model: haiku
 ---
 
@@ -18,6 +18,18 @@ and asks whether the user wants help filling gaps.
 
 **Output:** Verdict per story (READY / NEEDS WORK / BLOCKED) with a specific
 gap list for each non-ready story.
+
+---
+
+## Phase 0: Resolve Review Mode
+
+Resolve the review mode once at startup (store for all gate spawns this run):
+
+1. If skill was called with `--review [full|lean|solo]` → use that value
+2. Else read `production/review-mode.txt` → use that value
+3. Else → default to `lean`
+
+See `.claude/docs/director-gates.md` for the full check pattern and mode definitions.
 
 ---
 
@@ -276,3 +288,61 @@ in conversation. Do not use Write or Edit tools — the user (or
 - If a story's scope has grown beyond its original sizing: "This story appears
   to have expanded in scope. Consider splitting it or escalating to the producer
   before implementation begins."
+
+---
+
+## 7. Next-Story Handoff
+
+After completing a single-story readiness check (not `all` or `sprint` scope):
+
+1. Read the current sprint file from `production/sprints/` (most recent).
+2. Find stories that are:
+   - Status: READY or NOT STARTED
+   - Not the story just checked
+   - Not blocked by incomplete dependencies
+   - In the Must Have or Should Have tier
+
+If any are found, surface up to 3:
+
+```
+### Other Ready Stories in This Sprint
+
+1. [Story name] — [1-line description] — Est: [X hrs]
+2. [Story name] — [1-line description] — Est: [X hrs]
+
+Run `/story-readiness [path]` to validate before starting.
+```
+
+If no sprint file exists or no other ready stories are found, skip this section silently.
+
+---
+
+## Phase 8: Director Gate — Story Readiness Review
+
+Apply the review mode resolved in Phase 0 before spawning QL-STORY-READY:
+
+- `solo` → skip. Note: "QL-STORY-READY skipped — Solo mode." Proceed to close.
+- `lean` → skip. Note: "QL-STORY-READY skipped — Lean mode." Proceed to close.
+- `full` → spawn as normal.
+
+Spawn `qa-lead` via Task using gate **QL-STORY-READY** (`.claude/docs/director-gates.md`).
+
+Pass the following context:
+- Story title
+- Acceptance criteria list (all items from the story's acceptance criteria section)
+- Dependency status (all dependencies listed and their current state: exist / DRAFT / missing)
+- Overall verdict (READY / NEEDS WORK / BLOCKED) from Phase 4
+
+Handle the verdict per standard rules in `director-gates.md`:
+- **ADEQUATE** → story is cleared. Proceed to close.
+- **GAPS [list]** → surface the specific gaps to the user via `AskUserQuestion`:
+  options: `Update story with suggested gaps` / `Accept and proceed anyway` / `Discuss further`.
+- **INADEQUATE** → surface the specific gaps; ask user whether to update the story or proceed anyway.
+
+---
+
+## Recommended Next Steps
+
+- Run `/dev-story [story-path]` to begin implementation once the story is READY
+- Run `/story-readiness sprint` to check all stories in the current sprint at once
+- Run `/create-stories [epic-slug]` if a story file is missing entirely

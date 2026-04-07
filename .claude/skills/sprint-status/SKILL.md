@@ -78,6 +78,27 @@ Optionally (fast check only — do not do a deep scan): grep `src/` for a
 directory or file name that matches the story's system slug to check for
 implementation evidence. This is a hint only, not a definitive status.
 
+### Stale Story Detection
+
+After collecting status for all stories, check each IN PROGRESS story for staleness:
+
+- For each story that has a referenced file, read the file and look for a
+  `Last Updated:` field in the frontmatter or header (e.g., `Last Updated: 2026-04-01`
+  or `updated: 2026-04-01`). Accept any reasonable date field name: `Last Updated`,
+  `Updated`, `last-updated`, `updated_at`.
+- Calculate days since that date using today's date.
+- If the date is more than 2 days ago, flag the story as **STALE**.
+- If no date field is found in the story file, note "no timestamp — cannot check staleness."
+- If the story has no referenced file (inline task), note "inline task — cannot check staleness."
+
+STALE stories are included in the output table and collected into an "Attention Needed"
+section (see Phase 5 output format).
+
+**Stale story escalation**: If any IN PROGRESS story is flagged STALE, the burndown verdict
+is upgraded to at least **At Risk** — even if the completion percentage is within the normal
+On Track window. Record this escalation reason: "At Risk — [N] story(ies) with no progress in
+[N] days."
+
 ---
 
 ## 4. Burndown Assessment
@@ -117,6 +138,13 @@ Keep the total output to 30 lines or fewer. Use this format:
 | [title]              | Must Have  | IN PROGRESS | [owner] |                |
 | [title]              | Must Have  | BLOCKED     | [owner] | [brief reason] |
 | [title]              | Should Have| NOT STARTED | [owner] |                |
+
+### Attention Needed
+| Story / Task         | Status      | Last Updated   | Days Stale | Note           |
+|----------------------|-------------|----------------|------------|----------------|
+| [title]              | IN PROGRESS | [date or N/A]  | [N days]   | [STALE / no timestamp — cannot check staleness / inline task — cannot check staleness] |
+
+*(Omit this section entirely if no IN PROGRESS stories are stale or have timestamp concerns.)*
 
 ### Burndown: [On Track / At Risk / Behind]
 [1-2 sentences. If behind: which Must Haves are at risk. If on track: confirm

@@ -75,6 +75,14 @@ Before writing any code:
 6. **API Stability**: Engine APIs must be stable. Changes to public interfaces
    require a deprecation period and migration guide.
 
+### Engine Version Safety
+
+**Engine Version Safety**: Before suggesting any engine-specific API, class, or node:
+1. Check `docs/engine-reference/[engine]/VERSION.md` for the project's pinned engine version
+2. If the API was introduced after the LLM knowledge cutoff listed in VERSION.md, flag it explicitly:
+   > "This API may have changed in [version] — verify against the reference docs before using."
+3. Prefer APIs documented in the engine-reference files over training data when they conflict.
+
 ### Code Standards (Engine-Specific)
 
 - Zero allocation in hot paths (pre-allocate, pool, reuse)

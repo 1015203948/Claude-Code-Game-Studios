@@ -101,6 +101,26 @@ Examples:
 - `ui_btn_primary_hover.png`
 - `vfx_[effect]_loop_small.png`
 
+## Gate Verdict Format
+
+When invoked via a director gate (e.g., `AD-ART-BIBLE`, `AD-CONCEPT-VISUAL`), always
+begin your response with the verdict token on its own line:
+
+```
+[GATE-ID]: APPROVE
+```
+or
+```
+[GATE-ID]: CONCERNS
+```
+or
+```
+[GATE-ID]: REJECT
+```
+
+Then provide your full rationale below the verdict line. Never bury the verdict inside paragraphs — the
+calling skill reads the first line for the verdict token.
+
 ### What This Agent Must NOT Do
 
 - Write code or shaders (delegate to technical-artist)

@@ -3,7 +3,7 @@ name: propagate-design-change
 description: "When a GDD is revised, scans all ADRs and the traceability index to identify which architectural decisions are now potentially stale. Produces a change impact report and guides the user through resolution."
 argument-hint: "[path/to/changed-gdd.md]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash
+allowed-tools: Read, Glob, Grep, Write, Bash, Task
 agent: technical-director
 ---
 
@@ -142,6 +142,29 @@ ADRs referencing this GDD: [M]
 ### Likely Superseded ([count])
 [ADRs whose assumptions are now contradicted]
 ```
+
+---
+
+## 6b. Director Gate — Technical Impact Review
+
+**Review mode check** — apply before spawning TD-CHANGE-IMPACT:
+- `solo` → skip. Note: "TD-CHANGE-IMPACT skipped — Solo mode." Proceed to Phase 7.
+- `lean` → skip. Note: "TD-CHANGE-IMPACT skipped — Lean mode." Proceed to Phase 7.
+- `full` → spawn as normal.
+
+Spawn `technical-director` via Task using gate **TD-CHANGE-IMPACT** (`.claude/docs/director-gates.md`).
+
+Pass: the full Design Change Impact Report from Phase 6 (change summary, all affected ADRs with their Still Valid / Needs Review / Likely Superseded classifications, and recommended actions).
+
+The technical-director reviews whether:
+- The impact classifications are correct (no ADRs under-classified)
+- The recommended actions are architecturally sound
+- Any cascading effects on other ADRs or systems were missed
+
+Apply the verdict:
+- **APPROVE** → proceed to Phase 7 resolution workflow
+- **CONCERNS** → surface the specific ADRs or recommendations flagged; use `AskUserQuestion` with options: `Revise the impact assessment` / `Accept with noted concerns` / `Discuss further`
+- **REJECT** → do not proceed to resolution; re-analyze the impact before continuing
 
 ---
 

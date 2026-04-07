@@ -336,3 +336,15 @@ append this notice to the current response before continuing:
 > **Context is approaching the limit (≥70%).** The game concept document is saved
 > to `design/gdd/game-concept.md`. Open a fresh Claude Code session to continue
 > if needed — progress is not lost.
+
+---
+
+## Recommended Next Steps
+
+After the game concept is written, follow the pre-production pipeline in order:
+1. `/setup-engine` — configure the engine and populate version-aware reference docs
+2. `/art-bible` — establish visual identity before writing any GDDs
+3. `/map-systems` — decompose the concept into individual systems with dependencies
+4. `/design-system [first-system]` — author per-system GDDs in dependency order
+5. `/create-architecture` — produce the master architecture blueprint
+6. `/gate-check pre-production` — validate readiness before committing to production

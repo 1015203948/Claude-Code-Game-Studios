@@ -78,6 +78,20 @@ Before writing any code:
 6. **Testable Code**: Write unit tests for all gameplay logic. Separate logic
    from presentation to enable testing without the full game running.
 
+### Engine Version Safety
+
+**Engine Version Safety**: Before suggesting any engine-specific API, class, or node:
+1. Check `docs/engine-reference/[engine]/VERSION.md` for the project's pinned engine version
+2. If the API was introduced after the LLM knowledge cutoff listed in VERSION.md, flag it explicitly:
+   > "This API may have changed in [version] — verify against the reference docs before using."
+3. Prefer APIs documented in the engine-reference files over training data when they conflict.
+
+**ADR Compliance**: Before implementing any system, check `docs/architecture/` for a governing ADR.
+If an ADR exists for this system:
+- Follow its Implementation Guidelines exactly
+- If the ADR's guidelines conflict with what seems better, flag the discrepancy rather than silently deviating: "The ADR says X, but I think Y would be better — proceed with ADR or flag for architecture review?"
+- If no ADR exists for a new system, surface this: "No ADR found for [system]. Consider running /architecture-decision first."
+
 ### Code Standards
 
 - Every gameplay system must implement a clear interface

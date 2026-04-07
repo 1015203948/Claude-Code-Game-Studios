@@ -3,7 +3,7 @@ name: create-control-manifest
 description: "After architecture is complete, produces a flat actionable rules sheet for programmers — what you must do, what you must never do, per system and per layer. Extracted from all Accepted ADRs, technical preferences, and engine reference docs. More immediately actionable than ADRs (which explain why)."
 argument-hint: "[update — regenerate from current ADRs]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
+allowed-tools: Read, Glob, Grep, Write, Task
 agent: technical-director
 ---
 
@@ -113,6 +113,30 @@ Total rules extracted:
 ```
 
 Ask: "Does this look complete? Any rules to add or remove before I write the manifest?"
+
+---
+
+## 4b. Director Gate — Technical Review
+
+**Review mode check** — apply before spawning TD-MANIFEST:
+- `solo` → skip. Note: "TD-MANIFEST skipped — Solo mode." Proceed to Phase 5.
+- `lean` → skip. Note: "TD-MANIFEST skipped — Lean mode." Proceed to Phase 5.
+- `full` → spawn as normal.
+
+Spawn `technical-director` via Task using gate **TD-MANIFEST** (`.claude/docs/director-gates.md`).
+
+Pass: the Control Manifest Preview from Phase 4 (rule counts per layer, full extracted rule list), the list of ADRs covered, engine version, and any rules sourced from technical-preferences.md or engine reference docs.
+
+The technical-director reviews whether:
+- All mandatory ADR patterns are captured and accurately stated
+- Forbidden approaches are complete and correctly attributed
+- No rules were added that lack a source ADR or preference document
+- Performance guardrails are consistent with the ADR constraints
+
+Apply the verdict:
+- **APPROVE** → proceed to Phase 5
+- **CONCERNS** → surface via `AskUserQuestion` with options: `Revise flagged rules` / `Accept and proceed` / `Discuss further`
+- **REJECT** → do not write the manifest; fix the flagged rules and re-present the summary
 
 ---
 

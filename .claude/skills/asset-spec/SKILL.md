@@ -255,3 +255,10 @@ Every phase follows: **Identify → Confirm → Generate → Review → Approve 
 - Surface all agent disagreements — do not silently pick one
 - Write the spec file only after explicit approval
 - Update the manifest immediately after writing the spec
+
+---
+
+## Recommended Next Steps
+
+- Run `/asset-spec [next-context]` to continue speccing remaining systems, levels, or characters
+- Run `/asset-audit` to validate delivered assets against the written specs and identify gaps or mismatches

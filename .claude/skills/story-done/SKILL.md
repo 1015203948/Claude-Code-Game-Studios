@@ -418,3 +418,11 @@ If no more stories are ready but Must Have stories are still In Progress (not Co
   anyway; document the risk explicitly if they do.
 - Use `AskUserQuestion` for the code review prompt and for batching manual
   criteria confirmations.
+
+---
+
+## Recommended Next Steps
+
+- Run `/story-readiness [next-story-path]` to validate the next story before starting implementation
+- If all Must Have stories are complete: run `/smoke-check sprint` → `/team-qa sprint` → `/gate-check`
+- If tech debt was logged: track it via `/tech-debt` to keep the register current

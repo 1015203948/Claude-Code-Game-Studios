@@ -352,3 +352,12 @@ If context reaches or exceeds 70% at any point, append this notice:
 > **Context is approaching the limit (≥70%).** The systems index is saved to
 > `design/gdd/systems-index.md`. Open a fresh Claude Code session to continue
 > designing individual GDDs — run `/map-systems next` to pick up where you left off.
+
+---
+
+## Recommended Next Steps
+
+- Run `/design-system [first-system-in-order]` to author the first GDD (use design order from the index)
+- Run `/map-systems next` to always pick the highest-priority undesigned system automatically
+- Run `/design-review design/gdd/[system].md` in a fresh session after each GDD is authored
+- Run `/gate-check pre-production` when all MVP GDDs are authored and reviewed

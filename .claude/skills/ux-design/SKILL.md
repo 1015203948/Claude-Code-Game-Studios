@@ -126,6 +126,41 @@ Then ask: "Anything else I should read before we start, or shall we proceed?"
 
 ---
 
+## 2b. Retrofit Mode Detection
+
+Before creating a skeleton, check if the target output file already exists.
+
+Glob `design/ux/[filename].md` (where `[filename]` is the resolved output path from Phase 1).
+
+**If the file exists — retrofit mode:**
+- Read the file in full
+- For each expected section, check whether the body has real content (more than a `[To be designed]` placeholder) or is empty/placeholder
+- Present a section status summary to the user:
+
+> "Found existing UX spec at `design/ux/[filename].md`. Here's what's already done:
+>
+> | Section | Status |
+> |---------|--------|
+> | Overview & Context | [Complete / Empty / Placeholder] |
+> | Player Journey Integration | ... |
+> | Screen Layout & Information Architecture | ... |
+> | Interaction Model | ... |
+> | Feedback & State Communication | ... |
+> | Accessibility | ... |
+> | Edge Cases & Error States | ... |
+> | Open Questions | ... |
+>
+> I'll work on the [N] incomplete sections only — existing content will not be overwritten."
+
+- Skip Section 3 (skeleton creation) — the file already exists
+- In Phase 4 (Section Authoring), only work on sections with Status: Empty or Placeholder
+- Use `Edit` to fill placeholders in-place rather than creating a new skeleton
+
+**If the file does not exist — fresh authoring mode:**
+Proceed to Phase 3 (Create File Skeleton) as normal.
+
+---
+
 ## 3. Create File Skeleton
 
 Once the user confirms, **immediately** create the output file with empty section
@@ -930,3 +965,11 @@ a requirement. Never silently expand the layout without flagging it.
 **Always** show where decisions come from (GDD requirements, player journey, user choices).
 
 Verdict: **COMPLETE** — UX spec written and approved section by section.
+
+---
+
+## Recommended Next Steps
+
+- Run `/ux-review [filename]` to validate this spec before it enters the implementation pipeline
+- Run `/ux-design [next-screen]` to continue designing remaining screens or flows
+- Run `/gate-check pre-production` once all key screens have approved UX specs
