@@ -1,49 +1,34 @@
 ---
 name: Bug Report
-about: Something isn't working as expected
+about: Report something that isn't working correctly
 title: "[Bug] "
 labels: bug
 assignees: ''
 ---
 
 ## Description
-
-A clear description of what the bug is.
+[Describe the bug clearly and concisely]
 
 ## Steps to Reproduce
-
-1. Open Claude Code in a project using this template
-2. Run `/<skill>` or trigger `<agent>`
-3. ...
-4. See error
+1. [First step]
+2. [Second step]
+3. [...]
 
 ## Expected Behavior
-
-What you expected to happen.
+[What you expected to happen]
 
 ## Actual Behavior
-
-What actually happened. Include any error messages or unexpected output.
+[What actually happened]
 
 ## Environment
+- Unity Version: [e.g. 6.3 LTS]
+- Platform: [e.g. Android]
+- Branch/Commit: [e.g. main]
 
-- **OS**: (e.g., Windows 10, macOS 14, Ubuntu 24.04)
-- **Shell**: (e.g., Git Bash, zsh, bash)
-- **Claude Code version**: (run `claude --version`)
-- **Node.js version**: (run `node --version`)
-- **jq installed?**: Yes / No
-- **Python installed?**: Yes / No
-
-## Affected Component
-
-- [ ] Agent (which one?):
-- [ ] Skill (which one?):
-- [ ] Hook (which one?):
-- [ ] Rule (which one?):
-- [ ] Template
-- [ ] Documentation
-- [ ] Other:
+## Log Output
+```
+[Paste relevant log output here]
+```
 
 ## Additional Context
-
-Any other context — screenshots, terminal output, or the session log if relevant.
+[Any other relevant information]

@@ -1,0 +1,42 @@
+# EditorConfig — Unity/C# project
+# https://editorconfig.org
+
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+
+# YAML
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# C# — Unity default
+[*.cs]
+indent_style = space
+indent_size = 4
+dotnet_sort_using_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Unity UXML/USS
+[*.{uxml,uss}]
+indent_style = space
+indent_size = 2
+
+# JSON
+[*.json]
+indent_style = space
+indent_size = 2
+
+# Shader
+[*.{shader,shadergraph}]
+indent_style = space
+indent_size = 4

@@ -1,40 +1,24 @@
 ---
 name: Feature Request
-about: Suggest a new agent, skill, hook, or improvement
+about: Propose a new feature or enhancement
 title: "[Feature] "
 labels: enhancement
 assignees: ''
 ---
 
-## Summary
-
-A brief description of what you'd like added or changed.
-
-## Type
-
-- [ ] New agent
-- [ ] New skill (slash command)
-- [ ] New hook
-- [ ] New rule
-- [ ] New template
-- [ ] Improvement to existing component
-- [ ] Other:
-
-## Problem / Motivation
-
-What problem does this solve? What workflow does it improve?
+## Feature Description
+[Describe the feature you want — what it does, why it's needed]
 
 ## Proposed Solution
+[How you propose to implement it]
 
-How do you think this should work? Include details like:
-- For agents: what domain, what tier, what tools
-- For skills: what the workflow looks like, what it outputs
-- For hooks: what event triggers it, what it validates
+## Design Document
+[Link to relevant GDD or design doc if one exists]
 
-## Alternatives Considered
-
-Any other approaches you've thought about.
+## Acceptance Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+- [ ] [Criterion 3]
 
 ## Additional Context
-
-Examples, references, or screenshots that help explain the request.
+[Any mockups, references, or relevant context]
