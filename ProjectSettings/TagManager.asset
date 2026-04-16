@@ -1,0 +1,47 @@
+%YAML 1.1
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - PlayerShip
+  - EnemyShip
+  - StarMapNode
+  - Building
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  -
+  - Water
+  - UI
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  -
+  - PlayerShip
+  - EnemyShip
+  - StarMapNode
+  - Building
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
