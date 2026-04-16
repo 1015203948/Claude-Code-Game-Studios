@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 13 Game Design Documents (GDDs)
 - GitHub Actions CI (game-ci/unity-test-runner)
 - ScriptableObject data assets (configs, channels)
+- Unity project scaffolding — MasterScene, StarMapScene, CockpitScene
+- Ship prefabs — PlayerShip, EnemyShip, ShipHUD, StarMapUI
+- Materials — ShipStandard, StarMapNode
+- Cockpit controls prototype — DualJoystickInput, JoystickVisual, ShipController
+- Unity 6.3 LTS engine reference — breaking changes, best practices, deprecated APIs
+- Claude + Codex collaboration rules in coordination-rules.md
+- state_ownership section in architecture.yaml (ADR-0017)
+- 5 UX P0 conflicts documented in ux-designer agent memory
 
 ### Fixed
 - EnemyAIController: `Time.deltaTime` → `SimClock.DeltaTime` for fast-forward correctness
@@ -30,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - EnemyAIController: subscribe `ShipStateChannel` for U-4 player death detection
 - FleetDispatchSystem: `CloseOrder()` made idempotent
 - ADR-0017: `RemoveOrder` → `CloseOrder`, orphaned cleanup description updated
+- Canvas scale zero → {1,1,1} in CockpitScene and StarMapScene
+- Missing `PlayerShip` tag added to TagManager.asset
+- `Assert.Pass` → `Assert.DoesNotThrow` in cancel_dispatch_test
 
 ---
 
