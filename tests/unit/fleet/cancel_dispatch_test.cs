@@ -248,13 +248,11 @@ public class CancelDispatch_Test
     // ─────────────────────────────────────────────────────────────────
 
     [Test]
-    public void cancel_dispatch_returns_null_for_nonexistent_ship()
+    public void cancel_dispatch_does_not_throw_for_nonexistent_ship()
     {
-        // When: CancelDispatch called for ship with no order
-        _fleetDispatch.CancelDispatch("nonexistent-ship");
-
-        // Then: no crash (handled gracefully)
-        Assert.Pass("CancelDispatch handles missing order gracefully");
+        // When: CancelDispatch called for ship with no active order
+        // Then: no exception is thrown (graceful no-op per AC-4)
+        Assert.DoesNotThrow(() => _fleetDispatch.CancelDispatch("nonexistent-ship"));
     }
 
     [Test]
