@@ -1,6 +1,6 @@
 # Unity 6.3 LTS — Breaking Changes
 
-**Last verified:** 2026-02-13
+**Last verified:** 2026-04-11
 
 This document tracks breaking API changes and behavioral differences between Unity 2022 LTS
 (likely in model training) and Unity 6.3 LTS (current version). Organized by risk level.
@@ -134,21 +134,111 @@ UGUI still works but UI Toolkit is recommended for new projects.
 
 ---
 
-## Migration Checklist
+## Unity 6.2 Specific Changes
+
+### URP AfterRendering Injection Point Behavioral Change
+**Version:** 6.2+
+
+The `AfterRendering` injection point now **always** executes after the final blit to the back buffer.
+Previously it sometimes ran before the final blit if post-processing (e.g. FXAA) required extra passes.
+
+**Migration**: If your custom render pass was in `AfterRendering`, change it to `AfterRenderingPostProcessing`
+to preserve previous behavior and avoid y-flip handling issues. This change is backward-compatible with 6.0+.
+
+---
+
+### SetupRenderPasses Deprecated in URP
+**Version:** 6.2+
+
+```csharp
+// ❌ DEPRECATED (Unity 6.2+)
+public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) { }
+
+// ✅ NEW: Use render graph + AddRenderPasses
+public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData) {
+    renderer.EnqueuePass(myRenderPass);
+}
+public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData) { }
+```
+
+---
+
+### VisualElement.transform Deprecated (UI Toolkit)
+**Version:** 6.2+
+
+```csharp
+// ❌ DEPRECATED
+element.transform.position = new Vector3(100, 0, 0);
+element.transform.rotation = Quaternion.identity;
+element.transform.scale = Vector3.one * 1.5f;
+
+// ✅ NEW
+element.style.translate = new StyleTranslate(new Translate(100, 0));
+element.style.rotate = new StyleRotate(new Rotate(0));
+element.style.scale = new StyleScale(new Scale(new Vector2(1.5f, 1.5f)));
+
+// For reading values:
+var t = element.resolvedStyle.translate;
+var r = element.resolvedStyle.rotate;
+var s = element.resolvedStyle.scale;
+```
+
+---
+
+## Unity 6.3 Specific Changes
+
+### Android Minimum API Level Raised to 25
+**Version:** 6.3+
+
+Android minimum API level bumped from 24 (Android 7.0) to **25** (Android 7.1).
+Check your Player Settings → Android → Minimum API Level.
+
+---
+
+### androidIsGame API Deprecated (Android 16 Large-Screen)
+**Version:** 6.3+
+
+```csharp
+// ❌ DEPRECATED
+PlayerSettings.Android.androidIsGame = true;
+
+// ✅ NEW: Use App Category setting in Player Settings → Android → App Category
+// Set to "Game" to preserve game behavior on Android 16+ large screens
+```
+
+---
+
+### UnityWebRequest Now Defaults to HTTP/2
+**Version:** 6.3+
+
+`UnityWebRequest` uses HTTP/2 protocol by default on Android, Linux, Windows, and console.
+Most servers support HTTP/2, but if you see connection issues with legacy servers,
+explicitly set `UnityWebRequest.useHTTP2 = false`.
+
+---
+
+## Migration Checklist (Updated 2026-04-11)
 
 When upgrading from 2022 LTS to Unity 6.3 LTS:
 
 - [ ] Audit all DOTS/ECS code (complete rewrite likely needed)
 - [ ] Replace `Input` class with Input System package
 - [ ] Update custom render passes to RenderGraph API
+- [ ] Change `SetupRenderPasses` → `AddRenderPasses` + render graph
+- [ ] Change `AfterRendering` passes → `AfterRenderingPostProcessing` if needed
+- [ ] Replace `VisualElement.transform` → `style.translate/rotate/scale`
 - [ ] Add exception handling to Addressables calls
 - [ ] Test physics behavior (solver iterations changed)
+- [ ] Set Android minimum API level to 25
+- [ ] Replace `androidIsGame` with App Category setting
+- [ ] Test UnityWebRequest with HTTP/2 (or disable if server incompatible)
 - [ ] Consider migrating UGUI to UI Toolkit for new UI
 - [ ] Update WebGL shaders for WebGPU
-- [ ] Verify minimum platform versions (Android/iOS)
+- [ ] Verify minimum platform versions (Android API 25 / iOS 13)
 
 ---
 
-**Sources:**
-- https://docs.unity3d.com/6000.0/Documentation/Manual/upgrade-guides.html
-- https://docs.unity3d.com/Packages/com.unity.entities@1.3/manual/upgrade-guide.html
+**Sources (Updated):**
+- https://docs.unity3d.com/6000.1/Documentation/Manual/UpgradeGuideUnity6.html
+- https://docs.unity3d.com/6000.2/Documentation/Manual/UpgradeGuideUnity62.html
+- https://docs.unity3d.com/6000.3/Documentation/Manual/WhatsNewUnity63.html

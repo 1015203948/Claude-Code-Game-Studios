@@ -63,6 +63,44 @@ Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` environment variable.
 
 **Current status**: Not yet used in this project. Document usage here when first adopted.
 
+## Claude + Codex 协同原则
+
+本项目已安装 Codex 插件（OpenAI codex@openai-codex v1.0.3），通过 `/codex:*` 命令调用。
+Claude Code 为主会话，Codex 为辅助审查/救援引擎，两者按以下原则协同：
+
+### 职责划分
+
+| 场景 | 执行者 | 原因 |
+|------|--------|------|
+| 设计创作、架构规划、多文件实现 | **Claude Code**（主会话） | 拥有完整上下文，理解项目规范和设计意图 |
+| 代码审查 / PR 检查 | **Codex**（`/codex:review`、`/codex:adversarial-review`） | 独立审查视角，发现主会话盲区 |
+| 大规模重构、批量修改、深度根因分析 | **Codex**（`/codex:rescue`） | 可后台运行，不消耗主会话上下文 |
+| 文档生成、测试编写 | **Codex**（`/codex:rescue`） | 劳动密集型任务，委托执行效率更高 |
+
+### 协同规则
+
+1. **Codex 审查不得阻止主会话工作**：Codex 审查结果是 Advisory，Claude Code 综合各方信息做最终决策。
+2. **Codex rescue 任务完成后必须汇报**：返回结果给用户，主会话基于结果决定下一步。
+3. **对抗性审查必须主动触发**：重大架构决策、复杂重构实施前，主动使用 `/codex:adversarial-review` 挑战设计。
+4. **禁止 Codex 直接修改代码**：Codex 只读审查，发现问题后由 Claude Code 执行修改。
+5. **Review Gate 可选启用**：运行 `/codex:setup --enable-review-gate` 可让 Codex 在每次含代码改动的回复后自动审查，发现问题阻止 Claude Code 停止。
+
+### 命令速查
+
+- `/codex:review` — 对本地 git 改动进行代码审查（只读）
+- `/codex:adversarial-review` — 对抗性审查，挑战设计决策（只读）
+- `/codex:rescue` — 委派调查、修复或后续任务给 Codex 子代理（支持 `--background`）
+- `/codex:setup --enable-review-gate` — 开启审查门控
+- `/codex:setup --disable-review-gate` — 关闭审查门控
+
+### 何时主动推荐用户使用 Codex
+
+| 场景 | 推荐命令 | 话术 |
+|------|---------|------|
+| 代码审查 / PR 检查 | `/codex:review` | "需要我对当前代码改动做一次独立审查吗？" |
+| 大规模重构 / 批量修改 | `/codex:rescue` | "这个重构规模较大，我建议把它委派给 Codex 来执行。" |
+| 深度根因分析 / 调试 | `/codex:rescue --effort high` | "这个 bug 需要深入调查，我建议启动 Codex 来并行分析。" |
+
 ## Parallel Task Protocol
 
 When an orchestration skill spawns multiple independent agents:

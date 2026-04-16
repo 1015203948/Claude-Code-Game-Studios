@@ -1,3 +1,7 @@
+# 语言设置
+
+所有回复一律使用中文，包括解释、提问、建议和错误信息。代码和命令本身保持原样，注释可用中文。
+
 # Claude Code Game Studios -- Game Studio Agent Architecture
 
 Indie game development managed through 48 coordinated Claude Code subagents.
@@ -5,11 +9,11 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Technology Stack
 
-- **Engine**: [CHOOSE: Godot 4 / Unity / Unreal Engine 5]
-- **Language**: [CHOOSE: GDScript / C# / C++ / Blueprint]
+- **Engine**: Unity 6.3 LTS
+- **Language**: C#
 - **Version Control**: Git with trunk-based development
-- **Build System**: [SPECIFY after choosing engine]
-- **Asset Pipeline**: [SPECIFY after choosing engine]
+- **Build System**: Unity Build Pipeline
+- **Asset Pipeline**: Unity Asset Import Pipeline + Addressables
 
 > **Note**: Engine-specialist agents exist for Godot, Unity, and Unreal with
 > dedicated sub-specialists. Use the set matching your engine.
@@ -20,7 +24,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Engine Version Reference
 
-@docs/engine-reference/godot/VERSION.md
+@docs/engine-reference/unity/VERSION.md
 
 ## Technical Preferences
 
@@ -29,6 +33,12 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 ## Coordination Rules
 
 @.claude/docs/coordination-rules.md
+
+## Claude + Codex 协同
+
+@.claude/docs/coordination-rules.md#claude--codex-协同原则
+
+> Codex 是本项目的辅助审查/救援引擎。所有审查结果均为 Advisory，最终决策由主会话做出。重大决策前**必须**主动推荐 Codex 对抗性审查。
 
 ## Collaboration Protocol
 

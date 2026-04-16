@@ -5,44 +5,47 @@
 
 ## Engine & Language
 
-- **Engine**: [TO BE CONFIGURED — run /setup-engine]
-- **Language**: [TO BE CONFIGURED]
-- **Rendering**: [TO BE CONFIGURED]
-- **Physics**: [TO BE CONFIGURED]
+- **Engine**: Unity 6.3 LTS
+- **Language**: C#
+- **Rendering**: Universal Render Pipeline (URP) — 移动端必须使用
+- **Physics**: PhysX (Unity 6 默认)
 
 ## Input & Platform
 
 <!-- Written by /setup-engine. Read by /ux-design, /ux-review, /test-setup, /team-ui, and /dev-story -->
 <!-- to scope interaction specs, test helpers, and implementation to the correct input methods. -->
 
-- **Target Platforms**: [TO BE CONFIGURED — e.g., PC, Console, Mobile, Web]
-- **Input Methods**: [TO BE CONFIGURED — e.g., Keyboard/Mouse, Gamepad, Touch, Mixed]
-- **Primary Input**: [TO BE CONFIGURED — the dominant input for this game]
-- **Gamepad Support**: [TO BE CONFIGURED — Full / Partial / None]
-- **Touch Support**: [TO BE CONFIGURED — Full / Partial / None]
-- **Platform Notes**: [TO BE CONFIGURED — any platform-specific UX constraints]
+- **Target Platforms**: Android（手机 / 平板）
+- **Input Methods**: Touch
+- **Primary Input**: Touch
+- **Gamepad Support**: None
+- **Touch Support**: Full
+- **Platform Notes**: 全触屏优先 UI，所有交互必须支持手指触控；禁止仅依赖 hover 状态的交互；适配手机和平板两种屏幕比例（16:9 和 4:3 均需可用）
 
 ## Naming Conventions
 
-- **Classes**: [TO BE CONFIGURED]
-- **Variables**: [TO BE CONFIGURED]
-- **Signals/Events**: [TO BE CONFIGURED]
-- **Files**: [TO BE CONFIGURED]
-- **Scenes/Prefabs**: [TO BE CONFIGURED]
-- **Constants**: [TO BE CONFIGURED]
+- **Classes**: PascalCase（如 `PlayerShip`、`StarMapNode`）
+- **Public fields/properties**: PascalCase（如 `MoveSpeed`、`HullPoints`）
+- **Private fields**: `_camelCase`（如 `_currentHealth`、`_isWarping`）
+- **Methods**: PascalCase（如 `TakeDamage()`、`GetResourceOutput()`）
+- **Files**: PascalCase 与类名一致（如 `PlayerShip.cs`）
+- **Scenes/Prefabs**: PascalCase（如 `StarMapScene.unity`、`ShipPrefab.prefab`）
+- **Constants**: PascalCase 或 UPPER_SNAKE_CASE
 
 ## Performance Budgets
 
-- **Target Framerate**: [TO BE CONFIGURED]
-- **Frame Budget**: [TO BE CONFIGURED]
-- **Draw Calls**: [TO BE CONFIGURED]
-- **Memory Ceiling**: [TO BE CONFIGURED]
+- **Target Framerate**: 60fps
+- **Frame Budget**: 16.6ms
+- **Draw Calls**: < 200（移动端目标）
+- **Memory Ceiling**: 待定（视目标设备而定——开发中期设置）
 
 ## Testing
 
-- **Framework**: [TO BE CONFIGURED]
-- **Minimum Coverage**: [TO BE CONFIGURED]
+- **Framework**: Unity Test Framework（内置 NUnit，支持 EditMode 和 PlayMode 测试）
+- **Minimum Coverage**: 待定
 - **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
+- **EditMode tests**: 用于逻辑/公式/数据验证（不需要场景加载）
+- **PlayMode tests**: 用于跨系统集成测试（需要场景和帧循环）
 
 ## Forbidden Patterns
 
@@ -65,12 +68,12 @@
 <!-- Read by /code-review, /architecture-decision, /architecture-review, and team skills -->
 <!-- to know which specialist to spawn for engine-specific validation. -->
 
-- **Primary**: [TO BE CONFIGURED — run /setup-engine]
-- **Language/Code Specialist**: [TO BE CONFIGURED]
-- **Shader Specialist**: [TO BE CONFIGURED]
-- **UI Specialist**: [TO BE CONFIGURED]
-- **Additional Specialists**: [TO BE CONFIGURED]
-- **Routing Notes**: [TO BE CONFIGURED]
+- **Primary**: unity-specialist
+- **Language/Code Specialist**: unity-specialist（C# 代码审查 — primary 覆盖）
+- **Shader Specialist**: unity-shader-specialist（Shader Graph、HLSL、URP/HDRP 材质）
+- **UI Specialist**: unity-ui-specialist（UI Toolkit UXML/USS、UGUI Canvas、运行时 UI）
+- **Additional Specialists**: unity-dots-specialist（ECS、Jobs 系统、Burst 编译器）、unity-addressables-specialist（资产加载、内存管理、内容目录）
+- **Routing Notes**: 架构决策和通用 C# 代码审查调用 primary。ECS/Jobs/Burst 代码调用 DOTS specialist。渲染和视觉特效调用 shader specialist。所有界面实现调用 UI specialist。资产管理系统调用 Addressables specialist。
 
 ### File Extension Routing
 
@@ -79,9 +82,9 @@
 
 | File Extension / Type | Specialist to Spawn |
 |-----------------------|---------------------|
-| Game code (primary language) | [TO BE CONFIGURED] |
-| Shader / material files | [TO BE CONFIGURED] |
-| UI / screen files | [TO BE CONFIGURED] |
-| Scene / prefab / level files | [TO BE CONFIGURED] |
-| Native extension / plugin files | [TO BE CONFIGURED] |
-| General architecture review | Primary |
+| Game code (.cs files) | unity-specialist |
+| Shader / material files (.shader, .shadergraph, .mat) | unity-shader-specialist |
+| UI / screen files (.uxml, .uss, Canvas prefabs) | unity-ui-specialist |
+| Scene / prefab / level files (.unity, .prefab) | unity-specialist |
+| Native extension / plugin files (.dll, native plugins) | unity-specialist |
+| General architecture review | unity-specialist |

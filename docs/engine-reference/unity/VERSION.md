@@ -4,8 +4,8 @@
 |-------|-------|
 | **Engine Version** | Unity 6.3 LTS |
 | **Release Date** | December 2025 |
-| **Project Pinned** | 2026-02-13 |
-| **Last Docs Verified** | 2026-02-13 |
+| **Project Pinned** | 2026-04-11 |
+| **Last Docs Verified** | 2026-04-11 |
 | **LLM Knowledge Cutoff** | May 2025 |
 
 ## Knowledge Gap Warning
@@ -20,9 +20,9 @@ before suggesting Unity API calls.
 | Version | Release | Risk Level | Key Theme |
 |---------|---------|------------|-----------|
 | 6.0 | Oct 2024 | HIGH | Unity 6 rebrand, new rendering features, Entities 1.3, DOTS improvements |
-| 6.1 | Nov 2024 | MEDIUM | Bug fixes, stability improvements |
-| 6.2 | Dec 2024 | MEDIUM | Performance optimizations, new input system improvements |
-| 6.3 LTS | Dec 2025 | HIGH | First LTS since 6.0, production-ready DOTS, enhanced graphics features |
+| 6.1 | Nov 2024 | MEDIUM | Bug fixes, UI Toolkit transform API deprecated |
+| 6.2 | Oct 2025 | MEDIUM | SetupRenderPasses deprecated→AddRenderPasses, VisualElement.transform deprecated, URP AfterRendering injection change |
+| 6.3 LTS | Dec 2025 | HIGH | First LTS since 6.0, Box2D v3, Kawase bloom (mobile), Android min API 25, HTTP/2 default, androidIsGame deprecated |
 
 ## Major Changes from 2022 LTS to Unity 6.3 LTS
 

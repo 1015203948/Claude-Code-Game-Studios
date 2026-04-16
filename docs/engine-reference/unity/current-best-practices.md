@@ -1,6 +1,6 @@
 # Unity 6.3 LTS — Current Best Practices
 
-**Last verified:** 2026-02-13
+**Last verified:** 2026-04-11
 
 Modern Unity 6 patterns that may not be in the LLM's training data.
 These are production-ready recommendations as of Unity 6.3 LTS.
@@ -328,7 +328,67 @@ Debug.Log($"Player {playerName} scored {score} points");
 
 ---
 
-**Sources:**
+## Unity 6.3 LTS — New Best Practices (Post Training Cutoff)
+
+### Mobile Bloom: Use Kawase or Dual Filtering (Unity 6.3+)
+
+For Android/mobile, the standard Gaussian bloom is expensive. Unity 6.3 adds Kawase and Dual filtering modes in URP Volume settings — significantly faster on low-end hardware.
+
+```
+URP Volume → Bloom → Filter Mode → Kawase  (recommended for mobile)
+```
+
+---
+
+### Animator Pooling with ResetControllerState (Unity 6.3+)
+
+When pooling GameObjects that have Animators, reset state cleanly:
+
+```csharp
+// ✅ NEW in 6.3 — reset animator state when returning to pool
+animator.ResetControllerState();
+// Previously required: destroy + recreate, or controller reassignment
+```
+
+---
+
+### Android 16 Large-Screen Support
+
+Set App Category correctly for Android 16 (API 35+) behavior:
+
+```
+Player Settings → Android → App Category → Game
+```
+
+This replaces the deprecated `androidIsGame` property and ensures correct
+large-screen windowing behavior on Android 16+ tablets and foldables.
+
+---
+
+### Profiling Mobile Renders with Render Graph Viewer
+
+Unity 6.3 allows connecting the Render Graph Viewer to device builds (not just Editor):
+
+```
+Window → Analysis → Render Graph Viewer → Connect to Device
+```
+
+Use this to identify redundant passes and optimize the mobile rendering budget.
+
+---
+
+### Variable Rate Shading Profiling (DX12 / Vulkan)
+
+VRS now integrates with the Frame Debugger on DX12 and Vulkan. When targeting
+Android devices with Vulkan, enable VRS and verify via:
+
+```
+Window → Analysis → Frame Debugger → VRS column
+```
+
+---
+
+**Sources (Updated):**
+- https://docs.unity3d.com/6000.3/Documentation/Manual/WhatsNewUnity63.html
+- https://unity.com/blog/unity-6-3-lts-is-now-available
 - https://docs.unity3d.com/6000.0/Documentation/Manual/BestPracticeGuides.html
-- https://docs.unity3d.com/Packages/com.unity.entities@1.3/manual/index.html
-- https://docs.unity3d.com/Packages/com.unity.inputsystem@1.11/manual/index.html

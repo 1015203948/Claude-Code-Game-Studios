@@ -29,8 +29,8 @@
 #   All forbidden patterns: Grep pattern="^  - pattern:" (forbidden_patterns section)
 #   Superseded entries:     Grep pattern="status: superseded"
 
-version: 1
-last_updated: ""
+version: 6
+last_updated: "2026-04-15"  # ADR-0017 added: dispatch_order state ownership; fleet_dispatch_lifecycle interface
 
 # ─── STATE OWNERSHIP ─────────────────────────────────────────────────────────
 # Who is the authoritative owner of each piece of shared game state.
@@ -43,7 +43,140 @@ last_updated: ""
 # interface: how other systems access this state (read-only property, method call,
 #   signal, shared resource, etc.) — this is the contract other ADRs depend on.
 
-state_ownership: []
+state_ownership:
+  - state: view_layer
+    status: active
+    owner_system: ViewLayerManager
+    adr: docs/architecture/adr-0001-scene-management-architecture.md
+    interface: "ViewLayerManager.CurrentViewLayer (read-only ViewLayer enum); changes broadcast via ViewLayerChannel.OnViewLayerChanged event"
+    write_access: ViewLayerManager-only
+    referenced_by:
+      - docs/architecture/adr-0001-scene-management-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - state: ship_data_model
+    status: active
+    owner_system: ShipDataModel
+    adr: docs/architecture/adr-0001-scene-management-architecture.md
+    interface: "ShipDataModel.CurrentHull (float), ShipDataModel.ShipState (ShipState enum), ShipDataModel.PreEnterState (ShipState); SyncFromCockpit(hull) for cockpit write-back"
+    write_access: ShipDataModel-only (SyncFromCockpit for hull; ship-system for ShipState transitions)
+    referenced_by:
+      - docs/architecture/adr-0001-scene-management-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - state: star_map_data
+    status: active
+    owner_system: GameDataManager
+    adr: docs/architecture/adr-0004-data-model-architecture.md
+    interface: "GameDataManager.Instance.StarMap (StarMapData) — read via GetNode(id), GetNeighbours(id); written only by StarMapInitialiser (init), BuildingSystem (ShipyardTier), FleetDispatchSystem (Ownership, DockedFleetId)"
+    write_access: StarMapInitialiser (startup), BuildingSystem (ShipyardTier), FleetDispatchSystem (state transitions)
+    referenced_by:
+      - docs/architecture/adr-0004-data-model-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - state: resource_config
+    status: active
+    owner_system: GameDataManager
+    adr: docs/architecture/adr-0004-data-model-architecture.md
+    interface: "GameDataManager.Instance.ResourceConfig — read-only SO; CanAfford(ore, energy, type), GetProductionRate(type, res), GetBuildCost(type), GetStorageCap(type)"
+    write_access: read-only at runtime (SO asset edited only in Editor)
+    referenced_by:
+      - docs/architecture/adr-0004-data-model-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - state: fleet_registry
+    status: active
+    owner_system: GameDataManager
+    adr: docs/architecture/adr-0004-data-model-architecture.md
+    interface: "GameDataManager.Instance.FleetRegistry — Register(order), Deregister(shipId), TryGetOrder(shipId, out order)"
+    write_access: FleetDispatchSystem-only
+    referenced_by:
+      - docs/architecture/adr-0004-data-model-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - state: building_registry
+    status: active
+    owner_system: GameDataManager
+    adr: docs/architecture/adr-0004-data-model-architecture.md
+    interface: "GameDataManager.Instance.Buildings — Add(instance), Remove(id), Get(id), GetByNode(nodeId)"
+    write_access: BuildingSystem-only
+    referenced_by:
+      - docs/architecture/adr-0004-data-model-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - state: player_hull
+    status: active
+    owner_system: HealthSystem
+    adr: docs/architecture/adr-0014-health-system-architecture.md
+    interface: "HealthSystem.Instance.HullRatio(instanceId) (read-only float 0-1); ApplyDamage(instanceId, rawDamage, damageType) — 唯一伤害入口; OnHullChanged event — Hull 变化时广播; OnShipDying — Hull=0 时触发（H-5 死亡序列）"
+    write_access: HealthSystem-only（ApplyDamage）；ShipDataModel（CurrentHull 存储，但由 HealthSystem 写回）
+    referenced_by:
+      - docs/architecture/adr-0013-combat-system-architecture.md
+      - docs/architecture/adr-0014-health-system-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - state: colony_ores_energy
+    status: active
+    owner_system: ColonyManager
+    adr: docs/architecture/adr-0016-colony-and-building-architecture.md
+    interface: "ColonyManager._oreCurrent (int, [0, ORE_CAP]); ColonyManager._energyCurrent (int, 无上限); tick 由 SimClock.DeltaTime 控制"
+    write_access: ColonyManager-only（DeductResources/RestoreResources）
+    referenced_by:
+      - docs/architecture/adr-0016-colony-and-building-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - state: building_registry
+    status: active
+    owner_system: BuildingSystem
+    adr: docs/architecture/adr-0016-colony-and-building-architecture.md
+    interface: "BuildingSystem.Instance — Add/Remove/GetByNode; GetNodeProductionDelta(nodeId); ShipyardTier[nodeId]"
+    write_access: BuildingSystem-only（RequestBuild 创建/销毁）
+    referenced_by:
+      - docs/architecture/adr-0016-colony-and-building-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - state: combat_state
+    status: active
+    owner_system: CombatSystem
+    adr: docs/architecture/adr-0013-combat-system-architecture.md
+    interface: "CombatSystem.CombatState (enum: IDLE/COMBAT_ACTIVE/COMBAT_VICTORY/COMBAT_DEFEAT); BeginCombat(playerShipId, nodeId); EndCombat(result)"
+    write_access: CombatSystem-only
+    referenced_by:
+      - docs/architecture/adr-0013-combat-system-architecture.md
+      - docs/architecture/adr-0002-event-communication-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - state: enemy_instance
+    status: active
+    owner_system: EnemySystem
+    adr: docs/architecture/adr-0015-enemy-system-architecture.md
+    interface: "EnemySystem.SpawnEnemy(blueprintId, position) → instanceId; EnemySystem.DespawnEnemy(instanceId); EnemyInstance.CurrentHull (独立维护，不经过 HealthSystem)"
+    write_access: EnemySystem-only
+    referenced_by:
+      - docs/architecture/adr-0015-enemy-system-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - state: dispatch_order
+    status: active
+    owner_system: FleetDispatchSystem
+    adr: docs/architecture/adr-0017-fleet-dispatch-architecture.md
+    interface: "FleetDispatchSystem — RequestDispatch(shipId, dest) → DispatchOrder; CancelDispatch(shipId); Update() 推进 HopProgress; IsReturning 反向路径"
+    write_access: FleetDispatchSystem-only
+    referenced_by:
+      - docs/architecture/adr-0017-fleet-dispatch-architecture.md
+    added: 2026-04-15
+    revised: ""
 
 # Example:
 #
@@ -71,7 +204,167 @@ state_ownership: []
 #
 # pattern options: signal | direct_call | event_bus | shared_resource | rpc | none
 
-interfaces: []
+interfaces:
+  - contract: cross_scene_events
+    status: active
+    pattern: event_bus  # ScriptableObject Channel
+    producer: any-system
+    consumers:
+      - star-map-ui     # subscribes OnViewLayerChanged to show/hide
+      - ship-hud        # subscribes OnViewLayerChanged to hide Canvas when STARMAP
+      - ship-control-system  # subscribes to activate/deactivate input handling
+    adr: docs/architecture/adr-0001-scene-management-architecture.md
+    signal_signature: "ViewLayerChannel.OnViewLayerChanged(ViewLayer newLayer)"
+    notes: "ALL cross-scene communication must use ScriptableObject Channel or MasterScene data model. Direct cross-scene GameObject references are FORBIDDEN."
+    referenced_by:
+      - docs/architecture/adr-0001-scene-management-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - contract: cockpit_enter
+    status: active
+    pattern: direct_call
+    producer: star-map-ui
+    consumers:
+      - ViewLayerManager
+    adr: docs/architecture/adr-0001-scene-management-architecture.md
+    signal_signature: "ViewLayerManager.RequestEnterCockpit(string shipId)"
+    referenced_by:
+      - docs/architecture/adr-0001-scene-management-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - contract: cockpit_exit
+    status: active
+    pattern: direct_call
+    producer: ship-hud
+    consumers:
+      - ViewLayerManager
+    adr: docs/architecture/adr-0001-scene-management-architecture.md
+    signal_signature: "ViewLayerManager.RequestReturnToStarMap()"
+    referenced_by:
+      - docs/architecture/adr-0001-scene-management-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - contract: tier1_so_channel
+    status: active
+    pattern: event_bus  # ScriptableObject Channel
+    producer: any-cross-scene-system
+    consumers:
+      - any-cross-scene-system
+    adr: docs/architecture/adr-0002-event-communication-architecture.md
+    signal_signature: "ScriptableObject Channel — 三问法 Q1 YES: 生产者和消费者在不同 Unity 场景时强制使用"
+    notes: "跨场景通信唯一合法机制。SO Channel 资产存放于 assets/data/channels/。命名规则: [ProducerSystem]Channel.cs。注册的 SO Channels: ViewLayerChannel, CombatChannel, ColonyShipChannel, ShipStateChannel。"
+    referenced_by:
+      - docs/architecture/adr-0001-scene-management-architecture.md
+      - docs/architecture/adr-0002-event-communication-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - contract: tier2_csharp_event
+    status: active
+    pattern: signal  # C# event Action<T>
+    producer: any-same-scene-system
+    consumers:
+      - any-same-scene-system
+    adr: docs/architecture/adr-0002-event-communication-architecture.md
+    signal_signature: "public event Action<T> OnXxx — 三问法 Q2 YES: 同场景不同系统时使用"
+    notes: "同场景跨系统通信标准模式。订阅必须在 OnEnable() 进行，取消订阅必须在 OnDisable() 进行（强制约束）。禁止 Awake/OnDestroy 配对。"
+    referenced_by:
+      - docs/architecture/adr-0002-event-communication-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - contract: combat_channel_timing
+    status: active
+    pattern: event_bus  # CombatChannel SO
+    producer: CombatSystem  # CockpitScene
+    consumers:
+      - StarMapSystem   # StarMapScene
+      - ShipHUD         # CockpitScene
+    adr: docs/architecture/adr-0002-event-communication-architecture.md
+    signal_signature: "CombatChannel.RaiseBegin() — 必须在 SceneManager.sceneLoaded 回调中调用（CockpitScene 完全加载后）"
+    notes: "防止 ShipHUD 等消费者尚未完成 OnEnable 订阅时错过 OnCombatBegin 事件。违反此约束导致首次战斗 HUD 不响应。"
+    referenced_by:
+      - docs/architecture/adr-0002-event-communication-architecture.md
+    added: 2026-04-14
+    revised: ""
+
+  - contract: combat_health_integration
+    status: active
+    pattern: direct_call
+    producer: HealthSystem
+    consumers:
+      - CombatSystem
+      - EnemySystem
+    adr: docs/architecture/adr-0014-health-system-architecture.md
+    signal_signature: "HealthSystem.ApplyDamage(instanceId: string, rawDamage: float, damageType: DamageType) — 驾驶舱战斗伤害唯一入口；HealthSystem.OnShipDying — 死亡事件，CombatSystem 订阅以检测胜负"
+    notes: "U-4 规则（无人值守失败）绕过 HealthSystem，直接调用 ShipDataModel.Destroy()。HealthSystem 内部不区分来源，只负责 Hull 追踪。"
+    referenced_by:
+      - docs/architecture/adr-0013-combat-system-architecture.md
+      - docs/architecture/adr-0014-health-system-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - contract: combat_enemy_spawn
+    status: active
+    pattern: direct_call
+    producer: CombatSystem
+    consumers:
+      - EnemySystem
+    adr: docs/architecture/adr-0013-combat-system-architecture.md
+    signal_signature: "EnemySystem.SpawnEnemy(blueprintId: string, position: Vector3) — 战斗开始时生成 2 个敌方实例；EnemySystem.DespawnEnemy(instanceId: string) — 战斗结束时销毁所有敌方"
+    notes: "敌人生成位置在 EnemySystem 内按 E-3 规则计算（相对玩家位置圆弧分布）。MVP 固定 2 个实例。"
+    referenced_by:
+      - docs/architecture/adr-0013-combat-system-architecture.md
+      - docs/architecture/adr-0015-enemy-system-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - contract: enemy_ai_lifecycle
+    status: active
+    pattern: event_bus  # C# event Tier 2（同场景）
+    producer: HealthSystem
+    consumers:
+      - EnemySystem
+    adr: docs/architecture/adr-0015-enemy-system-architecture.md
+    signal_signature: "HealthSystem.OnShipDying(instanceId) — 敌方飞船死亡时，EnemySystem 订阅以触发 DYING 状态进入"
+    notes: "EnemySystem 通过 HealthSystem.OnShipDying 检测敌方死亡，进入 DYING 状态并开始 1.2s 销毁计时。"
+    referenced_by:
+      - docs/architecture/adr-0015-enemy-system-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - contract: combat_weapon_trigger
+    status: active
+    pattern: signal
+    producer: CombatSystem
+    consumers:
+      - EnemySystem  # 敌方武器射速计时（相同逻辑）
+    adr: docs/architecture/adr-0013-combat-system-architecture.md
+    signal_signature: "FireRequested(playerShipId, enemyInstanceId) — 满足 aim_angle ≤ FIRE_ANGLE_THRESHOLD 时触发；AimAngleProvider.aimAngle (read-only float) — 由 ShipControlSystem 计算并暴露"
+    notes: "武器自动开火，无手动射击按钮。aimAngle 归属 ShipControlSystem（ADR-0003），本接口只约束 CombatSystem 如何消费此值。"
+    referenced_by:
+      - docs/architecture/adr-0013-combat-system-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - contract: fleet_dispatch_lifecycle
+    status: active
+    pattern: direct_call
+    producer: FleetDispatchSystem
+    consumers:
+      - ShipDataModel
+      - CombatSystem
+      - StarMapSystem
+    adr: docs/architecture/adr-0017-fleet-dispatch-architecture.md
+    signal_signature: "FleetDispatchSystem.RequestDispatch(shipId, destNodeId) — 创建 DispatchOrder，飞船 SetState(IN_TRANSIT)；CancelDispatch(shipId) — 取消订单，返回原节点；ArrivedAtDestination — 触发 SetState(DOCKED) 或 CombatSystem.BeginCombat()；U-4 路径：ShipDataModel.Destroy() 直接调用"
+    notes: "Transit 期间 DispatchOrder 在 StarMapScene 继续推进（不随 CockpitScene 卸载而暂停）。ShipDataModel.Destroy() 被调用时，FleetDispatchSystem.OnShipDestroyed() 清理孤立订单。"
+    referenced_by:
+      - docs/architecture/adr-0017-fleet-dispatch-architecture.md
+    added: 2026-04-15
+    revised: ""
 
 # Example:
 #
@@ -157,7 +450,86 @@ api_decisions: []
 # Register a pattern when an ADR explicitly bans it AND other ADRs might
 # unknowingly use it (i.e., it's a tempting but wrong approach for this project).
 
-forbidden_patterns: []
+forbidden_patterns:
+  - pattern: cross_scene_direct_reference
+    status: active
+    description: "禁止在场景间直接引用其他场景的 GameObject 或 Component（Unity 场景生命周期导致引用在场景卸载时变为 null）"
+    instead: "使用 ScriptableObject Channel 广播事件，或通过 MasterScene 持有的 ShipDataModel 共享数据"
+    adr: docs/architecture/adr-0001-scene-management-architecture.md
+    added: 2026-04-14
+
+  - pattern: camera_setactive
+    status: active
+    description: "禁止对摄像机 GameObject 使用 SetActive(false/true) 进行可见性切换"
+    instead: "使用 Camera.enabled = false/true；SetActive 会导致 URP 执行无效 Culling Pass 产生报错"
+    adr: docs/architecture/adr-0001-scene-management-architecture.md
+    added: 2026-04-14
+
+  - pattern: unity_event_for_gameplay
+    status: active
+    description: "禁止使用 UnityEvent<T> 替代 C# event Action<T> 作为游戏系统间通信机制"
+    instead: "跨场景通信使用 ScriptableObject Channel（Tier 1）；同场景跨系统通信使用 C# event Action<T>（Tier 2）"
+    why: "UnityEvent<T> 使用反射调用，移动端帧预算（16.6ms）不可接受其性能开销；序列化的 PersistentCall 在场景重载时容易产生悬空引用，违反 ADR-0001 cross_scene_direct_reference 禁令"
+    adr: docs/architecture/adr-0002-event-communication-architecture.md
+    added: 2026-04-14
+
+  - pattern: static_event_bus
+    status: active
+    description: "禁止使用全局静态或 Singleton MessageBus（字符串 key 发布/订阅）作为系统间通信机制"
+    instead: "跨场景通信使用 ScriptableObject Channel；同场景跨系统通信使用 C# event Action<T>"
+    why: "字符串 key 无类型安全，运行时错误难以追踪；Singleton 耦合违反 ADR-0001 风险 R-3（Singleton 蔓延）；事件追踪困难"
+    adr: docs/architecture/adr-0002-event-communication-architecture.md
+    added: 2026-04-14
+
+  - pattern: so_runtime_mutation
+    status: active
+    description: "禁止在运行时对 ScriptableObject 字段赋值（如 ResourceConfig.OreCap = x）"
+    instead: "运行时状态使用 GameDataManager 持有的普通 C# class 对象；SO 只在 Editor Inspector 中编辑"
+    why: "SO 运行时修改会持久化到磁盘（Editor 模式下），PlayMode 退出后改动保留，导致数据污染和难以复现的测试 bug"
+    adr: docs/architecture/adr-0004-data-model-architecture.md
+    added: 2026-04-14
+    status: active
+    description: "禁止使用 Unity Legacy Input Manager（`Input.*` 静态类）作为输入处理机制"
+    instead: "使用 New Input System（com.unity.inputsystem@1.11）；InputActionAsset 定义 StarMapActions / CockpitActions 两个 ActionMap；多点触控使用 EnhancedTouchSupport"
+    why: "Unity 6.3 LTS 中 Legacy Input Manager 已弃用；New Input System 提供强类型 Action、可重新绑定、ActionMap 上下文切换，移动端性能更优"
+    adr: docs/architecture/adr-0003-input-system-architecture.md
+    added: 2026-04-14
+
+  - pattern: velocity_direct_write
+    status: active
+    description: "禁止直接写入 Rigidbody.velocity（如 rb.velocity = Vector3.zero）"
+    instead: "使用 Rigidbody.AddForce() 施加反向力，或使用 Speed Clamp 软上限机制（P-2）"
+    why: "直接写入 velocity 会破坏物理引擎的稳定性；Unity 6 物理引擎推荐使用 AddForce 代替直接写入；软上限速度钳制使用反向 AddForce 而非硬截断"
+    adr: docs/architecture/adr-0018-ship-control-system-architecture.md
+    added: 2026-04-15
+
+  - contract: fire_requested
+    status: active
+    pattern: signal  # C# event Action<T>
+    producer: ShipControlSystem
+    consumers:
+      - CombatSystem
+    adr: docs/architecture/adr-0018-ship-control-system-architecture.md
+    signal_signature: "ShipControlSystem.FireRequested(playerInstanceId, enemyInstanceId) — aimAngle ≤ FIRE_ANGLE_THRESHOLD 时触发"
+    notes: "AimAngle 由 ShipControlSystem 每帧计算（规则 L-2）；CombatSystem 订阅此事件执行 Raycast 命中检测"
+    referenced_by:
+      - docs/architecture/adr-0018-ship-control-system-architecture.md
+    added: 2026-04-15
+    revised: ""
+
+  - contract: lock_status_changed
+    status: active
+    pattern: signal  # C# event Action<T>
+    producer: ShipControlSystem
+    consumers:
+      - ShipHUD
+    adr: docs/architecture/adr-0018-ship-control-system-architecture.md
+    signal_signature: "ShipControlSystem.OnLockAcquired(targetId)；ShipControlSystem.OnLockLost(targetId)"
+    notes: "OnLockAcquired 在 aimAngle ≤ FIRE_ANGLE_THRESHOLD 且 SoftLockTarget 有效时触发；OnLockLost 在 aimAngle > FIRE_ANGLE_THRESHOLD 或目标离开 LOCK_RANGE 时触发"
+    referenced_by:
+      - docs/architecture/adr-0018-ship-control-system-architecture.md
+    added: 2026-04-15
+    revised: ""
 
 # Example:
 #
