@@ -1,56 +1,729 @@
 # Technical Requirement ID Registry
-#
-# PURPOSE: Persistent, stable IDs for every GDD technical requirement.
-# Prevents TR-ID renumbering across /architecture-review runs, which would
-# break story references.
-#
-# RULES:
-#   - IDs are PERMANENT. Never renumber, never delete (use status: deprecated).
-#   - Add new entries only at the END of each system's list.
-#   - When a GDD requirement is reworded (same intent): update `requirement`
-#     text and add a `revised` date. The ID stays the same.
-#   - When a requirement is removed from the GDD: set status: deprecated.
-#   - When a requirement is split or replaced: set status: superseded-by with
-#     the new TR-ID(s).
-#
-# WRITTEN BY: /architecture-review (appends new entries, never overwrites)
-# READ BY:    /create-stories (embed IDs in stories)
-#             /story-done (look up current requirement text at review time)
-#             /story-readiness (validate TR-ID exists and is active)
-#
-# ID FORMAT: TR-[system-slug]-[NNN]
-#   system-slug = short slug matching the GDD system name
-#   NNN = three-digit zero-padded sequence per system, starting at 001
-#
-# STATUS VALUES: active | deprecated | superseded-by: TR-[system]-NNN
+# Last Updated: 2026-04-15
+# Version: 2
+# Last architecture review: architecture-review-2026-04-15.md
 
-version: 1
-last_updated: ""
+entries:
 
-requirements: []
+# === Resource System ===
+- id: TR-resource-001
+  system: Resource
+  gdd: resource-system.md
+  requirement: |
+    资源配置数据结构：ORE_CAP（矿石上限）、ENERGY_CAP（能源上限，无上限=-1），
+    ORE_PER_MINE（每矿每秒产出），ENERGY_PER_COLONY（每殖民地基础能源产出）
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
 
-# --- EXAMPLE ENTRIES (remove when first real entries are added) ---
-#
-# - id: TR-combat-001
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Player takes damage from enemies based on attack power minus defence"
-#   created: 2026-03-10
-#   revised: ""
-#   status: active
-#
-# - id: TR-combat-002
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Combo window timing is 0.4 seconds between hits"
-#   created: 2026-03-10
-#   revised: "2026-04-01"
-#   status: active
-#
-# - id: TR-combat-003
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Old damage formula using raw stats"
-#   created: 2026-03-10
-#   revised: ""
-#   status: superseded-by: TR-combat-001
+- id: TR-resource-002
+  system: Resource
+  gdd: resource-system.md
+  requirement: |
+    CanAfford(ResourceBundle cost) 纯函数判断当前资源是否足够支付建造成本，
+    不修改任何运行时状态
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-resource-003
+  system: Resource
+  gdd: resource-system.md
+  requirement: |
+    资源计算逻辑：每 tick ore accumulation clamp 到 [0, ORE_CAP]；
+    net_ore_production = 矿场数 × ORE_PER_MINE；net_energy_production = 基础产出 - 矿场消耗 - 船坞消耗
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Star Map System ===
+- id: TR-starmap-001
+  system: StarMap
+  gdd: star-map-system.md
+  requirement: |
+    星图图结构 G=(V,E)：StarNode（id、displayName、position、nodeType、ownershipState、
+    fogState、dockedFleet）和 StarEdge（fromNodeId、toNodeId）；邻接索引在初始化时构建，O(V+E)
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-starmap-002
+  system: StarMap
+  gdd: star-map-system.md
+  requirement: |
+    节点可见性 IsVisible(nodeId) 逻辑：fogState ∈ {UNEXPLORED, EXPLORED, VISIBLE}；
+    HOME_BASE 初始化为 VISIBLE；其余为 UNEXPLORED
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-starmap-003
+  system: StarMap
+  gdd: star-map-system.md
+  requirement: |
+    GetNeighbors(nodeId) 返回相邻节点列表，只读；
+    AreAdjacent(nodeA, nodeB) 返回两点是否相邻，只读
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Ship System ===
+- id: TR-ship-001
+  system: Ship
+  gdd: ship-system.md
+  requirement: |
+    ShipBlueprint SO 包含：BlueprintId、MaxHull、ThrustPower、TurnSpeed、WeaponSlots(int)、
+    BuildCost(ResourceBundle)、RequiredShipyardTier(int)、CarrierInstanceId(string nullable)
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-ship-002
+  system: Ship
+  gdd: ship-system.md
+  requirement: |
+    is_valid_ship_instance(blueprint)：MaxHull>0 && ThrustPower>0 && TurnSpeed>0 && WeaponSlots>=0
+    时返回 true
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-ship-003
+  system: Ship
+  gdd: ship-system.md
+  requirement: |
+    ShipStateChannel 广播 OnShipStateChanged(instanceId, newState)；
+    订阅者在 OnEnable/OnDisable 中配对订阅/取消订阅
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-ship-004
+  system: Ship
+  gdd: ship-system.md
+  requirement: |
+    ShipDataModel 为 MasterScene 持有的运行时状态权威来源：
+    CurrentHull、ShipState、位置通过 BlueprintId 引用获取默认值；
+    IN_COCKPIT 互斥（DESTROYED 终止态）；IsPlayerControlled 只读
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-ship-005
+  system: Ship
+  gdd: ship-system.md
+  requirement: |
+    ShipBlueprintRegistry 单例查询接口：GetBlueprint(id) 返回 ShipBlueprint 或 null；
+    GetAllBlueprints() 返回所有已注册 Blueprint
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Event Bus (Framework) ===
+- id: TR-event-001
+  system: EventBus
+  gdd: dual-perspective-switching.md
+  requirement: |
+    所有 SO Channel 订阅必须使用 OnEnable/OnDisable 配对，禁止在 Awake/Start 中订阅
+    （对应 ADR-0002 ADV-01/ADV-02）
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-event-002
+  system: EventBus
+  gdd: dual-perspective-switching.md
+  requirement: |
+    所有跨 await 的 async UniTask 方法必须传入 this.destroyCancellationToken
+    （对应 ADR-0002 ADV-03）
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-event-003
+  system: EventBus
+  gdd: dual-perspective-switching.md
+  requirement: |
+    Channel Raise() 调用路径为 Raise() → event?.Invoke()，等价于直接 C# event 调用，
+    零反射，内存占用 ~200B/channel
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Dual-View / SimClock ===
+- id: TR-dvs-006
+  system: DualView
+  gdd: dual-perspective-switching.md
+  requirement: |
+    ViewLayerChannel 广播 OnViewLayerChanged(ViewLayer)；StarMapUI、ShipHUD、ShipInputManager
+    订阅 ViewLayerChannel（OnEnable/OnDisable 配对）
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-dvs-009
+  system: DualView
+  gdd: dual-perspective-switching.md
+  requirement: |
+    SimClock.DeltaTime = Time.unscaledDeltaTime × SimRate；SimRate ∈ {0, 1, 5, 20}；
+    SetRate() 校验值域并广播 SimRateChangedChannel
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-dvs-016
+  system: DualView
+  gdd: dual-perspective-switching.md
+  requirement: |
+    Cockpit overlay open — 叠加层打开后物理（Rigidbody.velocity）继续运行，
+    10帧内 velocity 变化幅度 < 0.5 units/帧（惯性未中断）
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-dvs-017
+  system: DualView
+  gdd: dual-perspective-switching.md
+  requirement: |
+    Cockpit overlay close — 叠加层关闭后 5 帧内，ShipInputChannel.OnThrustChanged
+    恢复响应触屏输入
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Colony System ===
+- id: TR-colony-001
+  system: Colony
+  gdd: colony-system.md
+  requirement: |
+    ColonyManager 在 StarMapScene 的 Update() 中驱动 tick 循环；
+    tick 间隔：SimClock.Instance.DeltaTime 累加到 ≥ 1.0s 时触发一次产出计算
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-colony-002
+  system: Colony
+  gdd: colony-system.md
+  requirement: |
+    每 tick 广播 OnResourcesUpdated(ResourceSnapshot)（ore、energy 当前值）；
+    ore 产出 clamp 到 [0, ORE_CAP]；energy 无上限
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-colony-003
+  system: Colony
+  gdd: colony-system.md
+  requirement: |
+    ColonyShipChannel 广播建造完成事件（ShipInstanceId + NodeId）
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Health System (ADR-0014) ===
+- id: TR-health-001
+  system: Health
+  gdd: ship-health-system.md
+  requirement: |
+    ApplyDamage(instanceId, rawDamage, damageType) — DOCKED/IN_TRANSIT 静默忽略；
+    DESTROYED 记录警告日志；IN_COCKPIT/IN_COMBAT 执行伤害计算：finalDamage → Clamp → SetCurrentHull
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-health-002
+  system: Health
+  gdd: ship-health-system.md
+  requirement: |
+    Hull 归零时触发死亡序列 H-5：Step1 OnShipDying → Step2 DestroyShip() →
+    Step3 [IsPlayerControlled?] OnPlayerShipDestroyed → Step4 OnShipDestroyed，同帧顺序执行
+  domain: State Machine
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-health-003
+  system: Health
+  gdd: ship-health-system.md
+  requirement: |
+    OnHullChanged(instanceId, newHull, maxHull) 每次 Hull > 0 变化时广播；
+    HullRatio = CurrentHull / MaxHull [0,1] 只读属性
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-health-004
+  system: Health
+  gdd: ship-health-system.md
+  requirement: |
+    HealthSystem 单例挂载于 MasterScene；ApplyDamage 是跨场景可用入口；
+    无人值守战斗（U-4）绕过 HealthSystem，直接调用 ShipDataModel.DestroyShip()
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Combat System (ADR-0013) ===
+- id: TR-combat-001
+  system: Combat
+  gdd: ship-combat-system.md
+  requirement: |
+    驾驶舱战斗状态机：IN_COCKPIT → IN_COMBAT → IN_COCKPIT（胜）或 DESTROYED（败）；
+    触发条件：FleetDispatchSystem 舰队到达 ENEMY 节点
+  domain: State Machine
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-combat-002
+  system: Combat
+  gdd: ship-combat-system.md
+  requirement: |
+    自动开火：每帧检测 aimAngle ≤ FIRE_ANGLE_THRESHOLD(15°) 时触发 FireWeapon()；
+    _fireTimer += Time.deltaTime，达 1/WEAPON_FIRE_RATE 后重置
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-combat-003
+  system: Combat
+  gdd: ship-combat-system.md
+  requirement: |
+    命中检测：Physics.RaycastNonAlloc 预分配缓冲区；命中后调用
+    HealthSystem.ApplyDamage(enemyId, BASE_DAMAGE, KINETIC)
+  domain: Physics
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-combat-004
+  system: Combat
+  gdd: ship-combat-system.md
+  requirement: |
+    无人值守战斗结算（U-1~U-4）：每轮双方各损失 1 艘（P--, E--），循环直到一方归零；
+    胜方占领节点；负方直接调用 ShipDataModel.DestroyShip()（绕过 HealthSystem）
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-combat-005
+  system: Combat
+  gdd: ship-combat-system.md
+  requirement: |
+    战斗结果广播：CombatChannel.RaiseVictory(nodeId) / RaiseDefeat(nodeId)；
+    CockpitScene → StarMapScene 跨场景；RaiseBegin() 须在 SceneManager.sceneLoaded 回调后调用
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-combat-006
+  system: Combat
+  gdd: ship-combat-system.md
+  requirement: |
+    胜负条件：OnShipDying 触发后，CombatSystem 订阅并判定——
+    敌方全灭（player HP>0）→ 胜；玩家 HP=0 → 败；
+    胜：IN_COCKPIT；败：DESTROYED
+  domain: State Machine
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Enemy System (ADR-0015) ===
+- id: TR-enemy-001
+  system: Enemy
+  gdd: enemy-system.md
+  requirement: |
+    EnemyInstance 数据模型：InstanceId、BlueprintId、CurrentHull、MaxHull、
+    AiState(SPAWNING/APPROACHING/FLANKING/DYING)、FireTimer、RandomDelay、TargetPlayerId
+  domain: Data Structure
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-enemy-002
+  system: Enemy
+  gdd: enemy-system.md
+  requirement: |
+    MVP 固定 2 个实例（ai-0, ai-1）；SpawnEnemy() 调用 2 次；
+    生成位置：半径 SPAWN_RADIUS(150m)，角间距 ≥ 90°
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-enemy-003
+  system: Enemy
+  gdd: enemy-system.md
+  requirement: |
+    SPAWNING 状态：RandomDelay ∈ [3s, 5s] 随机延迟后进入 APPROACHING；
+    DYING 状态：1.2s 后自动 DespawnEnemy()
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-enemy-004
+  system: Enemy
+  gdd: enemy-system.md
+  requirement: |
+    APPROACHING：直线向玩家移动（ENEMY_MOVE_SPEED=15m/s）；
+    FLANK_ENGAGE_RANGE(80m) 内进入 FLANKING；FLANKING：弧形路径绕至玩家侧后方
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-enemy-005
+  system: Enemy
+  gdd: enemy-system.md
+  requirement: |
+    敌方武器：每帧 _fireTimer += Time.deltaTime；aimAngle ≤ FIRE_ANGLE_THRESHOLD 时
+    Physics.RaycastNonAlloc → HealthSystem.ApplyDamage(playerId, BASE_DAMAGE, KINETIC)
+  domain: Physics
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-enemy-006
+  system: Enemy
+  gdd: enemy-system.md
+  requirement: |
+    OverlapSphereNonAlloc 零 GC 查询玩家位置（每 APPROACHING 帧调用）；
+    Physics.RaycastNonAlloc 零 GC 射击；碰撞体重叠时沿角度方向平移 10m 重试 3 次
+  domain: Physics
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-enemy-007
+  system: Enemy
+  gdd: enemy-system.md
+  requirement: |
+    EnemySystem 与 CombatSystem 同在 CockpitScene，使用 C# event Tier 2（非 SO Channel）；
+    HealthSystem.OnShipDying 订阅：敌方死亡时进入 DYING 状态
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Colony & Building System (ADR-0016) ===
+- id: TR-building-001
+  system: Building
+  gdd: building-system.md
+  requirement: |
+    BuildingInstance 数据模型：InstanceId、BuildingType、NodeId、IsActive；
+    BuildingRegistry：Dictionary<string, BuildingInstance> 全局注册表
+  domain: Data Structure
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-building-002
+  system: Building
+  gdd: building-system.md
+  requirement: |
+    ShipyardTier(int)：Shipyard → Tier=1；ShipyardUpgrade → Tier+1；
+    节点沦陷时清零；BuildingSystem 独立维护，不属于 BuildingInstance
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-building-003
+  system: Building
+  gdd: building-system.md
+  requirement: |
+    RequestBuild 原子性：ResourceConfig.CanAfford 预检 → DeductResources 扣费 →
+    创建 BuildingInstance → RefreshProductionCache；失败时 RestoreResources 回滚
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-building-004
+  system: Building
+  gdd: building-system.md
+  requirement: |
+    GetNodeProductionDelta(nodeId) → {orePerSec, energyPerSec}；
+    RefreshProductionCache() 在每次建造后调用；建筑产出由 ResourceConfig SO 查询
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Fleet Dispatch System (ADR-0017) ===
+- id: TR-fleet-001
+  system: Fleet
+  gdd: fleet-dispatch-system.md
+  requirement: |
+    DispatchOrder 数据结构：OrderId、ShipId、LockedPath（路径快照）、
+    CurrentHopIndex、HopProgress(秒)、FLEET_TRAVEL_TIME=3s/hop、IsReturning
+  domain: Data Structure
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-fleet-002
+  system: Fleet
+  gdd: fleet-dispatch-system.md
+  requirement: |
+    RequestDispatch：ShipState 校验(DOCKED) → StarMapPathfinder.FindPath BFS →
+    创建 DispatchOrder → ShipState → IN_TRANSIT
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-fleet-003
+  system: Fleet
+  gdd: fleet-dispatch-system.md
+  requirement: |
+    Update() 每帧：HopProgress += SimClock.Instance.DeltaTime；
+    到达目的地（HopProgress ≥ FLEET_TRAVEL_TIME）→ CurrentHopIndex++ → 状态转换
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-fleet-004
+  system: Fleet
+  gdd: fleet-dispatch-system.md
+  requirement: |
+    CancelDispatch：计算反向路径（Take(CurrentHopIndex+1).Reverse()），
+    重置 CurrentHopIndex=0，HopProgress=0，IsReturning=true
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-fleet-005
+  system: Fleet
+  gdd: fleet-dispatch-system.md
+  requirement: |
+    到达 ENEMY 节点：玩家在驾驶舱 → CombatSystem.BeginCombat()；
+    无人值守 → ResolveUnattendedCombat(U-4 路径)
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-fleet-006
+  system: Fleet
+  gdd: fleet-dispatch-system.md
+  requirement: |
+    ShipDataModel.Destroy() 被调用时（IN_TRANSIT 期间）→
+    FleetDispatchSystem.OnShipDestroyed() 回调清理孤立 DispatchOrder
+  domain: Integration
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Ship Control System (ADR-0018, Proposed) ===
+- id: TR-shipctrl-001
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    P-1: Rigidbody.AddForce(transform.forward × ThrustPower × thrust_input, ForceMode.Force)；
+    P-2: 软速度上限：velocity.magnitude > SHIP_MAX_SPEED 时施加反向力
+  domain: Physics
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-002
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    P-4: rb.MoveRotation(rb.rotation × Quaternion.Euler(0, TurnSpeed × steer × dt, 0))；
+    P-5: rb.angularVelocity = Vector3.zero 每帧重置
+  domain: Physics
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-003
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    P-6: Y 位置固定 FLIGHT_PLANE_Y；速度 Y 分量归零；
+    禁止使用 rb.velocity 直接赋值
+  domain: Physics
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-004
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    C-1: CockpitInputs 仅在 ShipState ∈ {IN_COCKPIT, IN_COMBAT} 时处理；
+    C-2: 死区公式：normalized = Clamp01((|offset| - DEAD_ZONE) / (1 - DEAD_ZONE))，
+    DEAD_ZONE=0.08；C-3: offset.y < 0 时 thrust=0
+  domain: Input
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-005
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    C-4: 右摇杆 aim assist 叠加到转向：steer_total = steer_left + 0.5 × steer_right；
+    C-5: 多点触控隔离：左右区域各自锁定首个进入的 fingerId，手指抬起时释放
+  domain: Input
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-006
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    L-1: SoftLockTarget 在 LOCK_RANGE(80m) 内最近敌人中选取；
+    L-2: 目标稳定：仅在目标离开范围或被摧毁时重新选取；
+    L-3: aimAngle ≤ FIRE_ANGLE_THRESHOLD(15°) 时触发 FireRequested 事件
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-007
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    V-1~V-4: 第三人称 SmoothDamp 跟随（0.1s 位置，0.15s 旋转）/
+    第一人称硬绑定 CockpitAnchor；切换时长 CAMERA_SWITCH_DURATION=0.3s，
+    切换期间输入不中断
+  domain: Presentation
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-008
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    S-1~S-4: 进入 IN_COCKPIT → 缓存 ThrustPower/TurnSpeed，重置 SoftLockTarget，
+    激活输入监听；退出 → 停用输入监听，清空 fingerId，velocity=Vector3.zero
+  domain: State Machine
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-shipctrl-009
+  system: ShipControl
+  gdd: ship-control-system.md
+  requirement: |
+    aimAngle 计算：Vector3.Angle(transform.forward, toEnemy normalized)；
+    每帧更新，供 CombatSystem 订阅 FireRequested 事件
+  domain: Logic
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === Ship HUD (no dedicated ADR — GAP) ===
+- id: TR-hud-001
+  system: HUD
+  gdd: ship-hud.md
+  requirement: |
+    Hull 条：health_ratio = CurrentHull / MaxHull，订阅 HealthSystem.OnHullChanged 更新；
+    显示格式：弧形血条（visual）或数值百分比
+  domain: UI
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-hud-002
+  system: HUD
+  gdd: ship-hud.md
+  requirement: |
+    武器冷却显示：同步到 _fireTimer；显示剩余冷却时间或冷却动画；
+    建议格式：武器图标填充动画或进度条
+  domain: UI
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+  note: GAP — no ADR exists for this requirement; suggested ADR-0019 (ShipHUD Architecture)
+
+- id: TR-hud-003
+  system: HUD
+  gdd: ship-hud.md
+  requirement: |
+    软锁定准星：订阅 OnLockAcquired(OnLockLost 事件，渲染锁定框；
+    准星颜色/形态在 ADR-0018 (Proposed) 中定义
+  domain: UI
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+# === StarMap UI (no dedicated ADR — inferred from GDDs) ===
+- id: TR-starmapui-001
+  system: StarMapUI
+  gdd: star-map-ui.md
+  requirement: |
+    节点选择通过 UI Toolkit EventSystem（优先于 StarMapActions InputAction）；
+    触摸热区 ≥ 48dp，最小触摸目标 44×44dp
+  domain: UI/Input
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-starmapui-002
+  system: StarMapUI
+  gdd: star-map-ui.md
+  requirement: |
+    节点颜色编码（Ownership）：PLAYER=蓝，ENEMY=红，NEUTRAL=灰；
+    舰队图标跟随 StarMapData.DockedFleet 更新
+  domain: UI
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-starmapui-003
+  system: StarMapUI
+  gdd: star-map-ui.md
+  requirement: |
+    舰队调度请求：FleetDispatchSystem.RequestDispatch(shipId, nodeId)；
+    派遣按钮可交互条件：ShipState=DOCKED，节点 EXPLORED，无 IN_TRANSIT 冲突
+  domain: UI
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
+
+- id: TR-starmapui-004
+  system: StarMapUI
+  gdd: star-map-ui.md
+  requirement: |
+    资源显示：订阅 ColonySystem.OnResourcesUpdated(ResourceSnapshot)；
+    SimRate 按钮（⏸/1×/5×/20×）订阅 SimRateChangedChannel
+  domain: UI
+  status: active
+  created: 2026-04-15
+  revised: 2026-04-15
