@@ -1,0 +1,33 @@
+%YAML 1.1
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 13960, guid: 0000000000000000e000000000000000, type: 3}
+  m_Name: PackageManagerSettings
+  m_EditorClassIdentifier:
+  m_ShowPreviewPackages: 1
+  m_EnablePreviewPackages: 1
+  m_EnablePackageDependency: 1
+  m_EnableAssetStorePackages: 1
+  m_AdvancedSettingsExpanded: 1
+  m_PackageManagerUrl: https://package.unity.com
+  m_UnityCloudBuildEnabled: 0
+  m_UnityCloudBuildMinimumTimeBetweenRetriesForPublish: 5
+  m_UnityCloudBuildMinimumTimeBetweenRetriesForSyncSubmodule: 5
+  m_DisableTextMeshProWarning: 0
+  m_ProjectIdentifier: com.starchainhegemony.mygame
+  m_OrganizationId:
+  m_EnableGZip: 1
+  m_CacheServerPort: 0
+  m_CacheServerNamespace: default
+  m_CacheServerEnforceAcl: 0
+  m_CacheServerShowDebugPanel: 0
+  m_CacheServerDownloadSpeedLimit: 0
+  m_CacheServerUploadSpeedLimit: 0
+  m_CacheServerEnableDownload: 1
+  m_CacheServerEnableUpload: 1

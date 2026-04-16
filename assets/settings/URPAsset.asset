@@ -1,0 +1,83 @@
+%YAML 1.1
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf2ed3007b1a4a1b82c752a7fe2a61db, type: 3}
+  m_Name: URPAsset
+  m_EditorClassIdentifier:
+  m_RendererType: 1
+  m_RendererData: {fileID: 0}
+  m_RequireDepthTexture: 0
+  m_RequireOpaqueTexture: 0
+  m_OpaqueDownsampling: 1
+  m_SupportsHDR: 0
+  m_HDRColorBufferPrecision: 0
+  m_MSAA: 2
+  m_RenderScale: 1
+  m_UpsamplingFilter: 0
+  m_XRMode: 0
+  m_ShadowType: 1
+  m_RealTimeShadowColorResolution: 2048
+  m_ShadowMapDepthResolution: 2048
+  m_ShadowCascades: 0
+  m_ShadowCascade4Split: {x: 0.05, y: 0.2, z: 0.25, w: 0.35}
+  m_ShadowCascade2Split: {x: 0.1, y: 0.3}
+  m_UseRenderingLayers: 0
+  m_TransparentSettings:
+    m_TransparentReuseRenderData: 0
+    m_TransparentSettingsPermutation: 0
+    m_TransparentCullMode: 2
+    m_TransparentReceiveShadows: 0
+    m_TransparentSortPriority: 0
+    m_TransparentMRPFallback: 0
+    m_TransparentPragmaFallback: 0
+  m_DefaultRendererState: 0
+  m_Type: 0
+  m_ReflectionProbeBlendZones: []
+  m_LightsPerObjectLimit: 16
+  m_LightProbeVolumeResolution: 8
+  m_LightProbeProxyVolumeCount: 4
+  m_PVRBudget: 128
+  m_PVRGibpusScatter: 1
+  m_PVRDirectSampleCount: 8
+  m_PVRSampleCount: 32
+  m_PVRBounceScale: 1
+  m_PVRFilterTypeDirect: 1
+  m_PVRFilterTypeIndirect: 1
+  m_PVRFilterTypeShadow: 1
+  m_PVRDirectBandwidth: 1
+  m_PVRIndirectBandwidth: 1
+  m_PVRShadowBandwidth: 1
+  m_PVRScattering: 5
+  m_PVVRDirBandwidth: 1
+  m_PVRScatterIndirectScale: 0.5
+  m_PVRSampleCountDirectional: 8
+  m_PVRSampleCountOther: 8
+  m_PVRFilterTypeDirectional: 1
+  m_PVREnvironmentHierarchy: 0
+  m_PVRCustomBakedKuwaharaTexture: {fileID: 0}
+  m_EnvironmentDepthScheduler: 1
+  m_EnvironmentLightBlending: 0
+  m_EnvironmentHiZCubemap: 0
+  m_EnvironmentB FilterSampleCount: 2
+  m_EnvironmentHiZCubemapManualClearB Test: 0
+  m_EnvironmentHiZCubemapClearValue: {r: 0, g: 0, b: 0, a: 0}
+  m_RenderingLayerNames: []
+  m_LightLayerMask: 1
+  m_CustomDepthRendering: 0
+  m_CustomDepthValues: []
+  m_ReflectionProbeCustomColor: {r: 0, g: 0, b: 0, a: 1}
+  m_AdaptiveProbeVolumeSettings:
+    m_AdaptiveProbeVolumeTracingFlags: 1
+    m_AdaptiveProbeVolumeResolution: 8
+    m_AdaptiveProbeVolumeShadingRadius: 20
+    m_AdaptiveProbeVolumeBandsCount: 3
+    m_AdaptiveProbeVolumeSampleCountMultiplier: 4
+    m_AdaptiveProbeVolumeOrthographicCameraTracingSpacing: 2
+    m_AdaptiveProbeVolumeNormalBias: 0.05
+    m_AdaptiveProbeVolumeMaxDepthOverrideDistance: 1000

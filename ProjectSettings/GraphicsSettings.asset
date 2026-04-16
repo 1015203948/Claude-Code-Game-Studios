@@ -1,0 +1,234 @@
+%YAML 1.1
+--- !u!30 &1
+GraphicsSettings:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 3
+  m_Deferred:
+    m_Mode: 1
+    m_Shader: {fileID: 69, guid: 0000000000000000f000000000000000, type: 0}
+  m_DeferredReflections:
+    m_Mode: 1
+    m_Shader: {fileID: 74, guid: 0000000000000000f000000000000000, type: 0}
+  m_ScreenSpaceShadows:
+    m_Mode: 1
+    m_Shader: {fileID: 64, guid: 0000000000000000f000000000000000, type: 0}
+  m_LegacyDeferred:
+    m_Mode: 1
+    m_Shader: {fileID: 63, guid: 0000000000000000f000000000000000, type: 0}
+  m_DecryptToonShading:
+    m_Mode: 0
+    m_Shader: {fileID: 78, guid: 0000000000000000f000000000000000, type: 0}
+  m_SpeedTreeShading:
+    m_Mode: 1
+    m_Shader: {fileID: 121, guid: 0000000000000000f000000000000000, type: 0}
+  m_SpeedTreeWind:
+    m_Mode: 1
+    m_Shader: {fileID: 129, guid: 0000000000000000f000000000000000, type: 0}
+  m_AlwaysIncludedShaders:
+  - {fileID: 10753, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 15102, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 15104, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 15105, guid: 0000000000000000f000000000000000, type: 0}
+  m_PreloadedShaders: []
+  m_SpritesDefaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_CustomRenderTexture: {fileID: 0}
+  m_TransparencySortMode: 0
+  m_TransparencySortAxis: {x: 0, y: 0, z: 1}
+  m_DefaultRenderingPath: 1
+  m_DefaultMobileRenderingPath: 1
+  m_TierSettings: []
+  m_LightmapStripping: 0
+  m_FogStripping: 0
+  m_InstancingStripping: 0
+  m_BLGISubtractiveMode: 0
+  m_LightmapKeepShadowMasks: 1
+  m_LightmapKeepSubtractiveInfo: 1
+  m_FogKeepLinear: 1
+  m_AlbedoSwatchInfos: []
+  m_LightsUseLinearIntensity: 1
+  m_LightsUseColorTemperature: 0
+  m_LogShaderErrors: 0
+  m_ShaderLevel: 0
+  m_ProjectName:
+  m_CompanyName:
+  m_ProductName:
+  m_AndroidProfiler: 0
+  m_AndroidFilterTouches: 0
+  m_AndroidShowActivityIndicatorOnLoading: 1
+  m_AndroidSupportedAspectRatio: 1
+  m_AndroidMaxAspectRatio: 2.1
+  m_AndroidSplashScreenScale: 0
+  m_AndroidSplashScreenWidth: 0
+  m_AndroidSplashScreenHeight: 0
+  m_AndroidResizableWindow: 0
+  m_AndroidDefaultWindowWidth: 0
+  m_AndroidDefaultWindowHeight: 0
+  m_AndroidMinimumWindowWidth: 0
+  m_AndroidMinimumWindowHeight: 0
+  m_AndroidFullScreenMode: 1
+  m_AndroidRenderOutsideSafeArea: 1
+  m_AndroidUseSwappy: 1
+  m_AndroidBlitType: 0
+  m_AndroidRefreshRate: 0
+  m_AndroidActivationOnCreate: 1
+  m_AndroidAllowInnerSystemGestureRestriction: 0
+  m_AndroidUseAppShellRendering: 0
+  m_AndroidEnableFringeBenefitCapture: 1
+  m_AndroidUseLowProfileRenderer: 1
+  m_AndroidUseCustomAppBackgroundBehavior: 0
+  m_AndroidAppShellBackgroundBehavior: 0
+  m_AndroidTensorFlowLiteModelPath:
+  m_AndroidTensorFlowLiteEnableGpuDelegate: 0
+  m_AndroidTensorFlowLiteEnableNnapiDelegate: 0
+  m_AndroidTensorFlowLiteEnableXnnpackDelegate: 1
+  m_AndroidTensorFlowLiteEnableCoreMlDelegate: 0
+  m_AndroidMTRendering: 1
+  m_AndroidMTRenderingForCompute: 0
+  m_OpenGLRequireES31: 0
+  m_OpenGLRequireES31AEP: 0
+  m_OpenGLRequireES32: 0
+  m_OpenGLESIgnoreDriverThrottling: 0
+  m_VulkanNumSwapchainBuffers: 3
+  m_VulkanEnableSetSRGBWrite: 1
+  m_VulkanEnablePreTransform: 0
+  m_VulkanEnableLateAcquireNextImage: 0
+  m_VulkanNumRetiredBuffers: 2
+  m_VulkanEnableDynamicRendering: 0
+  m_VulkanEnableMemorylessFramebuffer: 0
+  m_VulkanDisablePipelineStatistics: 1
+  m_ActiveColorGamuts: 0100000001000000
+  m_BuildTargetBatching: []
+  m_BuildTargetGraphicsJobs:
+  - m_BuildTarget: MacStandaloneSupport
+    m_GraphicsJobs: 0
+  - m_BuildTarget: Switch
+    m_GraphicsJobs: 1
+  - m_BuildTarget: MetroSupport
+    m_GraphicsJobs: 1
+  - m_BuildTarget: AppleTVSupport
+    m_GraphicsJobs: 0
+  - m_BuildTarget: BJMSupport
+    m_GraphicsJobs: 1
+  - m_BuildTarget: LinuxHeadlessSupport
+    m_GraphicsJobs: 1
+  - m_BuildTarget: PS4Player
+    m_GraphicsJobs: 1
+  - m_BuildTarget: iOSSupport
+    m_GraphicsJobs: 0
+  - m_BuildTarget: WindowsStandaloneSupport
+    m_GraphicsJobs: 1
+  - m_BuildTarget: XboxOnePlayer
+    m_GraphicsJobs: 1
+  - m_BuildTarget: LuminSupport
+    m_GraphicsJobs: 0
+  - m_BuildTarget: AndroidPlayer
+    m_GraphicsJobs: 0
+  - m_BuildTarget: WebGLSupport
+    m_GraphicsJobs: 0
+  m_BuildTargetGraphicsJobMode: []
+  m_BuildTargetGraphicsJobPriority:
+  - m_BuildTarget: iOSSupport
+    m_GraphicsJobPriority: 0
+  - m_BuildTarget: AndroidPlayer
+    m_GraphicsJobPriority: 0
+  - m_BuildTarget: AppleTVSupport
+    m_GraphicsJobPriority: 0
+  - m_BuildTarget: WebGLSupport
+    m_GraphicsJobPriority: 0
+  m_BuildTargetOpenGLWriteOnly:
+  - m_BuildTarget: AndroidPlayer
+    m_WriteOnly: 0
+  m_BuildTargetDisableNoGraphicsSWDevide:
+  - m_BuildTarget: iOSSupport
+    m_DisableNoGraphicsSWDevide: 0
+  - m_BuildTarget: AndroidPlayer
+    m_DisableNoGraphicsSWDevide: 0
+  - m_BuildTarget: AppleTVSupport
+    m_DisableNoGraphicsSWDevide: 0
+  - m_BuildTarget: WebGLSupport
+    m_DisableNoGraphicsSWDevide: 0
+  m_BuildTargetPreferGLSL: []
+  m_BuildTargetShaderLibraries: []
+  m_BuildTargetGraphicsAPIs:
+  - m_BuildTarget: AndroidPlayer
+    m_APIs: 150000000b000000
+    m_Automatic: 0
+  - m_BuildTarget: iOSSupport
+    m_APIs: 10000000
+    m_Automatic: 1
+  - m_BuildTarget: AppleTVSupport
+    m_APIs: 10000000
+    m_Automatic: 1
+  - m_BuildTarget: WebGLSupport
+    m_APIs: 0b000000
+    m_Automatic: 1
+  m_BuildTargetVRSettings: []
+  m_OpenGLUseES31: 0
+  m_OpenGLUseES31AEP: 0
+  m_OpenGLUseES32: 0
+  m_OpenGLIncludeAllIngyShaders: 0
+  m_OpenGLVisibleIngyShaders: 1
+  m_MetalVisibleIngyShaders: 1
+  m_UseCustomMainManifest: 0
+  m_UseCustomLauncherManifest: 0
+  m_UseCustomMainGradleTemplate: 0
+  m_UseCustomLauncherGradleManifest: 0
+  m_UseCustomBaseGradleTemplate: 0
+  m_UseCustomGradlePropertiesTemplate: 0
+  m_UseCustomProguardFile: 0
+  m_AndroidTargetDevices: 0
+  m_AndroidSplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_AndroidSplashScreenIconBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_AndroidSplashScreenIconBackgroundColorUsesEyeAdapter: 1
+  m_AndroidSplashScreenScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_AndroidSplashScreenScreenImageBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_AndroidStartInFullscreen: 1
+  m_AndroidRenderOutsideSafeArea: 1
+  m_AndroidUseSwappy: 1
+  m_AndroidBlitType: 0
+  m_AndroidResizableWindow: 0
+  m_AndroidDefaultWindowWidth: 0
+  m_AndroidDefaultWindowHeight: 0
+  m_AndroidMinimumWindowWidth: 0
+  m_AndroidMinimumWindowHeight: 0
+  m_AndroidFullScreenMode: 1
+  m_AndroidRefreshRate: 0
+  m_AndroidMsaaSamples: 0
+  m_AndroidTvBannerBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_AndroidUseMessageDialog: 1
+  m_AndroidUseProjectChecking: 1
+  m_AndroidUseLowProfileRenderer: 1
+  m_AndroidEnableFringeBenefitCapture: 1
+  m_AndroidUseAppShellRendering: 0
+  m_AndroidAppShellBackgroundBehavior: 0
+  m_AndroidCustomAppShellBackgroundBehavior: 0
+  m_AndroidCustomAppShellBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
+  m_AndroidCustomAppShellPackageName:
+  m_AndroidCustomAppShellActivityName:
+  m_AndroidCustomAppShellApplicationClass:
+  m_AndroidCustomAppShellLauncherActivityClass:
+  m_AndroidCustomAppShellRenderMode: 0
+  m_AndroidCustomAppShellUseEdgeToEdgeDisplay: 0
+  m_BuildTargetCustomRegistrySettings: {}
+  m_LightmapOverrideOnBakedLightmapLayers: 0
+  m_ExcludedTargetPlatforms: []
+  m_AllowUnsafeCode: 0
+  m_UseDeterministicExportForIngyShaders: 1
+  m_UseLegacyNativePassAssignments: 0
+  m_UseNativeLanes: 1
+  m_D3D12FullscreenModeOverride: 0
+  m_DisplayRotationAutoOrientation: 1
+  m_DisplayRotationUseMultiWindow: 1
+  m_AllowedRotations: 224
+  m_UseHDRDisplay: 0
+  m_ColorSpace: 0
+  m_UseFullAutomaticLODBake: 1
+  m_AutomaticLODBakeFPS: 30
+  m_AutomaticLODBakeShadowCascades: 0
+  m_AutomaticLODBakeShadowMapResolutions: 0
+  m_AutomaticLODBakeShadowDistance: 0
+  m_AutomaticLODBakeSSAO: 0
+  m_AutomaticLODBakeDither: 0
