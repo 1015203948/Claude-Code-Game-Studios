@@ -1,0 +1,59 @@
+name: Automated Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-editmode:
+    name: Run Edit Mode Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Run Edit Mode Tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          testMode: editmode
+          artifactsPath: test-results/editmode
+          coverageOptions: generateAdditionalMetrics;generateHtmlReport;generateBadgeReport
+
+      - name: Upload Edit Mode Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-editmode
+          path: test-results/editmode
+
+  test-playmode:
+    name: Run Play Mode Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Run Play Mode Tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          testMode: playmode
+          artifactsPath: test-results/playmode
+
+      - name: Upload Play Mode Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-playmode
+          path: test-results/playmode

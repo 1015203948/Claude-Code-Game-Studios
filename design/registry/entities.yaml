@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 1
-last_updated: ""
+last_updated: "2026-04-13"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -106,7 +106,272 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: net_ore_production
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+      - design/gdd/building-system.md
+      - design/gdd/colony-system.md
+    variables:
+      - mine_count
+      - ORE_PER_MINE
+    output_range: [0, "∞ (clamped by ORE_CAP)"]
+    expression: "mine_count × ORE_PER_MINE"
+    added: 2026-04-12
+    revised: ""
+
+  - name: net_energy_production
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+      - design/gdd/building-system.md
+      - design/gdd/colony-system.md
+    variables:
+      - COLONY_BASE_ENERGY
+      - mine_count
+      - ENERGY_PER_MINE
+      - shipyard_count
+      - ENERGY_PER_SHIPYARD
+    output_range: ["-∞", "+∞"]
+    expression: "COLONY_BASE_ENERGY + (mine_count × ENERGY_PER_MINE) + (shipyard_count × ENERGY_PER_SHIPYARD)"
+    notes: "Negative output triggers HUD warning only (no penalty in MVP)"
+    added: 2026-04-12
+    revised: ""
+
+  - name: can_afford
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+      - design/gdd/building-system.md
+      - design/gdd/colony-system.md
+    variables:
+      - ore_current
+      - energy_current
+      - ore_cost
+      - energy_cost
+    output_range: ["false", "true"]
+    expression: "(ore_current >= ore_cost) AND (energy_current >= energy_cost)"
+    added: 2026-04-12
+    revised: ""
+
+  - name: time_to_afford
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    variables:
+      - ore_deficit
+      - energy_deficit
+      - net_ore_production
+      - net_energy_production
+    output_range: [0, "∞"]
+    expression: "max(ore_deficit/net_ore_production, energy_deficit/net_energy_production)"
+    notes: "Returns Infinity if net production <= 0 and deficit > 0 (no divide-by-zero)"
+    added: 2026-04-12
+    revised: ""
+
+  - name: IsVisible
+    status: active
+    source: design/gdd/star-map-system.md
+    referenced_by:
+      - design/gdd/star-map-system.md
+    variables:
+      - n           # target StarNode
+      - P           # set of all PLAYER-owned StarNodes
+      - GraphDistance
+      - VISION_RADIUS
+    output_range: [false, true]
+    expression: "∃p ∈ P : GraphDistance(p, n) ≤ VISION_RADIUS"
+    notes: "true → fogState=VISIBLE; false + was-ever-visible → EXPLORED; never-visible → UNEXPLORED"
+    added: 2026-04-12
+    revised: ""
+
+  - name: GetOreMultiplier
+    status: active
+    source: design/gdd/star-map-system.md
+    referenced_by:
+      - design/gdd/star-map-system.md
+      - design/gdd/building-system.md
+    variables:
+      - nodeType    # HOME_BASE | STANDARD | RICH
+      - RICH_NODE_ORE_MULTIPLIER
+    output_range: [1.0, "RICH_NODE_ORE_MULTIPLIER"]
+    expression: "RICH_NODE_ORE_MULTIPLIER if nodeType=RICH, else 1.0"
+    notes: "Output multiplied against net_ore_production by the colony system"
+    added: 2026-04-12
+    revised: ""
+
+  - name: is_valid_ship_instance
+    status: active
+    source: design/gdd/ship-system.md
+    referenced_by:
+      - design/gdd/ship-system.md
+      - design/gdd/ship-health-system.md
+    variables:
+      - ship.MaxHull       # float, must be > 0
+      - ship.ThrustPower   # float, must be > 0
+      - ship.TurnSpeed     # float, must be > 0
+      - ship.WeaponSlots   # int, must be >= 0
+    output_range: [false, true]
+    expression: "(MaxHull > 0) AND (ThrustPower > 0) AND (TurnSpeed > 0) AND (WeaponSlots >= 0)"
+    notes: "Data integrity guard — called before any ShipInstance is created; false = reject creation"
+    added: 2026-04-12
+    revised: ""
+
+  - name: node_ore_output
+    status: active
+    source: design/gdd/building-system.md
+    referenced_by:
+      - design/gdd/building-system.md
+      - design/gdd/colony-system.md
+    variables:
+      - mine_count       # int，该节点 BasicMine 建筑数量
+      - ORE_PER_MINE     # int，固定 10，来自资源系统
+      - GetOreMultiplier # float，1.0–RICH_NODE_ORE_MULTIPLIER，来自星图系统
+    output_range: [0, "∞ (实际受 ORE_CAP 截断)"]
+    expression: "mine_count × ORE_PER_MINE × GetOreMultiplier(nodeId)"
+    notes: "节点矿石产出公式，合并矿场数量和节点类型乘数；RICH节点产出是STANDARD节点RICH_NODE_ORE_MULTIPLIER倍；由殖民地系统每tick调用GetNodeProductionDelta消费"
+    added: 2026-04-12
+    revised: ""
+
+  - name: weapon_damage
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+      - design/gdd/ship-combat-system.md
+    variables:
+      - BASE_DAMAGE     # float, 武器配置中定义的固定伤害值；MVP 推荐值 8
+      - ACCURACY_COEFF  # float, 命中精度修正系数；MVP 固定 1.0
+    output_range: [0.0, 10.0]
+    expression: "BASE_DAMAGE × ACCURACY_COEFF"
+    notes: "武器命中伤害公式；MVP 阶段 ACCURACY_COEFF=1.0，输出等于 BASE_DAMAGE；输出作为 apply_damage 的 finalDamage 输入；飞船战斗系统 GDD 完成后需加入 referenced_by"
+    added: 2026-04-12
+    revised: ""
+
+  - name: collision_damage
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+    variables:
+      - COLLISION_COEFF   # float, 速度平方映射伤害的缩放系数；推荐值 0.02
+      - relative_speed    # float, 碰撞相对速度 m/s，由 Unity Physics 提供
+      - COLLISION_MIN     # float, 最低碰撞伤害；推荐值 1.0
+      - COLLISION_MAX     # float, 最高碰撞伤害；推荐值 10.0（MaxHull×0.10）
+    output_range: [1.0, 10.0]
+    expression: "clamp(COLLISION_COEFF × relative_speed², COLLISION_MIN, COLLISION_MAX)"
+    notes: "碰撞伤害公式；clamp 保证低速擦碰不会 0 伤害，高速碰撞不会一击致命；relative_speed < COLLISION_MIN_SPEED 时跳过计算"
+    added: 2026-04-12
+    revised: ""
+
+  - name: health_ratio
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+      - design/gdd/star-map-ui.md
+      - design/gdd/ship-hud.md
+    variables:
+      - CurrentHull  # float, 飞船当前剩余船体值
+      - MaxHull      # float, 飞船最大船体值；MVP 值 100
+    output_range: [0.0, 1.0]
+    expression: "CurrentHull / MaxHull"
+    notes: "生命值比率；供 HUD 和星图 UI 读取；阈值：>0.50=HEALTHY, 0.25–0.50=DAMAGED, 0–0.25=CRITICAL, ==0=DESTROYED；star-map-ui.md 和 ship-hud.md 已加入 referenced_by ✅"
+    added: 2026-04-12
+    revised: "2026-04-13"
+
+  - name: apply_damage
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+      - design/gdd/ship-combat-system.md
+      - design/gdd/enemy-system.md
+    variables:
+      - CurrentHull   # float, 受击前飞船当前船体值
+      - finalDamage   # float, 本次伤害量；来源为 weapon_damage 或 collision_damage
+      - MaxHull       # float, 飞船最大船体值；作为 Clamp 上界
+    output_range: [0.0, "MaxHull"]
+    expression: "Clamp(CurrentHull - finalDamage, 0, MaxHull)"
+    notes: "核心伤害应用公式；唯一有权修改 CurrentHull 的计算路径；newHull <= 0 触发死亡序列（规则 H-5）；负 finalDamage 视为 0"
+    added: 2026-04-12
+    revised: ""
+
+  - name: global_ore_production
+    status: active
+    source: design/gdd/colony-system.md
+    referenced_by:
+      - design/gdd/colony-system.md
+    variables:
+      - n                  # StarNode，所有 ownershipState == PLAYER 的节点
+      - node_ore_output    # float，BuildingSystem.GetNodeProductionDelta(nodeId).orePerSec
+    output_range: [0, "∞（实际受 ORE_CAP 截断于 tick_ore_update）"]
+    expression: "Σ node_ore_output(n)  for all n where n.ownershipState == PLAYER"
+    notes: "全局矿石净产出；每 tick T-3 重新计算；缓存值暴露为 GetNetOreRate()"
+    added: 2026-04-12
+    revised: ""
+
+  - name: global_energy_production
+    status: active
+    source: design/gdd/colony-system.md
+    referenced_by:
+      - design/gdd/colony-system.md
+    variables:
+      - n                    # StarNode，所有 ownershipState == PLAYER 的节点
+      - node_energy_delta    # float，BuildingSystem.GetNodeProductionDelta(nodeId).energyPerSec；可为负
+    output_range: ["-∞", "+∞"]
+    expression: "Σ node_energy_delta(n)  for all n where n.ownershipState == PLAYER"
+    notes: "全局能源净产出；负值触发 HUD 警告（MVP 无实际惩罚）；缓存值暴露为 GetNetEnergyRate()"
+
+  - name: aim_angle
+    status: active
+    source: design/gdd/ship-control-system.md
+    referenced_by:
+      - design/gdd/ship-control-system.md
+      - design/gdd/ship-combat-system.md
+    variables:
+      - target.position   # Vector3, 软锁定目标的世界坐标
+      - transform.position # Vector3, 飞船自身的世界坐标
+      - transform.forward  # Vector3（单位向量）, 飞船当前朝向
+    output_range: [0.0, 180.0]
+    expression: "Vector3.Angle(transform.forward, normalize(target.position - transform.position))"
+    notes: "飞船朝向与目标方向的夹角（degrees）；0° = 正对目标，180° = 背对目标；供自动开火规则（L-4）和软锁定激活规则（L-1）使用；飞船战斗系统 GDD 完成后需加入 referenced_by"
+    added: 2026-04-12
+    revised: ""
+
+  - name: unattended_combat_result
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+    variables:
+      - P   # int, 玩家舰队数量（飞船数）
+      - E   # int, 敌方舰队数量（飞船数）
+    output_range: ["VICTORY", "DEFEAT"]
+    expression: "while P>0 and E>0: P-=1; E-=1; if E<=0 and P>0 → VICTORY else → DEFEAT"
+    notes: "无人值守战斗结算公式；每轮双方各损失 1 艘；平局（P=E 同时归零）判 DEFEAT（保守设计）；结算在单帧内同步完成"
+    added: 2026-04-12
+    revised: ""
+
+  - name: enemy_fire_rate_timer
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+    variables:
+      - _fireTimer         # float, 累积计时器（秒）
+      - WEAPON_FIRE_RATE   # float, 武器射速（发/秒）
+      - Time.deltaTime     # float, Unity 帧时间
+    output_range: [0.0, "1f/WEAPON_FIRE_RATE"]
+    expression: "_fireTimer += Time.deltaTime; if _fireTimer >= (1f/WEAPON_FIRE_RATE): fire(); _fireTimer = 0f"
+    notes: "武器射速计时器；帧率无关；同时适用于玩家飞船和敌方飞船；WEAPON_FIRE_RATE=0 时 clamp 至 0.1f 防止除零"
+    added: 2026-04-12
+    revised: ""
 
 # Example:
 #
@@ -139,9 +404,624 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: ORE_PER_MINE
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: 10
+    unit: ore/sec
+    added: 2026-04-12
+    revised: ""
 
-# Example:
+  - name: ENERGY_PER_MINE
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: -2
+    unit: energy/sec
+    added: 2026-04-12
+    revised: ""
+
+  - name: ENERGY_PER_SHIPYARD
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: -3
+    unit: energy/sec
+    added: 2026-04-12
+    revised: ""
+
+  - name: COLONY_BASE_ENERGY
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: 5
+    unit: energy/sec
+    added: 2026-04-12
+    revised: ""
+
+  - name: MINE_ORE_COST
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: 50
+    unit: ore
+    added: 2026-04-12
+    revised: ""
+
+  - name: MINE_ENERGY_COST
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: 20
+    unit: energy
+    added: 2026-04-12
+    revised: ""
+
+  - name: SHIPYARD_ORE_COST
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: 80
+    unit: ore
+    added: 2026-04-12
+    revised: ""
+
+  - name: SHIPYARD_ENERGY_COST
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+    value: 30
+    unit: energy
+    added: 2026-04-12
+    revised: ""
+
+  - name: SHIP_ORE_COST
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+      - design/gdd/ship-system.md
+      - design/gdd/colony-system.md
+    value: 30
+    unit: ore
+    added: 2026-04-12
+    revised: ""
+
+  - name: SHIP_ENERGY_COST
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+      - design/gdd/ship-system.md
+      - design/gdd/colony-system.md
+    value: 15
+    unit: energy
+    added: 2026-04-12
+    revised: ""
+
+  - name: ORE_CAP
+    status: active
+    source: design/gdd/resource-system.md
+    referenced_by:
+      - design/gdd/resource-system.md
+      - design/gdd/colony-system.md
+      - design/gdd/star-map-ui.md
+    value: TBD
+    unit: ore
+    added: 2026-04-12
+    revised: ""
+    notes: "占位值，原型验证后确定。参考：ORE_PER_MINE × 100"
+
+  - name: VISION_RADIUS
+    status: active
+    source: design/gdd/star-map-system.md
+    referenced_by:
+      - design/gdd/star-map-system.md
+    value: 1
+    unit: hops
+    safe_range: "1–3 (safe_min=1)"
+    added: 2026-04-12
+    revised: ""
+    notes: "玩家占领节点照亮的最大跳数；=0 时仅被占领节点本身可见（测试用途）"
+
+  - name: RICH_NODE_ORE_MULTIPLIER
+    status: active
+    source: design/gdd/star-map-system.md
+    referenced_by:
+      - design/gdd/star-map-system.md
+    value: 2.0
+    unit: multiplier
+    safe_range: "1.2–4.0"
+    added: 2026-04-12
+    revised: ""
+    notes: "RICH 节点矿石产量放大系数；应用于殖民地系统的 net_ore_production"
+
+  - name: FLEET_TRAVEL_TIME
+    status: active
+    source: design/gdd/star-map-system.md
+    referenced_by:
+      - design/gdd/star-map-system.md
+      - design/gdd/fleet-dispatch-system.md
+      - design/gdd/star-map-ui.md
+    value: 3.0
+    unit: seconds
+    safe_range: "1.0–30.0"
+    added: 2026-04-12
+    revised: ""
+    notes: "舰队跨一条边的飞行时间；取消移动时返回时间等于已行驶时间"
+
+  - name: HOME_BASE_LOSS_CONDITION
+    status: active
+    source: design/gdd/star-map-system.md
+    referenced_by:
+      - design/gdd/star-map-system.md
+    value: true
+    unit: bool
+    safe_range: "true / false"
+    added: 2026-04-12
+    revised: ""
+    notes: "false 用于测试；正式对局必须为 true"
+
+  - name: SHIP_MAX_HULL
+    status: active
+    source: design/gdd/ship-system.md
+    referenced_by:
+      - design/gdd/ship-system.md
+      - design/gdd/ship-health-system.md
+    value: 100
+    unit: HP
+    safe_range: "50–500"
+    added: 2026-04-12
+    revised: "2026-04-12"
+    notes: "飞船最大生命值；原型起始值 100 HP（由 ship-health-system.md 设计阶段确定）；最终值待 /prototype 飞船驾驶舱操控 完成后确认；过低=飞船太脆玩家不敢进驾驶舱，过高=战斗缺乏张力"
+
+  - name: SHIP_THRUST_POWER
+    status: active
+    source: design/gdd/ship-system.md
+    referenced_by:
+      - design/gdd/ship-system.md
+      - design/gdd/ship-control-system.md
+    value: TBD
+    unit: m/s²
+    safe_range: "视触屏手感测试"
+    added: 2026-04-12
+    revised: ""
+    notes: "飞船推进加速力；值待原型触屏手感测试后填入；飞船操控系统将直接引用此值"
+
+  - name: SHIP_TURN_SPEED
+    status: active
+    source: design/gdd/ship-system.md
+    referenced_by:
+      - design/gdd/ship-system.md
+      - design/gdd/ship-control-system.md
+    value: TBD
+    unit: deg/s
+    safe_range: "视触屏手感测试"
+    added: 2026-04-12
+    revised: ""
+    notes: "飞船转向角速度；值待原型触屏手感测试后填入；飞船操控系统将直接引用此值"
+
+  - name: SHIP_WEAPON_SLOTS
+    status: active
+    source: design/gdd/ship-system.md
+    referenced_by:
+      - design/gdd/ship-system.md
+      - design/gdd/ship-combat-system.md
+    value: 1
+    unit: slots
+    safe_range: "1–4 (MVP 固定为 1)"
+    added: 2026-04-12
+    revised: ""
+    notes: "MVP 阶段固定为 1 个前向武器挂点；飞船战斗系统将引用此值"
+
+  - name: BASE_DAMAGE
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+      - design/gdd/ship-combat-system.md
+      - design/gdd/enemy-system.md
+    value: 8
+    unit: HP
+    safe_range: "1–10"
+    added: 2026-04-12
+    revised: ""
+    notes: "武器基础伤害值；MVP 推荐值 8（100 HP 飞船需 13 次命中）；最终值待飞船战斗系统 GDD 设计时确认；飞船战斗系统 GDD 完成后需加入 referenced_by"
+
+  - name: ACCURACY_COEFF
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+      - design/gdd/ship-combat-system.md
+      - design/gdd/enemy-system.md
+    value: 1.0
+    unit: multiplier
+    safe_range: "0.5–1.0"
+    added: 2026-04-12
+    revised: ""
+    notes: "命中精度修正系数；MVP 固定为 1.0（无散射）；预留供未来扩展（散射武器、距离衰减）"
+
+  - name: COLLISION_COEFF
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+    value: 0.02
+    unit: HP/(m/s)²
+    safe_range: "0.001–0.1"
+    added: 2026-04-12
+    revised: ""
+    notes: "碰撞伤害缩放系数；将相对速度平方映射为伤害；过高=触屏操控精度不足导致玩家频繁受伤，过低=碰撞无感"
+
+  - name: COLLISION_MIN
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+    value: 1.0
+    unit: HP
+    safe_range: "0.0–2.0"
+    added: 2026-04-12
+    revised: ""
+    notes: "任何有效碰撞的最低伤害；防止低速擦碰无感；必须 <= COLLISION_MAX"
+
+  - name: COLLISION_MAX
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+    value: 10.0
+    unit: HP
+    safe_range: "SHIP_MAX_HULL×0.05–SHIP_MAX_HULL×0.20"
+    added: 2026-04-12
+    revised: ""
+    notes: "单次碰撞伤害上限；MVP 值 = SHIP_MAX_HULL × 0.10 = 10.0；应随 SHIP_MAX_HULL 同步调整"
+
+  - name: COLLISION_DAMAGE_COOLDOWN
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+    value: 0.5
+    unit: seconds
+    safe_range: "0.1–2.0"
+    added: 2026-04-12
+    revised: ""
+    notes: "同一碰撞对的伤害冷却时间；防止持续接触每帧扣血；过高=蹭墙规避，过低=持续接触瞬间死亡"
+
+  - name: COLLISION_MIN_SPEED
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+    value: 0.5
+    unit: m/s
+    safe_range: "0.0–2.0"
+    added: 2026-04-12
+    revised: ""
+    notes: "触发碰撞伤害的最低相对速度；低于此值跳过碰撞伤害计算；防止静止贴墙持续扣血"
+
+  - name: HULL_THRESHOLD_DAMAGED
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+      - design/gdd/ship-hud.md
+    value: 0.50
+    unit: ratio
+    safe_range: "0.30–0.70"
+    added: 2026-04-12
+    revised: "2026-04-13"
+    notes: "HEALTHY/DAMAGED 阈值边界；health_ratio <= 此值进入 DAMAGED；必须 > HULL_THRESHOLD_CRITICAL；飞船 HUD GDD 已加入 referenced_by（HUD 血条颜色阈值独立于此，HUD_HULL_CAUTION_THRESHOLD=0.33 是 HUD 显示阈值）"
+
+  - name: HULL_THRESHOLD_CRITICAL
+    status: active
+    source: design/gdd/ship-health-system.md
+    referenced_by:
+      - design/gdd/ship-health-system.md
+      - design/gdd/ship-hud.md
+    value: 0.25
+    unit: ratio
+    safe_range: "0.10–0.40"
+    added: 2026-04-12
+    revised: "2026-04-13"
+    notes: "DAMAGED/CRITICAL 阈值边界；health_ratio <= 此值进入 CRITICAL；必须 < HULL_THRESHOLD_DAMAGED；飞船 HUD GDD 已加入 referenced_by（HUD_HULL_CRITICAL_PULSE_THRESHOLD=0.20 是 HUD 独立脉冲动画阈值，不覆盖此值）"
+
+  - name: SHIP_MAX_SPEED
+    status: active
+    source: design/gdd/ship-control-system.md
+    referenced_by:
+      - design/gdd/ship-control-system.md
+      - design/gdd/ship-hud.md
+    value: TBD
+    unit: m/s
+    safe_range: "10–60"
+    added: 2026-04-12
+    revised: "2026-04-13"
+    notes: "飞船速度软上限；参考起始值 20 m/s，待原型验证后填入；飞船 HUD GDD speed_ratio 公式（D-HUD-4）引用此值作为速度颜色分级基准"
+
+  - name: LOCK_RANGE
+    status: active
+    source: design/gdd/ship-control-system.md
+    referenced_by:
+      - design/gdd/ship-control-system.md
+      - design/gdd/enemy-system.md
+    value: TBD
+    unit: m
+    safe_range: "20–200"
+    added: 2026-04-12
+    revised: ""
+    notes: "软锁定激活的最大距离；参考起始值 50 m，待原型验证后填入；敌人系统 GDD 完成后需加入 referenced_by"
+
+  - name: FIRE_ANGLE_THRESHOLD
+    status: active
+    source: design/gdd/ship-control-system.md
+    referenced_by:
+      - design/gdd/ship-control-system.md
+      - design/gdd/ship-combat-system.md
+    value: TBD
+    unit: degrees
+    safe_range: "5–30"
+    added: 2026-04-12
+    revised: ""
+    notes: "自动开火触发的最大瞄准角度；参考起始值 15°，待原型验证后填入；飞船战斗系统 GDD 完成后需加入 referenced_by"
+
+  - name: WEAPON_FIRE_RATE
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+    value: 1.0
+    unit: shots/sec
+    safe_range: "0.5–3.0"
+    added: 2026-04-12
+    revised: ""
+    notes: "武器射速；参考起始值 1.0 发/秒；过高=玩家无需精确瞄准，过低=战斗节奏拖沓；待原型验证后确认"
+
+  - name: WEAPON_RANGE
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+    value: 200
+    unit: m
+    safe_range: "50–500"
+    added: 2026-04-12
+    revised: ""
+    notes: "武器有效射程；参考起始值 200m；过大=战斗缺乏机动压力，过小=触屏精度要求过高；待原型验证后确认"
+
+  - name: PROJECTILE_VISUAL_DURATION
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+    value: 0.05
+    unit: seconds
+    safe_range: "0.02–0.2"
+    added: 2026-04-12
+    revised: ""
+    notes: "弹道 LineRenderer 视觉持续时间；过长=弹道残影堆叠，过短=玩家看不到射击反馈"
+
+  - name: FLANK_ENGAGE_RANGE
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+      - design/gdd/enemy-system.md
+    value: 80
+    unit: m
+    safe_range: "30–150"
+    added: 2026-04-12
+    revised: ""
+    notes: "敌方 AI 从接近阶段切换到侧翼包抄阶段的距离阈值；参考起始值 80m；待原型验证后确认"
+
+  - name: FLANK_OFFSET
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+      - design/gdd/enemy-system.md
+    value: 30
+    unit: m
+    safe_range: "10–60"
+    added: 2026-04-12
+    revised: ""
+    notes: "敌方 AI 侧翼包抄目标点相对玩家飞船后方的偏移距离；参考起始值 30m；待原型验证后确认"
+
+  - name: ENEMY_MOVE_SPEED
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+      - design/gdd/enemy-system.md
+    value: 15
+    unit: m/s
+    safe_range: "5–30"
+    added: 2026-04-12
+    revised: ""
+    notes: "敌方飞船移动速度；参考起始值 15 m/s；应与 SHIP_MAX_SPEED 对比调整，使玩家可以逃脱但需要技巧"
+
+  - name: ENEMY_TURN_SPEED
+    status: active
+    source: design/gdd/ship-combat-system.md
+    referenced_by:
+      - design/gdd/ship-combat-system.md
+      - design/gdd/enemy-system.md
+    value: 90
+    unit: deg/s
+    safe_range: "45–180"
+    added: 2026-04-12
+    revised: ""
+    notes: "敌方飞船转向角速度；参考起始值 90 deg/s；过高=敌方追踪过于精准，过低=敌方无法完成侧翼包抄"
+
+  - name: SPAWN_RADIUS
+    status: active
+    source: design/gdd/enemy-system.md
+    referenced_by:
+      - design/gdd/enemy-system.md
+    value: 150
+    unit: m
+    safe_range: "80–300"
+    added: 2026-04-12
+    revised: ""
+    notes: "敌方飞船生成半径；以玩家位置为圆心；过大=入场 VFX 在移动端屏幕不可见，过小=玩家来不及反应；待原型验证"
+
+  - name: SPAWN_DELAY_MIN
+    status: active
+    source: design/gdd/enemy-system.md
+    referenced_by:
+      - design/gdd/enemy-system.md
+    value: 3
+    unit: seconds
+    safe_range: "1–5"
+    added: 2026-04-12
+    revised: ""
+    notes: "敌方实例生成后进入 APPROACHING 的最短随机延迟；低于 2s 玩家来不及定向"
+
+  - name: SPAWN_DELAY_MAX
+    status: active
+    source: design/gdd/enemy-system.md
+    referenced_by:
+      - design/gdd/enemy-system.md
+    value: 5
+    unit: seconds
+    safe_range: "3–10"
+    added: 2026-04-12
+    revised: ""
+    notes: "敌方实例生成后进入 APPROACHING 的最长随机延迟；过高会让入场等待感无聊"
+
+  - name: FLANK_SIDE_OFFSET
+    status: active
+    source: design/gdd/enemy-system.md
+    referenced_by:
+      - design/gdd/enemy-system.md
+    value: 5
+    unit: m
+    safe_range: "2–15"
+    added: 2026-04-12
+    revised: ""
+    notes: "ai-0 与 ai-1 侧翼目标点的左右差异化偏移量；防止两实例重叠于同一点；待原型验证"
+
+  - name: SPEED_LERP_COEFF
+    status: active
+    source: design/gdd/ship-hud.md
+    referenced_by:
+      - design/gdd/ship-hud.md
+    value: 0.15
+    unit: ratio/frame
+    safe_range: "0.05–0.40"
+    added: 2026-04-13
+    revised: ""
+    notes: "速度表数字显示阻尼系数；60fps 帧率下校准；0.15 → 约 10 帧追上实际值；过低=数字滞后感重，过高=数字跳动不稳；TODO：Vertical Slice 阶段改为帧率无关实现（指数平滑）"
+
+  - name: HUD_HULL_SAFE_THRESHOLD
+    status: active
+    source: design/gdd/ship-hud.md
+    referenced_by:
+      - design/gdd/ship-hud.md
+    value: 0.66
+    unit: ratio
+    safe_range: "0.50–0.80"
+    added: 2026-04-13
+    revised: ""
+    notes: "HUD 血条颜色 SAFE（绿色）→ CAUTION（黄色）切换阈值；独立于 ship-health-system.md 的 HULL_THRESHOLD_DAMAGED（0.50）；HUD 颜色和物理状态阈值刻意分离，HUD 视觉预警更早"
+
+  - name: HUD_HULL_CAUTION_THRESHOLD
+    status: active
+    source: design/gdd/ship-hud.md
+    referenced_by:
+      - design/gdd/ship-hud.md
+    value: 0.33
+    unit: ratio
+    safe_range: "0.20–0.50"
+    added: 2026-04-13
+    revised: ""
+    notes: "HUD 血条颜色 CAUTION（黄色）→ DANGER（红色）切换阈值；独立于 ship-health-system.md 的 HULL_THRESHOLD_CRITICAL（0.25）"
+
+  - name: HUD_HULL_CRITICAL_PULSE_THRESHOLD
+    status: active
+    source: design/gdd/ship-hud.md
+    referenced_by:
+      - design/gdd/ship-hud.md
+    value: 0.20
+    unit: ratio
+    safe_range: "0.10–0.30"
+    added: 2026-04-13
+    revised: ""
+    notes: "HUD 血条进入红色脉冲动画的阈值；必须 <= HUD_HULL_CAUTION_THRESHOLD；脉冲频率：1.5 Hz（每秒亮暗 1.5 次）"
+
+  - name: SPEED_SLOW_THRESHOLD
+    status: active
+    source: design/gdd/ship-hud.md
+    referenced_by:
+      - design/gdd/ship-hud.md
+    value: 0.30
+    unit: ratio
+    safe_range: "0.10–0.50"
+    added: 2026-04-13
+    revised: ""
+    notes: "速度表颜色 IDLE（灰）→ SLOW（蓝）切换阈值；以 SHIP_MAX_SPEED 的比例表示；velocity_magnitude < SHIP_MAX_SPEED × 0.30 时显示灰色"
+
+  - name: SPEED_CRUISE_THRESHOLD
+    status: active
+    source: design/gdd/ship-hud.md
+    referenced_by:
+      - design/gdd/ship-hud.md
+    value: 0.70
+    unit: ratio
+    safe_range: "0.50–0.90"
+    added: 2026-04-13
+    revised: ""
+    notes: "速度表颜色 SLOW（蓝）→ FULL（红橙）切换阈值；以 SHIP_MAX_SPEED 的比例表示；velocity_magnitude >= SHIP_MAX_SPEED × 0.70 时显示红橙色"
+
+  - name: SWITCH_TIME_LIMIT
+    status: active
+    source: design/gdd/dual-perspective-switching.md
+    referenced_by:
+      - design/gdd/dual-perspective-switching.md
+    value: 1.0
+    unit: seconds
+    safe_range: "0.5–3.0"
+    added: 2026-04-13
+    revised: ""
+    notes: "切换时间上限；超出时切换继续完成但记录性能警告；移动端难以在 0.5s 以下稳定达成"
+
+  - name: COCKPIT_PRELOAD_TRIGGER
+    status: active
+    source: design/gdd/dual-perspective-switching.md
+    referenced_by:
+      - design/gdd/dual-perspective-switching.md
+    value: ON_SHIP_SELECT
+    unit: enum
+    safe_range: "{ON_SHIP_SELECT, ON_ENTER_BUTTON_PRESS, DISABLED}"
+    added: 2026-04-13
+    revised: ""
+    notes: "驾驶舱预加载时机；ON_SHIP_SELECT=点选飞船即预加载（最快）；DISABLED=每次冷加载（测试用）"
+
+  - name: SYNC_FALLBACK_AUTHORITY
+    status: active
+    source: design/gdd/dual-perspective-switching.md
+    referenced_by:
+      - design/gdd/dual-perspective-switching.md
+    value: COCKPIT
+    unit: enum
+    safe_range: "{COCKPIT, MASTER}"
+    added: 2026-04-13
+    revised: ""
+    notes: "D-DVS-3 回写校验失败时的权威数据源；COCKPIT=保护玩家受伤记录；MVP 推荐 COCKPIT"
+
+# Example (remove when first real entry is added):
 #
 # constants:
 #   - name: gold_carry_limit
