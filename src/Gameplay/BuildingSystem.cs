@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Linq;
 using Game.Data;
+using Game.Channels;
 
 namespace Game.Gameplay {
 
@@ -130,6 +132,31 @@ namespace Game.Gameplay {
                 if (node.Id == nodeId) return node;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Builds a player ship of the given hull type and registers it.
+        /// </summary>
+        public DispatchOrder BuildShip(HullType hullType)
+        {
+            var blueprint = GetHullBlueprint(hullType);
+            var ship = new ShipDataModel(
+                instanceId: $"ship-{Guid.NewGuid():N}",
+                blueprintId: blueprint.name,
+                isPlayerControlled: true,
+                blueprint: blueprint,
+                shipStateChannel: ScriptableObject.CreateInstance<ShipStateChannel>()
+            );
+            GameDataManager.Instance.RegisterShip(ship);
+            Debug.Log($"[BuildingSystem] Built {hullType} ship: {ship.InstanceId}");
+            return null;
+        }
+
+        private HullBlueprint GetHullBlueprint(HullType hullType)
+        {
+            var all = Resources.LoadAll<HullBlueprint>("Data/Hulls");
+            return all.FirstOrDefault(b => b.HullType == hullType)
+                ?? throw new System.Exception($"No HullBlueprint found for {hullType}");
         }
     }
 
