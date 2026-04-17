@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Game.Channels;
+using Gameplay;
 
 namespace Game.Data {
     /// <summary>
@@ -13,7 +16,13 @@ namespace Game.Data {
     /// </summary>
     public class ShipDataModel {
         private readonly ShipStateChannel _shipStateChannel;
-        private readonly ShipBlueprint _blueprint;
+        private readonly HullBlueprint _blueprint;
+
+        // 模块装备（每个 SlotType 最多一个，已装备则为 non-null）
+        private Dictionary<SlotType, EquipmentModule> _equippedModules = new();
+
+        // 全局仓库（所有未装备模块）
+        private static List<EquipmentModule> _inventory = new List<EquipmentModule>();
 
         /// <summary>Unique identifier for this ship instance.</summary>
         public string InstanceId { get; }
@@ -58,7 +67,7 @@ namespace Game.Data {
             string instanceId,
             string blueprintId,
             bool isPlayerControlled,
-            ShipBlueprint blueprint,
+            HullBlueprint blueprint,
             ShipStateChannel shipStateChannel) {
 
             if (string.IsNullOrEmpty(instanceId)) {
@@ -248,6 +257,74 @@ namespace Game.Data {
         /// <summary>Returns this ship's turn speed from its blueprint.</summary>
         public float GetTurnSpeed() {
             return _blueprint?.TurnSpeed ?? 120f;
+        }
+
+        // =====================================================================
+        // Equipment system
+        // =====================================================================
+
+        /// <summary>Total weapon damage = base + all equipped weapon modules.</summary>
+        public float TotalWeaponDamage => (_blueprint?.BaseWeaponDamage ?? 0f)
+            + _equippedModules.Values
+                .Where(m => m != null && m.SlotType == SlotType.Weapon)
+                .Sum(m => m.Damage);
+
+        /// <summary>Total speed = base + all equipped engine modules.</summary>
+        public float TotalSpeed => (_blueprint?.BaseSpeed ?? 0f)
+            + _equippedModules.Values
+                .Where(m => m != null && m.SlotType == SlotType.Engine)
+                .Sum(m => m.Speed);
+
+        /// <summary>Total shield = base + all equipped shield modules.</summary>
+        public float TotalShield => (_blueprint?.BaseShield ?? 0f)
+            + _equippedModules.Values
+                .Where(m => m != null && m.SlotType == SlotType.Shield)
+                .Sum(m => m.Shield);
+
+        /// <summary>Total cargo = base + all equipped cargo modules.</summary>
+        public float TotalCargo => (_blueprint?.BaseCargo ?? 0f)
+            + _equippedModules.Values
+                .Where(m => m != null && m.SlotType == SlotType.Cargo)
+                .Sum(m => m.Cargo);
+
+        /// <summary>
+        /// Equip a module into its slot. Replaces any existing module in that slot.
+        /// The replaced module is returned; caller can add it back to inventory.
+        /// </summary>
+        public EquipmentModule EquipModule(EquipmentModule module) {
+            if (module == null) return null;
+            var old = _equippedModules.GetValueOrDefault(module.SlotType);
+            _equippedModules[module.SlotType] = module;
+            _inventory.Remove(module);
+            return old;
+        }
+
+        /// <summary>
+        /// Unequip a module from a slot and return it to inventory.
+        /// </summary>
+        public EquipmentModule UnequipModule(SlotType slot) {
+            var old = _equippedModules.GetValueOrDefault(slot);
+            if (old != null) {
+                _inventory.Add(old);
+                _equippedModules[slot] = null;
+            }
+            return old;
+        }
+
+        /// <summary>Get the equipped module in a slot, or null if empty.</summary>
+        public EquipmentModule GetEquipped(SlotType slot)
+            => _equippedModules.GetValueOrDefault(slot);
+
+        // =====================================================================
+        // Static inventory access
+        // =====================================================================
+
+        /// <summary>All modules currently in the global inventory (not equipped).</summary>
+        public static IReadOnlyList<EquipmentModule> Inventory => _inventory.AsReadOnly();
+
+        /// <summary>Add a module to the global inventory.</summary>
+        public static void AddToInventory(EquipmentModule module) {
+            if (module != null) _inventory.Add(module);
         }
     }
 }
