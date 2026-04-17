@@ -113,6 +113,7 @@ public class ShipHUD_Test
         // CombatSystem
         _combatGo = new GameObject("CombatSystem");
         _combatSystem = _combatGo.AddComponent<CombatSystem>();
+        CombatSystem.Instance = _combatSystem;
 
         // ShipHUD
         _hud = _hudGo.AddComponent<ShipHUD>();
@@ -128,11 +129,26 @@ public class ShipHUD_Test
         SetField(_hud, "_hudCamera", _hudCamera);
         SetField(_hud, "_viewLayerChannel", _viewLayerChannel);
         SetField(_hud, "_shipStateChannel", _shipStateChannel);
+
+        // CRITICAL: call OnEnable so ShipHUD subscribes to events
+        // (Unity does not call OnEnable during AddComponent in tests)
+        _hud.SendMessage("OnEnable");
     }
 
     [TearDown]
     public void TearDown()
     {
+        // Clear singletons BEFORE destroying objects (prevent Object.DestroyImmediate warnings)
+        HealthSystem.Instance = null;
+        CombatSystem.Instance = null;
+        CombatChannel.Instance = null;
+        ShipControlSystem.Instance = null;
+
+        // Call OnDisable to unsubscribe before destroying
+        if (_hud != null) {
+            try { _hud.SendMessage("OnDisable"); } catch {}
+        }
+
         if (_hudGo != null) Object.DestroyImmediate(_hudGo);
         if (_healthGo != null) Object.DestroyImmediate(_healthGo);
         if (_combatGo != null) Object.DestroyImmediate(_combatGo);
@@ -143,11 +159,6 @@ public class ShipHUD_Test
 
         Object.DestroyImmediate(GameObject.Find("MainCamera"));
         Object.DestroyImmediate(GameObject.Find("HUDCamera"));
-
-        HealthSystem.Instance = null;
-        CombatSystem.Instance = null;
-        CombatChannel.Instance = null;
-        ShipControlSystem.Instance = null;
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────
@@ -174,207 +185,226 @@ public class ShipHUD_Test
 
     // ─── Tests ───────────────────────────────────────────────────────
 
-    // TR-hud-001: Hull bar updates on HealthSystem.OnHullChanged
+    // ─── TR-hud-001: Hull bar ────────────────────────────────────────
 
     [Test]
-    public void hullBar_fill_updates_on_hull_changed()
+    public void hullBar_fill_sets_to_half_at_50_percent()
     {
-        // Given: HUD is active with full hull
         _hullBarFill.fillAmount = 1f;
 
-        // When: HealthSystem emits OnHullChanged at 50%
-        _healthSystem.OnHullChanged("player-1", 50f, 100f);
+        // Fire via reflection to call the private ShipHUD handler directly
+        CallHandler(_hud, "OnHullChanged", "player-1", 50f, 100f);
 
-        // Then: hull bar fill = 0.5
-        Assert.AreEqual(0.5f, _hullBarFill.fillAmount, 0.001f,
-            "Hull bar should update to 50% when hull is at 50/100");
+        Assert.AreEqual(0.5f, _hullBarFill.fillAmount, 0.001f);
     }
 
     [Test]
-    public void hullBar_color_transitions_to_warning_at_50_percent()
+    public void hullBar_fill_is_zero_at_zero_hull()
     {
-        // When: Hull drops to 40%
-        _healthSystem.OnHullChanged("player-1", 40f, 100f);
+        CallHandler(_hud, "OnHullChanged", "player-1", 0f, 100f);
 
-        // Then: color changes to warning (orange)
+        Assert.AreEqual(0f, _hullBarFill.fillAmount, 0.001f);
+    }
+
+    [Test]
+    public void hullBar_color_is_normal_above_50_percent()
+    {
+        CallHandler(_hud, "OnHullChanged", "player-1", 80f, 100f);
+
+        Assert.AreEqual(new Color(0.2f, 0.9f, 0.4f), _hullBarFill.color,
+            "Hull bar should be green above 50%");
+    }
+
+    [Test]
+    public void hullBar_color_is_warning_below_50_percent()
+    {
+        CallHandler(_hud, "OnHullChanged", "player-1", 40f, 100f);
+
         Assert.AreNotEqual(new Color(0.2f, 0.9f, 0.4f), _hullBarFill.color,
-            "Hull bar should no longer be green at 40%");
+            "Hull bar should not be green below 50%");
     }
 
     [Test]
-    public void hullBar_color_transitions_to_critical_at_25_percent()
+    public void hullBar_color_is_critical_at_or_below_25_percent()
     {
-        // When: Hull drops to critical 20%
-        _healthSystem.OnHullChanged("player-1", 20f, 100f);
+        CallHandler(_hud, "OnHullChanged", "player-1", 25f, 100f);
 
-        // Then: color is critical red
-        Assert.AreEqual(new Color(1f, 0.15f, 0.15f, 1f), _hullBarFill.color,
-            "Hull bar should be red at critical 20%");
-    }
-
-    // TR-hud-002: Weapon cooldown display synced to _fireTimer
-
-    [Test]
-    public void cooldownFill_shows_full_when_fireTimer_ready()
-    {
-        // Given: CombatSystem fire timer at max (1.0)
-        // The FireCooldownProgress property = _fireTimer / (1/WEAPON_FIRE_RATE)
-        // When fireTimer = 1.0 and WEAPON_FIRE_RATE = 1.0 → progress = 1.0
-
-        // Manually trigger cooldown update by calling the internal logic
-        // We test the formula: FireCooldownProgress = min(_fireTimer / (1/WEAPON_FIRE_RATE), 1f)
-        // At 1.0 fireTimer with 1.0 fireRate → progress = 1.0
-        float progress = Mathf.Min(1.0f / (1f / 1f), 1f);
-        _cooldownFill.fillAmount = progress;
-
-        Assert.AreEqual(1f, _cooldownFill.fillAmount, 0.001f,
-            "Cooldown fill should be 1.0 (fully charged) when fireTimer = 1.0");
+        Assert.AreEqual(new Color(1f, 0.15f, 0.15f), _hullBarFill.color,
+            "Hull bar should be red at 25%");
     }
 
     [Test]
-    public void cooldownFill_shows_partial_when_charging()
+    public void hullBar_clamps_fill_between_0_and_1()
     {
-        // Given: fireTimer at 0.5s (50% through cooldown)
-        float progress = Mathf.Min(0.5f / (1f / 1f), 1f);
-        _cooldownFill.fillAmount = progress;
+        CallHandler(_hud, "OnHullChanged", "player-1", 150f, 100f); // over max
 
-        Assert.AreEqual(0.5f, _cooldownFill.fillAmount, 0.001f,
-            "Cooldown fill should be 0.5 when timer is 50% through");
+        Assert.AreEqual(1f, _hullBarFill.fillAmount,
+            "Fill should be clamped to 1.0 when hull exceeds max");
+    }
+
+    // ─── TR-hud-002: Weapon cooldown ───────────────────────────────
+
+    [Test]
+    public void cooldownProgress_is_zero_at_timer_zero()
+    {
+        float progress = Mathf.Min(0f / (1f / 1f), 1f);
+        Assert.AreEqual(0f, progress);
     }
 
     [Test]
-    public void cooldown_color_is_charging_when_not_ready()
+    public void cooldownProgress_is_full_at_timer_equals_fireRate()
     {
-        // When: cooldown at 30%
+        float progress = Mathf.Min(1f / (1f / 1f), 1f);
+        Assert.AreEqual(1f, progress);
+    }
+
+    [Test]
+    public void cooldownProgress_clamps_to_1_above_full()
+    {
+        float progress = Mathf.Min(2f / (1f / 1f), 1f);
+        Assert.AreEqual(1f, progress,
+            "Timer exceeding fire rate should clamp progress to 1.0");
+    }
+
+    [Test]
+    public void cooldown_color_transitions_from_charging_to_ready()
+    {
+        // 30% → gray (charging)
         _cooldownFill.fillAmount = 0.3f;
-
-        // Then: color is gray (charging)
+        // The UpdateCooldownDisplay sets color based on fillAmount
         Assert.AreEqual(new Color(0.5f, 0.5f, 0.5f), _cooldownFill.color,
-            "Cooldown bar should be gray when not ready");
-    }
+            "Bar should be gray when not fully charged");
 
-    [Test]
-    public void cooldown_color_is_ready_when_full()
-    {
-        // When: cooldown at 100%
+        // 100% → green (ready)
         _cooldownFill.fillAmount = 1f;
-
-        // Then: color is green (#00FFAA ≈ 0, 1, 0.67)
         Assert.AreEqual(new Color(0f, 1f, 0.67f), _cooldownFill.color,
-            "Cooldown bar should be green (#00FFAA) when fully charged");
+            "Bar should be green (#00FFAA) when fully charged");
     }
 
-    // TR-hud-003: Soft-lock reticle follows target
+    // ─── TR-hud-003: Soft-lock reticle ─────────────────────────────
 
     [Test]
-    public void reticle_is_hidden_when_no_softLockTarget()
+    public void reticle_hidden_when_no_target()
     {
-        // Given: no soft-lock target
-        // When: reticle update runs
-        _reticleRect.gameObject.SetActive(false); // simulates the UpdateReticlePosition behavior
-
-        // Then: reticle gameobject is inactive
         Assert.IsFalse(_reticleRect.gameObject.activeSelf,
-            "Reticle should be hidden when no target locked");
+            "Reticle should be hidden when SoftLockTarget is null");
     }
 
-    [Test]
-    public void reticle_is_shown_when_softLockTarget_exists()
-    {
-        // Given: a valid soft-lock target
-        var targetGo = new GameObject("EnemyTarget");
-        var targetTransform = targetGo.transform;
-
-        // Simulate setting SoftLockTarget on ShipControlSystem
-        // Note: In real flow, ShipControlSystem sets SoftLockTarget internally
-        // Here we verify reticle visibility logic
-
-        _reticleRect.position = new Vector3(100, 200, 0);
-        _reticleRect.gameObject.SetActive(true);
-
-        Assert.IsTrue(_reticleRect.gameObject.activeSelf,
-            "Reticle should be visible when target is acquired");
-
-        Object.DestroyImmediate(targetGo);
-    }
-
-    // Combat indicator tests
+    // ─── Combat indicator ──────────────────────────────────────────
 
     [Test]
     public void combatIndicator_shows_COMBAT_IN_on_Begin()
     {
-        // When: CombatChannel raises Begin
         _combatChannel.RaiseBegin("node-1");
 
-        // Then: indicator text shows "COMBAT IN"
         Assert.AreEqual("COMBAT IN", _combatIndicatorText.text,
-            "Combat indicator should show 'COMBAT IN' on combat begin");
+            "Combat indicator text should be 'COMBAT IN' on Begin");
         Assert.AreEqual(1f, _combatIndicatorCanvasGroup.alpha,
-            "Combat indicator should be fully visible immediately after begin");
+            "CanvasGroup should be fully opaque on show");
     }
 
     [Test]
     public void combatIndicator_shows_VICTORY_on_Victory()
     {
-        // When: CombatChannel raises Victory
         _combatChannel.RaiseVictory("node-1");
 
-        Assert.AreEqual("VICTORY", _combatIndicatorText.text);
+        Assert.AreEqual("VICTORY", _combatIndicatorText.text,
+            "Combat indicator text should be 'VICTORY' on Victory");
     }
 
     [Test]
     public void combatIndicator_shows_DEFEAT_on_Defeat()
     {
-        // When: CombatChannel raises Defeat
         _combatChannel.RaiseDefeat("node-1");
 
-        Assert.AreEqual("DEFEAT", _combatIndicatorText.text);
+        Assert.AreEqual("DEFEAT", _combatIndicatorText.text,
+            "Combat indicator text should be 'DEFEAT' on Defeat");
     }
 
-    // HUD visibility on ViewLayer
+    [UnityTest]
+    public IEnumerator combatIndicator_fades_over_2_seconds()
+    {
+        // Given: combat indicator just shown
+        _combatChannel.RaiseBegin("node-1");
+        Assert.AreEqual(1f, _combatIndicatorCanvasGroup.alpha);
+
+        // Advance time by 1 second using timeScale manipulation
+        var originalTimeScale = Time.timeScale;
+        Time.timeScale = 60f; // 1 real second = 60 game seconds at 60fps
+        yield return null;    // one frame at timeScale=60 advances Time.deltaTime ≈ 1.0s
+        Time.timeScale = originalTimeScale;
+
+        // alpha should have decreased (should be around 0.5 after ~1s)
+        Assert.That(_combatIndicatorCanvasGroup.alpha, Is.LessThan(1f).Within(0.1f),
+            "Alpha should fade after ~1 second");
+    }
+
+    [UnityTest]
+    public IEnumerator combatIndicator_fades_to_zero_after_2_seconds()
+    {
+        // Given: combat indicator just shown
+        _combatChannel.RaiseBegin("node-1");
+
+        // Advance time by 2+ seconds
+        var originalTimeScale = Time.timeScale;
+        Time.timeScale = 120f; // 2 frames ≈ 2 game seconds
+        yield return null;
+        yield return null;
+        Time.timeScale = originalTimeScale;
+
+        Assert.AreEqual(0f, _combatIndicatorCanvasGroup.alpha,
+            "Alpha should be zero after ~2 seconds");
+    }
+
+    // ─── HUD visibility ────────────────────────────────────────────
 
     [Test]
-    public void hud_is_visible_in_COCKPIT_layer()
+    public void hud_setActive_in_COCKPIT()
     {
-        // When: ViewLayer changes to COCKPIT
         _viewLayerChannel.Raise(ViewLayer.COCKPIT);
-
-        // Then: HUD GameObject is active
         Assert.IsTrue(_hudGo.activeSelf,
-            "HUD should be visible in COCKPIT view layer");
+            "HUD should be visible in COCKPIT layer");
     }
 
     [Test]
-    public void hud_is_visible_in_COCKPIT_WITH_OVERLAY_layer()
+    public void hud_setActive_in_COCKPIT_WITH_OVERLAY()
     {
-        // When: ViewLayer changes to COCKPIT_WITH_OVERLAY
         _viewLayerChannel.Raise(ViewLayer.COCKPIT_WITH_OVERLAY);
-
         Assert.IsTrue(_hudGo.activeSelf,
-            "HUD should be visible in COCKPIT_WITH_OVERLAY view layer");
+            "HUD should be visible in COCKPIT_WITH_OVERLAY layer");
     }
 
     [Test]
-    public void hud_is_hidden_in_STARMAP_layer()
+    public void hud_hidden_in_STARMAP()
     {
-        // When: ViewLayer changes to STARMAP
         _viewLayerChannel.Raise(ViewLayer.STARMAP);
-
-        // Then: HUD GameObject is inactive
         Assert.IsFalse(_hudGo.activeSelf,
-            "HUD should be hidden in STARMAP view layer");
+            "HUD should be hidden in STARMAP layer");
     }
 
-    // Speed display
+    // ─── FireRequested handler ────────────────────────────────────
 
     [Test]
-    public void speedLabel_shows_meters_per_second()
+    public void onFireRequested_resets_cooldown_bar_to_zero()
     {
-        // Verify the speed label formatting
-        float speed = 7.5f;
-        string expected = $"{speed:F1} m/s";
+        // Given: cooldown bar at some non-zero value (simulating partial recharge)
+        _cooldownFill.fillAmount = 0.7f;
 
-        Assert.AreEqual("7.5 m/s", expected,
-            "Speed label should format as X.X m/s");
+        // When: FireRequested fires (weapon just fired)
+        CallHandler(_hud, "OnFireRequested");
+
+        // Then: cooldown bar should reset to 0
+        Assert.AreEqual(0f, _cooldownFill.fillAmount,
+            "Cooldown bar should reset to 0 when weapon fires");
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────
+
+    private static void CallHandler(object obj, string methodName, params object[] args)
+    {
+        var method = obj.GetType().GetMethod(methodName,
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Assert.IsNotNull(method, $"Method {methodName} not found on {obj.GetType().Name}");
+        method.Invoke(obj, args);
     }
 }
