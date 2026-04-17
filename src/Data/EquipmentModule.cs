@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace Gameplay
 {
+    /// <summary>
+    /// 舰船装备模块数据资源，定义模块身份、属性加成和图标。
+    /// </summary>
     [CreateAssetMenu(fileName = "Module_Weapon_T1", menuName = "Starchain/Equipment/Weapon")]
     public class EquipmentModule : ScriptableObject
     {
