@@ -1,5 +1,5 @@
 # Architecture Traceability Index
-Last Updated: 2026-04-15
+Last Updated: 2026-04-17
 Engine: Unity 6.3 LTS
 
 ## Coverage Summary
@@ -9,7 +9,7 @@ Engine: Unity 6.3 LTS
 - Gaps: 0 (~0%)
 
 > Previous review (2026-04-15): 52 total, 48 covered (92%), 6 partial (12%), 2 gaps (4%)
-> This update: Ship HUD (TR-hud-001~003) and StarMap UI (TR-starmapui-001~004) now fully covered via ADR-0019 and ADR-0020.
+> This update: Ship HUD (TR-hud-001~003) and StarMap UI (TR-starmapui-001~004) fully implemented; ship-equipment epic merged without new TRs (implemented outside original scope).
 
 ## ADR Coverage Map
 
@@ -134,3 +134,4 @@ The following TR-IDs from the previous (2026-04-14) review are now **superseded*
 |------|----------------|-----------|-------|
 | 2026-04-14 | 50% | 52 | Previous review — 26 covered, 5 partial, 21 gaps |
 | 2026-04-15 | ~92% | 52 | This review — ADRs 0013-0018 Accepted; coverage improved dramatically |
+| 2026-04-17 | 100% | 56 | ship-hud + ship-equipment merged to main; ADR-0019/0020 implemented |
