@@ -28,7 +28,7 @@ Engine: Unity 6.3 LTS
 | ADR-0017 | Fleet Dispatch | ✅ Accepted | TR-fleet-001~006 | DispatchOrder, BFS path, SimRate, cancel/return |
 | ADR-0018 | Ship Control System | ✅ Accepted | TR-shipctrl-001~009 | Flight physics, soft lock, camera switch, state init/cleanup |
 | ADR-0019 | Ship HUD | ✅ Accepted | TR-hud-001~003 | ShipHUD: hull bar, speed, cooldown, soft-lock reticle, combat indicator |
-| ADR-0020 | StarMap UI | 🔵 Proposed | TR-starmapui-001~004 | StarMapUI: Painter2D rendering, node selection, fleet icons, dispatch flow |
+| ADR-0020 | StarMap UI | ✅ Accepted | TR-starmapui-001~004 | StarMapUI: Painter2D rendering, node selection, fleet icons, dispatch flow |
 
 ## Full Traceability Matrix
 

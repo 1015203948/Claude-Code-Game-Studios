@@ -1,6 +1,6 @@
 # ADR-0020: StarMapUI Architecture
 
-> **Status**: Proposed
+> **Status**: Accepted
 > **Date**: 2026-04-17
 > **Authors**: technical-director + game-designer
 > **Supersedes**: None
