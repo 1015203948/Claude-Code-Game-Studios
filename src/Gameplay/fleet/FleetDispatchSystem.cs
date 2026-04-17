@@ -41,6 +41,9 @@ namespace Game.Gameplay.Fleet {
         /// <summary>Broadcasts when a ship is destroyed while having an active dispatch order (orphaned order cleanup).</summary>
         public event Action<string> OnShipDestroyed; // arg: shipId
 
+        /// <summary>Broadcasts when a dispatch order is closed (arrived, cancelled, or timed out).</summary>
+        public event Action<string> OnOrderClosed; // arg: orderId
+
         // ─────────────────────────────────────────────────────────────────
         // Constants
         // ─────────────────────────────────────────────────────────────────
@@ -206,6 +209,7 @@ namespace Game.Gameplay.Fleet {
                 return;
             }
             Debug.Log($"[FleetDispatch] Order {order.OrderId} closed");
+            OnOrderClosed?.Invoke(order.OrderId);
         }
 
         // ─────────────────────────────────────────────────────────────────
