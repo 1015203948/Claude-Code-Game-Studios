@@ -26,7 +26,7 @@ Engine: Unity 6.3 LTS
 | ADR-0015 | Enemy System | ✅ Accepted | TR-enemy-001~007 | Enemy AI (4-state), OverlapSphere, enemy weapons |
 | ADR-0016 | Colony & Building | ✅ Accepted | TR-colony-001~003, TR-building-001~004 | Tick loop, atomic build, ShipyardTier |
 | ADR-0017 | Fleet Dispatch | ✅ Accepted | TR-fleet-001~006 | DispatchOrder, BFS path, SimRate, cancel/return |
-| ADR-0018 | Ship Control System | 🔵 Proposed | TR-shipctrl-001~009 | Flight physics, soft lock, camera switch, state init/cleanup |
+| ADR-0018 | Ship Control System | ✅ Accepted | TR-shipctrl-001~009 | Flight physics, soft lock, camera switch, state init/cleanup |
 | ADR-0019 | Ship HUD | ✅ Accepted | TR-hud-001~003 | ShipHUD: hull bar, speed, cooldown, soft-lock reticle, combat indicator |
 | ADR-0020 | StarMap UI | 🔵 Proposed | TR-starmapui-001~004 | StarMapUI: Painter2D rendering, node selection, fleet icons, dispatch flow |
 
@@ -109,9 +109,6 @@ Engine: Unity 6.3 LTS
 | TR-hud-002 | ship-hud.md | Weapon cooldown display synced to _fireTimer | ✅ ADR-0019 Accepted |
 | TR-hud-003 | ship-hud.md | Soft-lock reticle via events | ✅ ADR-0019 Accepted |
 | TR-starmapui-001~004 | star-map-ui.md | Full StarMapUI spec | ✅ ADR-0020 Proposed |
-
-### Note on ADR-0018
-All TR-shipctrl-* requirements are covered by ADR-0018, which is currently **Proposed** (not yet Accepted). Once ADR-0018 is accepted, these will move to ✅ Covered.
 
 ## Superseded Requirements
 
