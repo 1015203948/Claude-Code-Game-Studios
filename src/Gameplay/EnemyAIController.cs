@@ -254,6 +254,10 @@ namespace Game.Gameplay {
                 ? global::Gameplay.SimClock.Instance.DeltaTime
                 : Time.deltaTime;
             if (_dyingTimer >= DYING_DURATION) {
+                // On death, trigger loot drop
+                if (LootDropSystem.Instance != null) {
+                    LootDropSystem.Instance.OnEnemyDestroyed(InstanceId);
+                }
                 EnemySystem.Instance?.DespawnEnemy(InstanceId);
             }
         }
