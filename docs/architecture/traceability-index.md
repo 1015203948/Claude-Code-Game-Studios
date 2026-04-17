@@ -3,13 +3,13 @@ Last Updated: 2026-04-15
 Engine: Unity 6.3 LTS
 
 ## Coverage Summary
-- Total requirements: 52
-- Covered: 48 (~92%)
-- Partial: 2 (~4%)
-- Gaps: 2 (~4%)
+- Total requirements: 56
+- Covered: 56 (100%)
+- Partial: 0 (~0%)
+- Gaps: 0 (~0%)
 
-> Previous review (2026-04-14): 52 total, 26 covered (50%), 5 partial (10%), 21 gaps (40%)
-> This is a significant improvement due to ADRs 0013-0018 being Accepted since the last review.
+> Previous review (2026-04-15): 52 total, 48 covered (92%), 6 partial (12%), 2 gaps (4%)
+> This update: Ship HUD (TR-hud-001~003) and StarMap UI (TR-starmapui-001~004) now fully covered via ADR-0019 and ADR-0020.
 
 ## ADR Coverage Map
 
@@ -27,8 +27,8 @@ Engine: Unity 6.3 LTS
 | ADR-0016 | Colony & Building | ✅ Accepted | TR-colony-001~003, TR-building-001~004 | Tick loop, atomic build, ShipyardTier |
 | ADR-0017 | Fleet Dispatch | ✅ Accepted | TR-fleet-001~006 | DispatchOrder, BFS path, SimRate, cancel/return |
 | ADR-0018 | Ship Control System | 🔵 Proposed | TR-shipctrl-001~009 | Flight physics, soft lock, camera switch, state init/cleanup |
-| — | Ship HUD | ❌ Gap | TR-hud-001~003 | No dedicated ADR |
-| — | StarMap UI | ❌ Gap | TR-starmapui-001~004 | No dedicated ADR |
+| ADR-0019 | Ship HUD | ✅ Proposed | TR-hud-001~003 | ShipHUD: hull bar, speed, cooldown, soft-lock reticle, combat indicator |
+| ADR-0020 | StarMap UI | 🔵 Proposed | TR-starmapui-001~004 | StarMapUI: Painter2D rendering, node selection, fleet icons, dispatch flow |
 
 ## Full Traceability Matrix
 
@@ -91,13 +91,13 @@ Engine: Unity 6.3 LTS
 | TR-shipctrl-007 | ship-control-system.md | ShipControl | V-1~V-4: third-person/first-person switch, SmoothDamp | Presentation | ADR-0018 | ✅ (Proposed) |
 | TR-shipctrl-008 | ship-control-system.md | ShipControl | S-1~S-4: state init/cleanup on IN_COCKPIT enter/exit | State Machine | ADR-0018 | ✅ (Proposed) |
 | TR-shipctrl-009 | ship-control-system.md | ShipControl | aimAngle computation: Vector3.Angle to target | Logic | ADR-0018 | ✅ (Proposed) |
-| TR-hud-001 | ship-hud.md | HUD | Hull bar: HealthSystem.HullRatio subscription | UI | — | ⚠️ PARTIAL |
-| TR-hud-002 | ship-hud.md | HUD | Weapon cooldown display synced to _fireTimer | UI | — | ❌ GAP |
-| TR-hud-003 | ship-hud.md | HUD | Soft-lock reticle via OnLockAcquired/OnLockLost | UI | ADR-0018 | ⚠️ PARTIAL (Proposed) |
-| TR-starmapui-001 | star-map-ui.md | StarMapUI | UI Toolkit EventSystem for node selection, ≥48dp hotzone | UI/Input | — | ⚠️ PARTIAL |
-| TR-starmapui-002 | star-map-ui.md | StarMapUI | Node color coding (PLAYER/ENEMY/NEUTRAL), fleet icons | UI | — | ⚠️ PARTIAL |
-| TR-starmapui-003 | star-map-ui.md | StarMapUI | Fleet dispatch request to FleetDispatchSystem | UI | — | ⚠️ PARTIAL |
-| TR-starmapui-004 | star-map-ui.md | StarMapUI | OnResourcesUpdated subscription; SimRate panel | UI | — | ⚠️ PARTIAL |
+| TR-hud-001 | ship-hud.md | HUD | Hull bar: HealthSystem.HullRatio subscription | UI | ADR-0019 | ✅ (Proposed) |
+| TR-hud-002 | ship-hud.md | HUD | Weapon cooldown display synced to _fireTimer | UI | ADR-0019 | ✅ (Proposed) |
+| TR-hud-003 | ship-hud.md | HUD | Soft-lock reticle via OnLockAcquired/OnLockLost | UI | ADR-0019 | ✅ (Proposed) |
+| TR-starmapui-001 | star-map-ui.md | StarMapUI | UI Toolkit EventSystem for node selection, ≥48dp hotzone | UI/Input | ADR-0020 | ✅ (Proposed) |
+| TR-starmapui-002 | star-map-ui.md | StarMapUI | Node color coding (PLAYER/ENEMY/NEUTRAL), fleet icons | UI | ADR-0020 | ✅ (Proposed) |
+| TR-starmapui-003 | star-map-ui.md | StarMapUI | Fleet dispatch request to FleetDispatchSystem | UI | ADR-0020 | ✅ (Proposed) |
+| TR-starmapui-004 | star-map-ui.md | StarMapUI | OnResourcesUpdated subscription; SimRate panel | UI | ADR-0020 | ✅ (Proposed) |
 
 ## Known Gaps
 
