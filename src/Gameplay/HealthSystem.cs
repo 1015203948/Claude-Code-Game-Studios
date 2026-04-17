@@ -105,7 +105,6 @@ public class HealthSystem : MonoBehaviour
     /// </summary>
     private void ExecuteDeathSequence(string instanceId)
     {
-        // TODO (Story 002): 实现完整 H-5 死亡序列
         // Step 1：广播 OnShipDying
         OnShipDying?.Invoke(instanceId);
 

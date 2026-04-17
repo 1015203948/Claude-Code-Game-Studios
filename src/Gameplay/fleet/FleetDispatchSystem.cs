@@ -52,7 +52,7 @@ namespace Game.Gameplay.Fleet {
         private const int ENEMY_FLEET_SIZE = 2;
 
         /// <summary>Travel time per hop in seconds (Story 013).</summary>
-        private const float FLEET_TRAVEL_TIME = 3.0f;
+        public const float FLEET_TRAVEL_TIME = 3.0f;
 
         // ─────────────────────────────────────────────────────────────────
         // Singleton
@@ -328,6 +328,19 @@ namespace Game.Gameplay.Fleet {
         /// Gets all active dispatch orders for a given ship.
         /// </summary>
         public IEnumerable<DispatchOrder> GetOrdersForShip(string shipId)
+        {
+            foreach (var order in _orders.Values) {
+                if (order.ShipId == shipId) {
+                    yield return order;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets all active dispatch orders (for StarMapUI edge highlighting).
+        /// </summary>
+        public IEnumerable<DispatchOrder> GetAllOrders()
+            => _orders.Values;
         {
             foreach (var order in _orders.Values) {
                 if (order.ShipId == shipId) {

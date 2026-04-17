@@ -5,8 +5,6 @@ using Game.Channels;
 using Game.Gameplay;
 using MyGame;
 
-//// TODO (Story 009): Replace MockEnemySystem with real EnemySystem.Instance calls
-
 /// <summary>
 /// 驾驶舱战斗系统 — 管理战斗状态机、胜负判定。
 /// 订阅 HealthSystem.OnShipDying，在驾驶舱内进行战斗仲裁。
@@ -215,8 +213,7 @@ public class CombatSystem : MonoBehaviour
 
     /// <summary>
     /// Registers an enemy collider for Raycast hit resolution.
-    /// Call this when EnemySystem spawns an enemy with a collider.
-    /// TODO (Story 009): EnemySystem will call this automatically on spawn.
+    /// Called automatically by EnemySystem.SpawnEnemy — do not call manually.
     /// </summary>
     public void RegisterEnemyCollider(Collider c, string instanceId)
     {
@@ -281,29 +278,5 @@ public class CombatSystem : MonoBehaviour
     {
         // 固定偏移，用于测试
         return new Vector3(index == 0 ? -50f : 50f, 0f, 200f);
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Mock Systems（Story 009 实施前使用）
-// ─────────────────────────────────────────────────────────────────
-
-/// <summary>
-/// MockEnemySystem — Story 009 实施前用。
-/// 临时模拟 EnemySystem 的 SpawnEnemy / DespawnEnemy 接口。
-/// </summary>
-public static class MockEnemySystem
-{
-    private static int _spawnCounter = 0;
-
-    public static string SpawnEnemy(string blueprintId, Vector3 spawnPos)
-    {
-        _spawnCounter++;
-        return $"mock-enemy-{_spawnCounter}";
-    }
-
-    public static void DespawnEnemy(string instanceId)
-    {
-        // No-op for mock
     }
 }

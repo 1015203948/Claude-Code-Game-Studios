@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.UIEilite;
 using Game.Channels;
 using Game.Scene;
 using Game.Data;
@@ -179,6 +178,9 @@ namespace Game.UI {
 
         private void RenderEdges(Painter2D painter)
         {
+            // Compute set of edges with fleets in transit for efficient lookup
+            var fleetEdges = ComputeFleetInTransitEdges();
+
             foreach (var edge in _mapData.Edges) {
                 var from = _mapData.GetNode(edge.FromNodeId);
                 var to   = _mapData.GetNode(edge.ToNodeId);
@@ -187,7 +189,7 @@ namespace Game.UI {
                 // Hide edges where both ends are UNEXPLORED
                 if (from.FogState == FogState.UNEXPLORED && to.FogState == FogState.UNEXPLORED) continue;
 
-                bool hasFleetInTransit = false; // TODO: query FleetDispatchSystem
+                bool hasFleetInTransit = fleetEdges.Contains((edge.FromNodeId, edge.ToNodeId));
                 Color edgeColor = hasFleetInTransit ? COLOR_FLEET_PATH : COLOR_EDGE;
                 float width    = hasFleetInTransit ? 3f : 1.5f;
 
@@ -198,6 +200,20 @@ namespace Game.UI {
                 painter.LineTo(WorldToScreen(to.Position));
                 painter.Stroke();
             }
+        }
+
+        private HashSet<(string from, string to)> ComputeFleetInTransitEdges()
+        {
+            var edges = new HashSet<(string, string)>();
+            if (FleetDispatchSystem.Instance == null) return edges;
+
+            foreach (var order in FleetDispatchSystem.Instance.GetAllOrders()) {
+                var path = order.LockedPath;
+                for (int i = 0; i < path.Count - 1; i++) {
+                    edges.Add((path[i], path[i + 1]));
+                }
+            }
+            return edges;
         }
 
         private void RenderPathPreview(Painter2D painter)
@@ -400,9 +416,103 @@ namespace Game.UI {
 
         private void ShowDispatchConfirm(string shipId, string targetNodeId)
         {
-            // TODO: Show confirmation card UI (cost, ETA).
-            // On confirm → FleetDispatchSystem.Instance.RequestDispatch(...)
-            // On cancel  → _state = IDLE, clear selection
+            if (_fleetIconRoot == null) return;
+
+            // Remove any existing confirmation card
+            var existing = _fleetIconRoot.Q<VisualElement>("dispatch-confirm-card");
+            existing?.RemoveFromHierarchy();
+
+            // Build confirmation card
+            var card = new VisualElement();
+            card.name = "dispatch-confirm-card";
+            card.style.position = Position.Absolute;
+            card.style.width = 200;
+            card.style.height = 120;
+            card.style.backgroundColor = new Color(0.1f, 0.1f, 0.15f, 0.95f);
+            card.style.borderTopLeftRadius = 8;
+            card.style.borderTopRightRadius = 8;
+            card.style.borderBottomLeftRadius = 8;
+            card.style.borderBottomRightRadius = 8;
+            card.style.paddingLeft = 12;
+            card.style.paddingRight = 12;
+            card.style.paddingTop = 8;
+            card.style.paddingBottom = 8;
+            card.style.justifyContent = Justify.SpaceBetween;
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.alignItems = Align.Center;
+
+            // Center card in viewport
+            card.style.left = 9999; // will fix below
+            card.style.top = 9999;
+
+            // Title
+            var title = new Label("DISPATCH FLEET");
+            title.style.color = new Color(0.8f, 0.8f, 0.9f);
+            title.style.fontSize = 13;
+            title.style.unityFontStyleAndWeight = FontStyle.Bold;
+
+            // Body: target node + ETA
+            var targetNode = _mapData?.GetNode(targetNodeId);
+            string targetName = targetNode?.DisplayName ?? targetNodeId;
+            float hops = 1f;
+            var path = StarMapPathfinder.FindPath(_mapData, shipId, targetNodeId);
+            if (path != null) hops = path.Count - 1;
+            float eta = hops * 3f; // FLEET_TRAVEL_TIME = 3s/hop
+
+            var body = new Label($"To: {targetName}\nETA: {eta:F0}s");
+            body.style.color = new Color(0.65f, 0.65f, 0.75f);
+            body.style.fontSize = 11;
+            body.style.whiteSpace = WhiteSpace.Normal;
+
+            // Buttons row
+            var btnRow = new VisualElement();
+            btnRow.style.flexDirection = FlexDirection.Row;
+            btnRow.style.justifyContent = Justify.SpaceBetween;
+            btnRow.style.width = Length.Percent(100);
+
+            var confirmBtn = new Button(() => OnDispatchConfirm(shipId, targetNodeId, card)) { text = "CONFIRM" };
+            confirmBtn.style.flexGrow = 1;
+            confirmBtn.style.marginLeft = 0;
+            confirmBtn.style.marginRight = 4;
+            confirmBtn.style.backgroundColor = new Color(0.2f, 0.5f, 0.9f);
+            confirmBtn.style.color = Color.white;
+
+            var cancelBtn = new Button(() => OnDispatchCancel(card)) { text = "CANCEL" };
+            cancelBtn.style.flexGrow = 1;
+            cancelBtn.style.marginLeft = 4;
+            cancelBtn.style.marginRight = 0;
+            cancelBtn.style.backgroundColor = new Color(0.3f, 0.2f, 0.2f);
+            cancelBtn.style.color = Color.white;
+
+            btnRow.Add(confirmBtn);
+            btnRow.Add(cancelBtn);
+
+            card.Add(title);
+            card.Add(body);
+            card.Add(btnRow);
+            _fleetIconRoot.Add(card);
+
+            // Position card in center of viewport
+            var vp = _viewport;
+            if (vp != null) {
+                card.style.left = (vp.resolvedStyle.width - 200) * 0.5f;
+                card.style.top  = (vp.resolvedStyle.height - 120) * 0.5f;
+            }
+        }
+
+        private void OnDispatchConfirm(string shipId, string targetNodeId, VisualElement card)
+        {
+            FleetDispatchSystem.Instance?.RequestDispatch(shipId, targetNodeId);
+            card.RemoveFromHierarchy();
+            _state = InteractionState.IDLE;
+            ClearSelection();
+        }
+
+        private void OnDispatchCancel(VisualElement card)
+        {
+            card.RemoveFromHierarchy();
+            _state = InteractionState.IDLE;
+            ClearSelection();
         }
 
         // ─── Fleet Icon Management ────────────────────────────────────
@@ -447,7 +557,7 @@ namespace Game.UI {
                 var order = GetActiveOrder(kvp.Key);
                 if (order == null) continue;
 
-                float progress = order.HopProgress / 3f; // 3s per hop
+                float progress = order.HopProgress / FleetDispatchSystem.FLEET_TRAVEL_TIME;
                 var (x, y) = InterpolateAlongPath(order, progress);
                 Vector2 screenPos = WorldToScreen(new Vector2(x, y));
                 kvp.Value.style.left = screenPos.x - 12;
@@ -457,15 +567,30 @@ namespace Game.UI {
 
         private DispatchOrder GetActiveOrder(string orderId)
         {
-            // FleetDispatchSystem should expose a method to get order by ID
-            // For now, skip position updates until the API is confirmed
-            return null;
+            return FleetDispatchSystem.Instance?.GetOrder(orderId);
         }
 
         private (float x, float y) InterpolateAlongPath(DispatchOrder order, float progress)
         {
-            // TODO: Interpolate position along the locked path based on hop progress
-            return (0f, 0f);
+            var path = order.LockedPath;
+            if (path == null || path.Count < 2) return (0f, 0f);
+
+            // progress: 0..1 within the current hop
+            int hopIndex = order.CurrentHopIndex;
+            if (hopIndex < 0 || hopIndex >= path.Count - 1) {
+                // Return destination if beyond path
+                var dest = _mapData?.GetNode(path[^1]);
+                return dest != null ? (dest.Position.x, dest.Position.y) : (0f, 0f);
+            }
+
+            var fromNode = _mapData?.GetNode(path[hopIndex]);
+            var toNode   = _mapData?.GetNode(path[hopIndex + 1]);
+            if (fromNode == null || toNode == null) return (0f, 0f);
+
+            float t = Mathf.Clamp01(progress);
+            float x = Mathf.Lerp(fromNode.Position.x, toNode.Position.x, t);
+            float y = Mathf.Lerp(fromNode.Position.y, toNode.Position.y, t);
+            return (x, y);
         }
 
         // ─── Resource Display ───────────────────────────────────────────

@@ -185,7 +185,7 @@ namespace Game.Gameplay {
 
         /// <summary>
         /// Creates an enemy GameObject with a collider.
-        /// TODO (Story 010): Replace with real EnemyShipPrefab instantiation.
+        /// TODO (Story 010): Replace CreatePrimitive with EnemyShipPrefab (asset not yet created).
         /// </summary>
         private GameObject CreateEnemyGameObject(Vector3 position) {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
