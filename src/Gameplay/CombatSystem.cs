@@ -140,8 +140,13 @@ public class CombatSystem : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // Public API
+    // Public API (for HUD consumers)
     // ─────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fire cooldown progress [0..1]: 0 = just fired, 1 = fully recharged.
+    /// </summary>
+    public float FireCooldownProgress => Mathf.Min(_fireTimer / (1f / WEAPON_FIRE_RATE), 1f);
 
     /// <summary>
     /// 开始战斗。
