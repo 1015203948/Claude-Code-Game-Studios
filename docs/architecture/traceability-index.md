@@ -1,5 +1,5 @@
 # Architecture Traceability Index
-Last Updated: 2026-04-17
+Last Updated: 2026-04-18
 Engine: Unity 6.3 LTS
 
 ## Coverage Summary
@@ -27,7 +27,7 @@ Engine: Unity 6.3 LTS
 | ADR-0016 | Colony & Building | ✅ Accepted | TR-colony-001~003, TR-building-001~004 | Tick loop, atomic build, ShipyardTier |
 | ADR-0017 | Fleet Dispatch | ✅ Accepted | TR-fleet-001~006 | DispatchOrder, BFS path, SimRate, cancel/return |
 | ADR-0018 | Ship Control System | 🔵 Proposed | TR-shipctrl-001~009 | Flight physics, soft lock, camera switch, state init/cleanup |
-| ADR-0019 | Ship HUD | ✅ Proposed | TR-hud-001~003 | ShipHUD: hull bar, speed, cooldown, soft-lock reticle, combat indicator |
+| ADR-0019 | Ship HUD | ✅ Accepted | TR-hud-001~003 | ShipHUD: hull bar, speed, cooldown, soft-lock reticle, combat indicator |
 | ADR-0020 | StarMap UI | 🔵 Proposed | TR-starmapui-001~004 | StarMapUI: Painter2D rendering, node selection, fleet icons, dispatch flow |
 
 ## Full Traceability Matrix
@@ -101,19 +101,14 @@ Engine: Unity 6.3 LTS
 
 ## Known Gaps
 
-### Critical (block Pre-Production)
+### Non-Critical (Resolved)
 
-| TR-ID | GDD | Requirement | Suggested ADR |
-|-------|-----|-------------|---------------|
-| TR-hud-002 | ship-hud.md | Weapon cooldown display synced to _fireTimer | ADR-0019: ShipHUD Architecture |
-
-### Non-Critical (Presentation layer, can be addressed in Vertical Slice)
-
-| TR-ID | GDD | Requirement | Suggested ADR |
-|-------|-----|-------------|---------------|
-| TR-hud-001 | ship-hud.md | Hull bar via HullRatio subscription | ADR-0019 (merged) |
-| TR-hud-003 | ship-hud.md | Soft-lock reticle via events | ADR-0019 (merged) |
-| TR-starmapui-001~004 | star-map-ui.md | Full StarMapUI spec | ADR-0020: StarMapUI Architecture |
+| TR-ID | GDD | Requirement | Resolution |
+|-------|-----|-------------|------------|
+| TR-hud-001 | ship-hud.md | Hull bar via HullRatio subscription | ✅ ADR-0019 Accepted |
+| TR-hud-002 | ship-hud.md | Weapon cooldown display synced to _fireTimer | ✅ ADR-0019 Accepted |
+| TR-hud-003 | ship-hud.md | Soft-lock reticle via events | ✅ ADR-0019 Accepted |
+| TR-starmapui-001~004 | star-map-ui.md | Full StarMapUI spec | ✅ ADR-0020 Proposed |
 
 ### Note on ADR-0018
 All TR-shipctrl-* requirements are covered by ADR-0018, which is currently **Proposed** (not yet Accepted). Once ADR-0018 is accepted, these will move to ✅ Covered.
@@ -135,3 +130,4 @@ The following TR-IDs from the previous (2026-04-14) review are now **superseded*
 | 2026-04-14 | 50% | 52 | Previous review — 26 covered, 5 partial, 21 gaps |
 | 2026-04-15 | ~92% | 52 | This review — ADRs 0013-0018 Accepted; coverage improved dramatically |
 | 2026-04-17 | 100% | 56 | ship-hud + ship-equipment merged to main; ADR-0019/0020 implemented |
+| 2026-04-18 | 100% | 56 | ADR-0019 created (was file-missing); Accepted |
