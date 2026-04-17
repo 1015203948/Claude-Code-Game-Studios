@@ -18,17 +18,25 @@ namespace Game.Data
     public class HullBlueprint : ScriptableObject
     {
         [Header("Identity")]
+        /// <summary>船体类型：Fighter / Destroyer / Cruiser</summary>
         public HullType HullType;
-        public SlotType[] SlotConfiguration;  // 槽位类型列表，顺序固定
+        /// <summary>槽位类型数组，决定该船体可装备的模块类型和数量</summary>
+        public SlotType[] SlotConfiguration;
 
         [Header("Base Attributes")]
+        /// <summary>基础最高速度（无引擎加成）</summary>
         public float BaseSpeed;
+        /// <summary>基础生命值</summary>
         public float BaseHull;
+        /// <summary>基础武器伤害（无武器加成）</summary>
         public float BaseWeaponDamage;
+        /// <summary>基础护盾容量</summary>
         public float BaseShield;
+        /// <summary>基础货舱容量</summary>
         public float BaseCargo;
 
         [Header("Visuals")]
-        public GameObject Prefab3D;  // 3D 模型预制体（装备 UI 用）
+        /// <summary>3D 模型预制体，用于装备 UI 中的高亮显示</summary>
+        public GameObject Prefab3D;
     }
 }

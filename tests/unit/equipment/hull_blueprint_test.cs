@@ -6,10 +6,22 @@ using Game.Data;
 [TestFixture]
 public class HullBlueprint_Test
 {
+    private List<HullBlueprint> _created = new List<HullBlueprint>();
+
+    [TearDown]
+    public void TearDown()
+    {
+        foreach (var obj in _created) {
+            if (obj != null) Object.DestroyImmediate(obj);
+        }
+        _created.Clear();
+    }
+
     [Test]
     public void fighter_has_3_slots()
     {
         var bp = ScriptableObject.CreateInstance<HullBlueprint>();
+        _created.Add(bp);
         bp.HullType = HullType.Fighter;
         bp.SlotConfiguration = new[] {
             SlotType.Weapon, SlotType.Engine, SlotType.Shield
@@ -23,6 +35,7 @@ public class HullBlueprint_Test
     public void cruiser_has_cargo_slot()
     {
         var bp = ScriptableObject.CreateInstance<HullBlueprint>();
+        _created.Add(bp);
         bp.HullType = HullType.Cruiser;
         bp.SlotConfiguration = new[] {
             SlotType.Weapon, SlotType.Weapon,
