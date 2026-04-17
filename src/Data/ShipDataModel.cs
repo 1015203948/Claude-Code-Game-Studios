@@ -326,5 +326,10 @@ namespace Game.Data {
         public static void AddToInventory(EquipmentModule module) {
             if (module != null) _inventory.Add(module);
         }
+
+        /// <summary>Clear all modules from the global inventory. For testing.</summary>
+        public static void ClearInventory() {
+            _inventory.Clear();
+        }
     }
 }
