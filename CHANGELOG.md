@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Ship HUD (Story 024)** — hull bar with color thresholds (green/warning/critical), weapon
+  cooldown bar, speed indicator, combat indicator with 2-second fade, soft-lock reticle,
+  ViewLayer visibility (COCKPIT shows / STARMAP hides)
+- **StarMap UI (Story 024)** — Painter2D node rendering (shape/color by type × fogState),
+  edge rendering, zoom/pan [0.5×–2×], interaction state machine (IDLE→NODE_SELECTED→
+  SHIP_SELECTED→DISPATCH_CONFIRM), fleet icon pool, resource corner, dispatch flow
+- **Ship Equipment System (Story 026)** — SlotType/ModuleTier enums, EquipmentModule and
+  HullBlueprint ScriptableObjects, ShipDataModel equipment fields, ShipEquipmentSystem
+  equip/unequip, ShipLootTable weighted random drop, LootDropSystem on enemy death
+- **Inventory & Module UI (Story 026)** — InventoryUI module list, ModuleSelectionPanel
+  slot assignment, ShipEquipmentUI hull/slot overview, 16 module assets across
+  Weapon/Engine/Shield/Cargo categories, 3 hull blueprint assets (Fighter/Cruiser/Destroyer)
 - Initial core-gameplay implementation (Stories 001-023)
 - `CombatSystem` — state machine, fire rate timer, raycast hit detection
 - `EnemyAIController` — 4-state AI (SPAWNING→APPROACHING→FLANKING→DYING), zero-GC physics
@@ -18,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `BuildingSystem` — request build, production cache
 - `ShipControlSystem` — physics, input, soft-lock, camera, state transitions
 - `SimClock` — frame-rate independent time for strategy layer
-- Full test suite — 39 unit and integration tests
+- Full test suite — 57 unit and integration tests (ship-hud + ship-equipment + prior)
 - 18 Architecture Decision Records (ADRs)
 - 13 Game Design Documents (GDDs)
 - GitHub Actions CI (game-ci/unity-test-runner)
