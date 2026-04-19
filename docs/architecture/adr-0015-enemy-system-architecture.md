@@ -21,10 +21,10 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Depends On** | ADR-0014（HealthSystem — ApplyDamage 接口）；ADR-0013（CombatSystem — SpawnEnemy/DespawnEnemy 接口，aim_angle 只读属性） |
-| **Enables** | Core Epic — 敌方系统和驾驶舱战斗完整闭环；Story 实施 |
-| **Blocks** | Core Epic — EnemySystem 是 CombatSystem 的下游，没有 EnemySystem 就无法完整测试 CombatSystem |
-| **Ordering Note** | ADR-0013/0014 应先于本 ADR Accepted；本 ADR 可与 ADR-0013/0014 同时 Proposed |
+| **Depends On** | ADR-0014（HealthSystem — ApplyDamage 接口）；ADR-0018（ShipControlSystem — aim_angle 只读属性，用于敌 AI 瞄准判定） |
+| **Enables** | ADR-0013（CombatSystem — SpawnEnemy/DespawnEnemy 接口调用方）；Core Epic — 敌方系统和驾驶舱战斗完整闭环 |
+| **Blocks** | Core Epic — CombatSystem 依赖本 ADR 定义的 SpawnEnemy/DespawnEnemy 接口 |
+| **Ordering Note** | ADR-0014 应先于本 ADR Accepted；本 ADR 可与 ADR-0014 同时 Proposed |
 
 ## Context
 

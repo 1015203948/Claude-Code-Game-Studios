@@ -22,7 +22,7 @@ Accepted
 | Field | Value |
 |-------|-------|
 | **Depends On** | ADR-0001 (MasterScene topology — GameDataManager must live in MasterScene); ADR-0002 (SO Channel pattern — ColonySystem tick events use Tier 2 C# events within StarMapScene) |
-| **Enables** | ADR-0005 (Combat Architecture — needs ShipBlueprintRegistry and StarMapData) |
+| **Enables** | ADR-0013/0014/0015 (Combat/Health/Enemy System — needs ShipBlueprintRegistry and StarMapData) |
 | **Blocks** | Core Epic (data layer must be decided before BuildingSystem, ColonySystem, FleetDispatch stories can begin) |
 | **Ordering Note** | ADR-0001 and ADR-0002 must both be Accepted before implementation begins |
 

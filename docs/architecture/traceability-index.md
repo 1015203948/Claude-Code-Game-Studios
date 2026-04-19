@@ -99,6 +99,22 @@ Engine: Unity 6.3 LTS
 | TR-starmapui-003 | star-map-ui.md | StarMapUI | Fleet dispatch request to FleetDispatchSystem | UI | ADR-0020 | ✅ (Proposed) |
 | TR-starmapui-004 | star-map-ui.md | StarMapUI | OnResourcesUpdated subscription; SimRate panel | UI | ADR-0020 | ✅ (Proposed) |
 
+## Implemented Without Traceability
+
+| Epic | Components | Reason | Notes |
+|------|-----------|--------|-------|
+| ship-equipment | ShipEquipmentSystem, ModuleSelectionPanel, InventoryUI, LootDropSystem, equipment module SOs, hull blueprint assets | 超出原始 GDD scope；作为 feature 分支实现并合并 | 无对应 GDD、ADR 或 TR。建议后续补充 GDD + ADR 以保证可追溯性 |
+
+### 关键文件（ship-equipment）
+
+- `Assets/scripts/Gameplay/Equipment/ShipEquipmentSystem.cs`
+- `Assets/scripts/Gameplay/Equipment/ShipEquipmentUI.cs`
+- `Assets/scripts/Gameplay/Equipment/ModuleSelectionPanel.cs`
+- `Assets/scripts/UI/InventoryUI.cs`
+- `Assets/scripts/Gameplay/Loot/LootDropSystem.cs`
+- `Assets/scripts/Data/Equipment/` (模块 ScriptableObject 定义)
+- `Assets/Data/Equipment/` (模块资产)
+
 ## Known Gaps
 
 ### Non-Critical (Resolved)
@@ -127,4 +143,4 @@ The following TR-IDs from the previous (2026-04-14) review are now **superseded*
 | 2026-04-14 | 50% | 52 | Previous review — 26 covered, 5 partial, 21 gaps |
 | 2026-04-15 | ~92% | 52 | This review — ADRs 0013-0018 Accepted; coverage improved dramatically |
 | 2026-04-17 | 100% | 56 | ship-hud + ship-equipment merged to main; ADR-0019/0020 implemented |
-| 2026-04-18 | 100% | 56 | ADR-0019 created (was file-missing); Accepted |
+| 2026-04-18 | 100% | 56 | ADR-0019 created (was file-missing); Accepted; ship-equipment documented as scope extension |

@@ -88,7 +88,7 @@
 
 > **[VS]** = Vertical Slice 里程碑，不在 MVP 范围内。
 > **HIGH ✓修正** = 已在对应 ADR 中记录并给出修正方案。
-> **HIGH ✓记录** = 已在 ADR 中记录，等待 ADR-0005 给出最终实现方案。
+> **HIGH ✓记录** = 已在 ADR 中记录，等待 ADR-0013/0014/0015 (Combat/Health/Enemy) 给出最终实现方案。
 
 ---
 
@@ -411,7 +411,7 @@ public class FleetDispatch : MonoBehaviour
 
 | ADR | 覆盖系统 | TR-ID |
 |-----|---------|-------|
-| **ADR-0005：Core 数据结构补全** | 星图图结构、ShipBlueprint/carrier_v1、BuildingInstance/ShipyardTier、ResourceConfig ORE_CAP 校验 | TR-resource-001~003, TR-starmap-001~003, TR-ship-001/005, TR-building-001~002 |
+| **ADR-0005（已拆分→0013/0014/0015）：Combat Architecture** | 星图图结构、ShipBlueprint/carrier_v1、BuildingInstance/ShipyardTier、ResourceConfig ORE_CAP 校验 | TR-resource-001~003, TR-starmap-001~003, TR-ship-001/005, TR-building-001~002 |
 | **ADR-0007：叠加渲染架构** | 星图叠加层 ScreenOverlay 方案（不依赖 Camera A），COCKPIT_WITH_OVERLAY 状态渲染模式 | TR-dvs-008 |
 | **ADR-0012：SimClock 架构** | 策略层独立时间系统（Time.unscaledDeltaTime × SimRate），禁止 timeScale 控制策略层 | TR-dvs-009 |
 

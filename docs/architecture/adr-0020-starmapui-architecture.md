@@ -1,10 +1,43 @@
 # ADR-0020: StarMapUI Architecture
 
-> **Status**: Accepted
-> **Date**: 2026-04-17
-> **Authors**: technical-director + game-designer
-> **Supersedes**: None
-> **Related TRs**: TR-starmapui-001~004
+## Status
+Accepted
+
+## Date
+2026-04-17
+
+## Authors
+technical-director + game-designer
+
+## Engine Compatibility
+
+| Field | Value |
+|-------|-------|
+| **Engine** | Unity 6.3 LTS |
+| **Domain** | UI / UI Toolkit + Painter2D |
+| **Knowledge Risk** | MEDIUM — Painter2D API 在 Unity 6 引入，属于 post-cutoff API。UI Toolkit 运行时在 Unity 6 已 Production-ready。UIDocument + USS 样式为 6.x 标准用法。 |
+| **References Consulted** | `docs/engine-reference/unity/VERSION.md`, `docs/engine-reference/unity/modules/ui-toolkit.md` |
+| **Post-Cutoff APIs Used** | Painter2D（Unity 6 新 API，用于矢量绘制节点和连线） |
+| **Verification Required** | (1) Painter2D 在 Android 低端设备上 ≤20 节点时帧时间 <1ms；(2) UI Toolkit UIDocument 在目标 Android 设备上正确渲染；(3) 捏合缩放手势（Input System）在触屏设备上响应正确 |
+
+## ADR Dependencies
+
+| Field | Value |
+|-------|-------|
+| **Depends On** | ADR-0002（Event Communication — OnEnable/OnDisable 配对订阅，Tier 2 C# events）；ADR-0004（Data Model — StarMapData 只读消费）；ADR-0017（Fleet Dispatch — DispatchOrder 数据结构，事件订阅） |
+| **Enables** | Core Epic — StarMapUI 实现；触屏交互体验 |
+| **Blocks** | 无（StarMapUI 是上层 UI，不阻塞其他系统） |
+| **Ordering Note** | ADR-0004（StarMapData）和 ADR-0017（FleetDispatch）应先于本 ADR Accepted |
+
+## GDD Requirements Addressed
+
+| GDD System | Requirement | How This ADR Addresses It |
+|------------|-------------|--------------------------|
+| star-map-ui.md §SMUI-1 | 节点渲染（六边形/圆形/菱形） | Painter2D 根据 nodeType 绘制不同形状 |
+| star-map-ui.md §SMUI-2 | 连接线渲染 | Painter2D 根据 StarEdge 绘制连线 |
+| star-map-ui.md §SMUI-3 | 触控热区 ≥48dp | 热区尺寸不随缩放变化 |
+| star-map-ui.md §SMUI-4 | 派遣确认流程 | DispatchCard + FleetDispatchSystem.RequestDispatch() |
+| star-map-ui.md §SMUI-5 | 资源角标 | ResourceCorner 订阅 OnResourcesUpdatedChannel |
 
 ## Context
 
@@ -113,7 +146,4 @@ IDLE
 ## References
 
 - GDD: `design/gdd/star-map-ui.md`（详细交互规格）
-- ADR-0002: Event Communication（Tier 2 C# events 规范）
-- ADR-0004: Data Model（StarMapData 接口）
-- ADR-0017: Fleet Dispatch（DispatchOrder 数据结构）
 - TR-starmapui-001~004: 验收标准

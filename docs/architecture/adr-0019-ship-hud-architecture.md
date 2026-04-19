@@ -1,8 +1,21 @@
 # ADR-0019: Ship HUD Architecture
 
-**Status:** Accepted
+## Status
+Accepted
 
-**Last Updated:** 2026-04-17
+## Date
+2026-04-17
+
+## Engine Compatibility
+
+| Field | Value |
+|-------|-------|
+| **Engine** | Unity 6.3 LTS |
+| **Domain** | UI / UGUI |
+| **Knowledge Risk** | LOW — ShipHUD 使用 UGUI（Image + Text + CanvasGroup），无 post-cutoff API。CanvasGroup.alpha 渐变、Image.fillAmount、Text.text 赋值均为 Unity 2022 LTS 稳定 API。WorldToScreenPoint 投影为 Camera 标准方法。 |
+| **References Consulted** | `docs/engine-reference/unity/VERSION.md`, `docs/engine-reference/unity/modules/ui.md` |
+| **Post-Cutoff APIs Used** | None |
+| **Verification Required** | (1) CanvasGroup.alpha 渐变在 Android 上无性能异常；(2) WorldToScreenPoint 准星投影在分屏/刘海屏设备上坐标正确；(3) OnEnable/OnDisable 事件配对无泄漏 |
 
 ## Context
 
