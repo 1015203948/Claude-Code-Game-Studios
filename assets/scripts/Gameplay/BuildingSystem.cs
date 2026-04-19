@@ -27,6 +27,9 @@ namespace Game.Gameplay {
             Instance = this;
         }
 
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         /// <summary>
         /// Requests to build a structure at a PLAYER-owned node.
         /// Atomic: deducts resources → creates building instance → refreshes cache.

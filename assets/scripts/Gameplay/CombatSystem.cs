@@ -60,6 +60,9 @@ public class CombatSystem : MonoBehaviour
         Instance = this;
     }
 
+    /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+    internal static void ResetInstanceForTest() => Instance = null;
+
     private void OnEnable()
     {
         if (ShipControlSystem.Instance != null) {

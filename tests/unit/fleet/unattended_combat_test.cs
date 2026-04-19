@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 /// 覆盖 Story 007 所有验收标准（AC-1 ~ AC-5）。
 /// </summary>
 [TestFixture]
-public class UnattendedCombat_Test
+public class FleetUnattendedCombat_Test
 {
     // ─────────────────────────────────────────────────────────────────
     // Fields
@@ -32,7 +32,7 @@ public class UnattendedCombat_Test
     [SetUp]
     public void SetUp()
     {
-        if (GameDataManager.Instance != null) GameDataManager.Instance = null;
+        GameDataManager.ResetInstanceForTest();
         if (FleetDispatchSystem.Instance != null) Object.DestroyImmediate(FleetDispatchSystem.Instance.gameObject);
         if (HealthSystem.Instance != null) Object.DestroyImmediate(HealthSystem.Instance.gameObject);
 
@@ -68,10 +68,10 @@ public class UnattendedCombat_Test
     {
         if (_fleetDispatchGo != null) Object.DestroyImmediate(_fleetDispatchGo);
         if (_healthGo != null) Object.DestroyImmediate(_healthGo);
-        if (_starMap != null) Object.DestroyImmediate(_starMap);
-        GameDataManager.Instance = null;
-        FleetDispatchSystem.Instance = null;
-        HealthSystem.Instance = null;
+        // StarMapData is a plain C# class, not a UnityEngine.Object — no destroy needed
+        GameDataManager.ResetInstanceForTest();
+        FleetDispatchSystem.ResetInstanceForTest();
+        HealthSystem.ResetInstanceForTest();
     }
 
     // ─────────────────────────────────────────────────────────────────

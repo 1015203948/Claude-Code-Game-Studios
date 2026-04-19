@@ -66,9 +66,28 @@ public class InputProcessing_Test
 
     private void SetField(object obj, string fieldName, object value)
     {
+        // Try private field first
         var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.IsNotNull(field, $"Field '{fieldName}' not found on {obj.GetType().Name}");
-        field.SetValue(obj, value);
+        if (field != null) {
+            field.SetValue(obj, value);
+            return;
+        }
+        // Fall back to internal/public property (for auto-properties with internal/private setter)
+        var prop = obj.GetType().GetProperty(fieldName,
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.IsNotNull(prop, $"Field or property '{fieldName}' not found on {obj.GetType().Name}");
+        Assert.IsNotNull(prop.SetMethod, $"'{fieldName}' has no setter on {obj.GetType().Name}");
+        prop.SetValue(obj, value);
+    }
+
+    private void SetRawLeftStickX(DualJoystickInput obj, float value)
+    {
+        obj.RawLeftStickX = value;
+    }
+
+    private float GetRawLeftStickX(DualJoystickInput obj)
+    {
+        return obj.RawLeftStickX;
     }
 
     private void SetProperty(object obj, string propName, object value)
@@ -104,12 +123,14 @@ public class InputProcessing_Test
 
     private void SetInput(float thrustMag, float rawLeftX, float aimX)
     {
-        // DualJoystickInput.ThrustInput magnitude
-        SetProperty(_input, "ThrustInput", Vector2.up * thrustMag);
-        // RawLeftStickX — set via field on DualJoystickInput
-        SetField(_input, "RawLeftStickX", rawLeftX);
-        // AimInput right stick X
-        SetProperty(_input, "AimInput", new Vector2(aimX, 0f));
+        // Use SetProperty for ThrustInput and AimInput (private setters)
+        var thrustProp = typeof(DualJoystickInput).GetProperty("ThrustInput");
+        thrustProp?.SetValue(_input, Vector2.up * thrustMag);
+        // RawLeftStickX is now a public field
+        _input.RawLeftStickX = rawLeftX;
+        // Use SetProperty for AimInput
+        var aimProp = typeof(DualJoystickInput).GetProperty("AimInput");
+        aimProp?.SetValue(_input, new Vector2(aimX, 0f));
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -337,13 +358,13 @@ public class InputProcessing_Test
         // Verify via RawLeftStickX — it should NOT change when a second finger touches left
 
         // Simulate: left zone already tracking (RawLeftStickX = 0.7)
-        SetField(_input, "RawLeftStickX", 0.7f);
+        SetRawLeftStickX(_input, 0.7f);
         SetField(_input, "_thrustFingerId", 3); // already tracking finger 3
 
         // Manually call ProcessTouch with a new finger in left zone (touchPhase = Began)
         // We can't easily call ProcessTouch with EnhancedTouch.Touch,
         // so we verify the state is unchanged
-        Assert.AreEqual(0.7f, GetProperty<float>(_input, "RawLeftStickX"));
+        Assert.AreEqual(0.7f, GetRawLeftStickX(_input));
     }
 
     [Test]
@@ -351,12 +372,12 @@ public class InputProcessing_Test
     {
         // When thrust finger lifts, RawLeftStickX should reset to 0
         SetField(_input, "_thrustFingerId", 3);
-        SetField(_input, "RawLeftStickX", 0.7f);
+        SetRawLeftStickX(_input, 0.7f);
 
         // Simulate touch end for the thrust finger
         // The ResetAllInputs / touch ended logic sets RawLeftStickX = 0
         // We test this by verifying the field value is preserved when finger is set
-        Assert.AreEqual(0.7f, GetProperty<float>(_input, "RawLeftStickX"));
+        Assert.AreEqual(0.7f, GetRawLeftStickX(_input));
     }
 
     // ─────────────────────────────────────────────────────────────────

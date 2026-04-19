@@ -51,7 +51,8 @@ public class SlotHighlight : MonoBehaviour
     public void Init(int index, SlotType type, Color color, ShipEquipmentUI owner)
     {
         slotIndex = index;
-        background.color = color;
-        GetComponent<Button>().onClick.AddListener(() => owner.OnSlotClicked(slotIndex));
+        if (background != null) background.color = color;
+        var btn = GetComponent<Button>();
+        if (btn != null) btn.onClick.AddListener(() => owner.OnSlotClicked(slotIndex));
     }
 }

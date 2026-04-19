@@ -44,6 +44,9 @@ namespace Gameplay {
             DontDestroyOnLoad(gameObject);
         }
 
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         /// <summary>
         /// Set the simulation rate. Only {0, 1, 5, 20} are valid.
         /// Invalid values are silently ignored (SimRate unchanged, no broadcast).

@@ -56,6 +56,9 @@ namespace Game.Scene {
             _cts = new CancellationTokenSource();
         }
 
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         private void OnDestroy() {
             if (Instance == this) {
                 Instance = null;

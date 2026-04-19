@@ -60,9 +60,11 @@ namespace Game.Scene {
             }
 
             if (_mode == CameraMode.THIRD_PERSON) {
-                UpdateThirdPerson();
+                UpdateThirdPerson(dt);
+            } else {
+                // V-2: hard bind to cockpit anchor every frame
+                ApplyFirstPerson();
             }
-            // FIRST_PERSON: position/rotation set hard every frame — no Update() needed
         }
 
         // ─── Public API ─────────────────────────────────────────
@@ -81,7 +83,7 @@ namespace Game.Scene {
 
         // ─── Third-Person Update ────────────────────────────────
 
-        private void UpdateThirdPerson()
+        private void UpdateThirdPerson(float dt)
         {
             if (_targetShip == null) return;
             if (_camera == null) return;
@@ -92,11 +94,13 @@ namespace Game.Scene {
                 _camera.transform.position,
                 targetPos,
                 ref _positionVelocity,
-                POSITION_SMOOTH_TIME);
+                POSITION_SMOOTH_TIME,
+                Mathf.Infinity,
+                dt);
 
-            // V-1: SmoothDamp rotation — use Slerp for quaternion smoothing
+            // V-1: Slerp rotation — framerate-independent via dt
             Quaternion targetRot = _targetShip.rotation;
-            float rotationFactor = 1f - Mathf.Exp(-ROTATION_SMOOTH_TIME * 60f / Time.timeScale);
+            float rotationFactor = 1f - Mathf.Exp(-ROTATION_SMOOTH_TIME * 60f * dt);
             _camera.transform.rotation = Quaternion.Slerp(
                 _camera.transform.rotation,
                 targetRot,

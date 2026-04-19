@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Gameplay;
+using Game.Gameplay.Fleet;
 
 namespace Game.Data {
     /// <summary>
@@ -36,6 +37,9 @@ namespace Game.Data {
             }
             Instance = this;
         }
+
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
 
         // =====================================================================
         // Ship Registry
@@ -194,17 +198,45 @@ namespace Game.Data {
         }
 
         private List<DispatchSaveData> CollectDispatchData() {
-            return new List<DispatchSaveData>();
+            var list = new List<DispatchSaveData>();
+            var dispatch = FleetDispatchSystem.Instance;
+            if (dispatch == null) return list;
+            foreach (var order in dispatch.GetAllOrders()) {
+                list.Add(new DispatchSaveData {
+                    FleetId = order.OrderId,
+                    FromNodeId = order.OriginNodeId,
+                    ToNodeId = order.DestinationNodeId,
+                    ElapsedSeconds = order.HopProgress,
+                    TotalSeconds = FLEET_TRAVEL_TIME,
+                });
+            }
+            return list;
         }
 
+        private const float FLEET_TRAVEL_TIME = 3.0f;
+
         private void RestoreShipData(List<ShipSaveData> ships) {
-            // Full implementation: match by InstanceId and restore hull/state
-            // Stub: no-op for now
+            if (ships == null) return;
+            foreach (var data in ships) {
+                var ship = GetShip(data.InstanceId);
+                if (ship == null) continue;
+                ship.SetHull(data.CurrentHull);
+                ship.DockedNodeId = data.DockedNodeId;
+                if (data.State != ship.State) {
+                    ship.SetState(data.State);
+                }
+            }
         }
 
         private void RestoreNodeData(List<NodeSaveData> nodes) {
-            if (_starMapData == null) return;
-            // Full implementation: match by NodeId and restore ownership/fog
+            if (_starMapData == null || nodes == null) return;
+            foreach (var data in nodes) {
+                var node = _starMapData.GetNode(data.NodeId);
+                if (node == null) continue;
+                node.Ownership = data.Ownership;
+                node.FogState = data.FogState;
+                node.DockedFleetId = data.DockedFleetId;
+            }
         }
 
         private void RestoreDispatchData(List<DispatchSaveData> dispatches) {

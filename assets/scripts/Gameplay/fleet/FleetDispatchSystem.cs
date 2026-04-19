@@ -25,6 +25,9 @@ namespace Game.Gameplay.Fleet {
 
         private readonly Dictionary<string, DispatchOrder> _orders = new Dictionary<string, DispatchOrder>();
 
+        // Reusable snapshot buffer — avoids per-frame GC allocation in Update()
+        private readonly List<DispatchOrder> _orderSnapshot = new List<DispatchOrder>();
+
         // ─────────────────────────────────────────────────────────────────
         // Events
         // ─────────────────────────────────────────────────────────────────
@@ -67,6 +70,9 @@ namespace Game.Gameplay.Fleet {
             Instance = this;
         }
 
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         // ─────────────────────────────────────────────────────────────────
         // Transit Hop Advancement (Story 013)
         // ─────────────────────────────────────────────────────────────────
@@ -85,9 +91,10 @@ namespace Game.Gameplay.Fleet {
             float simDelta = simClock.DeltaTime;
             if (simDelta <= 0f) return; // SimRate = 0: no advancement
 
-            // Snapshot to avoid modifying collection during iteration
-            var orders = _orders.Values.ToList();
-            foreach (var order in orders) {
+            // Snapshot to avoid modifying collection during iteration (reusable buffer)
+            _orderSnapshot.Clear();
+            foreach (var o in _orders.Values) _orderSnapshot.Add(o);
+            foreach (var order in _orderSnapshot) {
                 AdvanceOrder(order, simDelta);
             }
         }

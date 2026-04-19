@@ -28,7 +28,8 @@ namespace Gameplay.Combat
         private readonly float _skinThickness;
 
         // 内部状态 — 使用 RaycastHit[] 数组以适配 Physics.SphereCastNonAlloc
-        private readonly RaycastHit[] _hitBuffer = new RaycastHit[16];
+        // Buffer size matches _maxHitsPerCast to prevent overflow
+        private readonly RaycastHit[] _hitBuffer;
         private readonly List<HitResult> _results = new List<HitResult>(8);
 
         /// <summary>
@@ -42,6 +43,7 @@ namespace Gameplay.Combat
             _layerMask = layerMask;
             _maxHitsPerCast = maxHitsPerCast;
             _skinThickness = skinThickness;
+            _hitBuffer = new RaycastHit[maxHitsPerCast];
         }
 
         /// <summary>

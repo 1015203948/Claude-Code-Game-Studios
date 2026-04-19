@@ -370,7 +370,14 @@ namespace Game.UI {
 
                 case InteractionState.NODE_SELECTED:
                     if (nodeId == _selectedNodeId) {
-                        _state = InteractionState.SHIP_SELECTED;
+                        // Find first player ship docked at this node
+                        _selectedShipId = FindPlayerShipAtNode(nodeId);
+                        if (!string.IsNullOrEmpty(_selectedShipId)) {
+                            _state = InteractionState.SHIP_SELECTED;
+                        } else {
+                            _state = InteractionState.IDLE;
+                            ClearSelection();
+                        }
                     } else {
                         _selectedNodeId = nodeId;
                     }
@@ -411,6 +418,19 @@ namespace Game.UI {
             if (nodeId == _selectedShipId) return false;
             var path = StarMapPathfinder.FindPath(_mapData, _selectedShipId, nodeId);
             return path != null && path.Count > 0;
+        }
+
+        private string FindPlayerShipAtNode(string nodeId)
+        {
+            if (GameDataManager.Instance == null) return null;
+            foreach (var ship in GameDataManager.Instance.AllShips) {
+                if (ship.IsPlayerControlled
+                    && ship.DockedNodeId == nodeId
+                    && ship.State == ShipState.DOCKED) {
+                    return ship.InstanceId;
+                }
+            }
+            return null;
         }
 
         // ─── Dispatch Confirmation ────────────────────────────────────

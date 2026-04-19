@@ -15,6 +15,9 @@ namespace Game.Data {
             _blueprints = new Dictionary<string, ShipBlueprint>();
         }
 
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         public void Register(ShipBlueprint bp) {
             if (bp == null || string.IsNullOrEmpty(bp.BlueprintId)) return;
             _blueprints[bp.BlueprintId] = bp;

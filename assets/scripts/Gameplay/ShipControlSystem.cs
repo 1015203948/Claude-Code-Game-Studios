@@ -92,21 +92,27 @@ namespace Game.Gameplay {
 
         private void Awake() {
             if (Instance != null && Instance != this) {
-                Destroy(gameObject);
-                return;
+                Debug.LogWarning("[ShipControlSystem] Duplicate instance detected — taking over singleton.");
             }
             Instance = this;
             _rb = GetComponent<Rigidbody>();
             Debug.Assert(_rb != null, "[ShipControlSystem] Rigidbody required on same GameObject");
         }
 
+        private void OnDestroy() {
+            if (Instance == this) Instance = null;
+        }
+
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         private void OnEnable() {
-            _shipStateChannel.Subscribe(new Action<(string, ShipState)>(OnShipStateChanged));
+            _shipStateChannel?.Subscribe(new Action<(string, ShipState)>(OnShipStateChanged));
             _viewLayerChannel?.Subscribe(OnViewLayerChanged);
         }
 
         private void OnDisable() {
-            _shipStateChannel.Unsubscribe(new Action<(string, ShipState)>(OnShipStateChanged));
+            _shipStateChannel?.Unsubscribe(new Action<(string, ShipState)>(OnShipStateChanged));
             _viewLayerChannel?.Unsubscribe(OnViewLayerChanged);
             _inputEnabled = false;
         }
@@ -193,7 +199,7 @@ namespace Game.Gameplay {
         // ─── Physics Update (Story 019: P-1~P-6) ───────────
 
         private void FixedUpdate() {
-            if (!_inputEnabled) return;
+            if (!_inputEnabled || _rb == null || _dualJoystick == null) return;
 
             // P-5: Zero angular velocity at start of frame
             _rb.angularVelocity = Vector3.zero;

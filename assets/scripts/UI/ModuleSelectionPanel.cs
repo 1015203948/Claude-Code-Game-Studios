@@ -14,7 +14,8 @@ public class ModuleSelectionPanel : MonoBehaviour
 
     private void Awake()
     {
-        closeButton.onClick.AddListener(() => gameObject.SetActive(false));
+        if (closeButton != null)
+            closeButton.onClick.AddListener(() => gameObject.SetActive(false));
         gameObject.SetActive(false);
     }
 
@@ -61,9 +62,10 @@ public class ModuleOption : MonoBehaviour
     {
         _module = module;
         _onSelect = onSelect;
-        label.text = $"{module.Tier} {module.SlotType}";
-        icon.color = GetTierColor(module.Tier);
-        GetComponent<Button>().onClick.AddListener(() => _onSelect(module));
+        if (label != null) label.text = $"{module.Tier} {module.SlotType}";
+        if (icon != null) icon.color = GetTierColor(module.Tier);
+        var btn = GetComponent<Button>();
+        if (btn != null) btn.onClick.AddListener(() => _onSelect(module));
     }
 
     private Color GetTierColor(ModuleTier tier) => tier switch

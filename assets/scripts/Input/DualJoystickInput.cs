@@ -1,4 +1,5 @@
 // MIT License - Copyright (c) 2026 Game Studios
+
 /// <summary>
 /// Dual virtual joystick touch input handler for cockpit.
 /// Uses Unity's built-in Input.touches to track finger IDs.
@@ -23,7 +24,7 @@ namespace Game.Inputs {
         public Vector2 AimInput { get; private set; }
 
         /// <summary>Raw left stick X [-1,1] before dead zone. Used by ShipControlSystem for steering blend (C-4).</summary>
-        public float RawLeftStickX { get; private set; }
+        public float RawLeftStickX { get; internal set; }
 
         // ─── Serialized Fields ──────────────────────────────────────────────
         [SerializeField] private ShipInputChannel _shipInputChannel;

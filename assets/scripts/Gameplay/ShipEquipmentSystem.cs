@@ -15,6 +15,12 @@ public class ShipEquipmentSystem : MonoBehaviour
 
     private void Awake() { Instance = this; }
 
+    /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+    internal static void ResetInstanceForTest() => Instance = null;
+
+    /// <summary>Test hook: force-sets Instance for EditMode test isolation. Do NOT use in production.</summary>
+    internal static void SetInstanceForTest(ShipEquipmentSystem instance) => Instance = instance;
+
     public void OpenForShip(ShipDataModel ship)
     {
         _currentShip = ship;

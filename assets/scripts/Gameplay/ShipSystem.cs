@@ -23,6 +23,9 @@ namespace Game.Gameplay {
             Instance = this;
         }
 
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         /// <summary>
         /// Creates a new ship instance docked at the given node.
         /// Story 017 stub: always succeeds with a generated instance ID.

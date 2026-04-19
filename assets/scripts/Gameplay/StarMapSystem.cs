@@ -29,6 +29,9 @@ namespace Game.Gameplay {
             Instance = this;
         }
 
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
+
         private void OnEnable()
         {
             if (_combatChannel != null) {

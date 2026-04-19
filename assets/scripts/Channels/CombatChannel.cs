@@ -46,5 +46,8 @@ namespace Game.Channels {
             }
             Instance = this;
         }
+
+        /// <summary>Test hook: resets Instance to null for test isolation. Do NOT use in production.</summary>
+        internal static void ResetInstanceForTest() => Instance = null;
     }
 }
