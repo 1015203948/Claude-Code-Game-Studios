@@ -359,6 +359,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 596c427344796bb45aa8ec0887c9a7df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _viewLayerChannel: {fileID: 0}
+  _starMapDocument: {fileID: 0}
+  _cameraSpaceSettings: {fileID: 0}
+  _screenOverlaySettings: {fileID: 0}
+  _slideInDuration: 0.3
+  _slideOutDuration: 0.2
 --- !u!114 &11400002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -383,6 +389,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ee87823637bc2b44aa0af501cfe0121, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _simRateChangedChannel: {fileID: 0}
 --- !u!114 &11400006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -395,6 +402,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f3a1cc5757c5e744b129abc782cb006, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _viewLayerChannel: {fileID: 0}
+  _shipStateChannel: {fileID: 0}
+  _transitionMask: {fileID: 0}
+  _starMapCamera: {fileID: 0}
+  _cockpitCamera: {fileID: 0}
 --- !u!114 &11400010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -408,8 +420,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiDocument: {fileID: 0}
-  _viewLayerChannel: {fileID: 0}
-  _shipStateChannel: {fileID: 0}
+  _viewLayerChannel: {fileID: 11400000, guid: 88c71aa5c694b1d4db39bfc8e99a7fa0, type: 2}
+  _shipStateChannel: {fileID: 11400000, guid: 0eeb8c5bbc7cacc42902ef625ffc31f1, type: 2}
   _resourcesChannel: {fileID: 0}
   _starmapCamera: {fileID: 0}
 --- !u!224 &22400010
