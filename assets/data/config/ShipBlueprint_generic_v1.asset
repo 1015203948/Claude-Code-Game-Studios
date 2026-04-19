@@ -9,17 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: PLACEHOLDER_GUID_generic_v1, type: 3}
+  m_Script: {fileID: 11500000, guid: ad4daa17ece97f143809dd021624328d, type: 3}
   m_Name: ShipBlueprint_generic_v1
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: Game::Game.Data.ShipBlueprint
   BlueprintId: generic_v1
   MaxHull: 100
-  ThrustPower: 8.0
-  TurnSpeed: 180.0
+  ThrustPower: 8
+  TurnSpeed: 180
   WeaponSlots: 1
   BuildCost:
-    Ore: 30
-    Energy: 15
+    Ore: 0
+    Energy: 0
   RequiredShipyardTier: 0
-  CarrierInstanceId:
+  CarrierInstanceId: 
   HangarCapacity: 0

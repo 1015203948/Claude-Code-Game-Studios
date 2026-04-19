@@ -125,8 +125,8 @@ public class InputProcessing_Test
     {
         // DualJoystickInput.ThrustInput magnitude
         SetProperty(_input, "ThrustInput", Vector2.up * thrustMag);
-        // RawLeftStickX — set via field on DualJoystickInput
-        SetField(_input, "RawLeftStickX", rawLeftX);
+        // RawLeftStickX is a property, not a field — use SetProperty
+        SetProperty(_input, "RawLeftStickX", rawLeftX);
         // AimInput right stick X
         SetProperty(_input, "AimInput", new Vector2(aimX, 0f));
     }

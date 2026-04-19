@@ -66,8 +66,8 @@ namespace Game.UI {
 
         private void OnEnable()
         {
-            _viewLayerChannel.Subscribe(OnViewLayerChanged);
-            _shipStateChannel.Subscribe(OnShipStateChanged);
+            _viewLayerChannel?.Subscribe(OnViewLayerChanged);
+            _shipStateChannel?.Subscribe(OnShipStateChanged);
 
             if (HealthSystem.Instance != null) {
                 HealthSystem.Instance.OnHullChanged += OnHullChanged;
@@ -84,8 +84,8 @@ namespace Game.UI {
 
         private void OnDisable()
         {
-            _viewLayerChannel.Unsubscribe(OnViewLayerChanged);
-            _shipStateChannel.Unsubscribe(OnShipStateChanged);
+            _viewLayerChannel?.Unsubscribe(OnViewLayerChanged);
+            _shipStateChannel?.Unsubscribe(OnShipStateChanged);
 
             if (HealthSystem.Instance != null) {
                 HealthSystem.Instance.OnHullChanged -= OnHullChanged;

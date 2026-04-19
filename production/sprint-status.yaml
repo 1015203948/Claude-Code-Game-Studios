@@ -2,11 +2,11 @@
 # DO NOT edit manually — use /story-done to update story status.
 
 sprint: 1
-goal: "Vertical Slice: 让星图→进入驾驶舱→战斗→结算的完整核心循环可玩"
+goal: "垂直切片（Vertical Slice）：让星图 → 进入驾驶舱 → 战斗 → 结算的完整核心循环可玩"
 start: "2026-04-19"
 end: "2026-05-02"
 generated: "2026-04-18"
-updated: "2026-04-18"
+updated: "2026-04-19"
 
 stories:
   # Foundation Runtime
@@ -14,11 +14,11 @@ stories:
     name: "ViewLayer Manager"
     file: "production/epics/foundation-runtime/story-011-viewlayer_manager.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-15"
   - id: "014"
     name: "Ship Input Manager"
     file: "production/epics/foundation-runtime/story-014-ship_input_manager.md"
@@ -50,11 +50,11 @@ stories:
     name: "Dual Joystick Input"
     file: "production/epics/foundation-runtime/story-015-dual_joystick_input.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 1
     blocker: ""
-    completed: ""
+    completed: "2026-04-15"
   - id: "012"
     name: "Panel Settings Assets"
     file: "production/epics/foundation-runtime/story-012-panel_settings_assets.md"
@@ -79,11 +79,11 @@ stories:
     name: "StarMapData"
     file: "production/epics/foundation-infrastructure/story-002-starmap_data.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-15"
   - id: "003"
     name: "StarMap Pathfinder"
     file: "production/epics/foundation-infrastructure/story-003-starmap_pathfinder.md"
@@ -162,20 +162,20 @@ stories:
     name: "Health ApplyDamage"
     file: "production/epics/core-gameplay/story-001-health-apply-damage.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "health-002"
     name: "Health Death Sequence"
     file: "production/epics/core-gameplay/story-002-health-death-sequence.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "health-003"
     name: "Health Hull Broadcast"
     file: "production/epics/core-gameplay/story-003-health-hull-broadcast.md"
@@ -189,65 +189,65 @@ stories:
     name: "Combat State Machine"
     file: "production/epics/core-gameplay/story-004-combat-state-machine.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 1
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "combat-005"
     name: "Combat Fire Rate"
     file: "production/epics/core-gameplay/story-005-combat-fire-rate.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "combat-006"
     name: "Combat Raycast"
     file: "production/epics/core-gameplay/story-006-combat-raycast.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "combat-007"
     name: "Combat Unattended"
     file: "production/epics/core-gameplay/story-007-combat-unattended.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "combat-008"
     name: "Combat Channel"
     file: "production/epics/core-gameplay/story-008-combat-channel.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "enemy-009"
     name: "Enemy Spawn"
     file: "production/epics/core-gameplay/story-009-enemy-spawn.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 0.5
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "enemy-010"
     name: "Enemy AI"
     file: "production/epics/core-gameplay/story-010-enemy-ai.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 1
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "enemy-011"
     name: "Enemy Physics"
     file: "production/epics/core-gameplay/story-011-enemy-physics.md"
@@ -324,20 +324,20 @@ stories:
     name: "ShipCtrl Physics"
     file: "production/epics/core-gameplay/story-019-shipctrl-physics.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 1
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "shipctrl-020"
     name: "ShipCtrl Input"
     file: "production/epics/core-gameplay/story-020-shipctrl-input.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: done
+    owner: "claude"
     estimate_days: 1
     blocker: ""
-    completed: ""
+    completed: "2026-04-19"
   - id: "shipctrl-021"
     name: "ShipCtrl SoftLock"
     file: "production/epics/core-gameplay/story-021-shipctrl-softlock.md"

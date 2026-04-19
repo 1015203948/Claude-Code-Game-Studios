@@ -2,9 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using Game.Channels;
-using Game.Data;
 
 namespace Game.Scene {
     /// <summary>
@@ -12,7 +9,7 @@ namespace Game.Scene {
     /// Requires: GameObject with CanvasGroup (full-screen black background), Sort Order = 100.
     /// When AccessibilitySettings.ReduceMotion is true, transitions are instant (no animation).
     /// </summary>
-    public class TransitionMask : MonoBehaviour {
+    public class TransitionMask : Game.UI.TransitionMask {
         [SerializeField]
         private CanvasGroup _canvasGroup;
 
@@ -27,7 +24,7 @@ namespace Game.Scene {
         /// </summary>
         /// <param name="duration">Fade duration in seconds.</param>
         /// <param name="ct">Cancellation token.</param>
-        public async Task FadeInAsync(float duration, CancellationToken ct) {
+        public override async Task FadeInAsync(float duration, CancellationToken ct) {
             if (_canvasGroup == null) return;
 
             if (AccessibilitySettings.ReduceMotion) {
@@ -40,7 +37,7 @@ namespace Game.Scene {
 
             while (elapsed < duration) {
                 ct.ThrowIfCancellationRequested();
-                await Task.Delay(16); // ~60fps
+                await Task.Yield();
                 elapsed += Time.deltaTime;
                 _canvasGroup.alpha = Mathf.Lerp(startAlpha, 1f, elapsed / duration);
             }
@@ -53,7 +50,7 @@ namespace Game.Scene {
         /// </summary>
         /// <param name="duration">Fade duration in seconds.</param>
         /// <param name="ct">Cancellation token.</param>
-        public async Task FadeOutAsync(float duration, CancellationToken ct) {
+        public override async Task FadeOutAsync(float duration, CancellationToken ct) {
             if (_canvasGroup == null) return;
 
             if (AccessibilitySettings.ReduceMotion) {
@@ -66,7 +63,7 @@ namespace Game.Scene {
 
             while (elapsed < duration) {
                 ct.ThrowIfCancellationRequested();
-                await Task.Delay(16); // ~60fps
+                await Task.Yield();
                 elapsed += Time.deltaTime;
                 _canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, elapsed / duration);
             }

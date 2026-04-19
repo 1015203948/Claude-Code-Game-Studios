@@ -2,6 +2,7 @@
 namespace Game.Scene {
     using System;
     using System.Collections;
+    using System.Linq;
     using UnityEngine;
     using UnityEngine.UIElements;
     using Game.Channels;
@@ -41,13 +42,25 @@ namespace Game.Scene {
 
         // ─── Unity Lifecycle ─────────────────────────────────
 
+        private void Awake() {
+            // Auto-discover: if _starMapDocument is set but _overlayPanel is not,
+            // use the first child of rootVisualElement as the overlay panel.
+            if (_starMapDocument != null && _overlayPanel == null) {
+                var root = _starMapDocument.rootVisualElement;
+                _overlayPanel = root.Children().FirstOrDefault();
+                if (_overlayPanel == null) {
+                    Debug.LogWarning("[StarMapOverlayController] No overlay panel found in UIDocument root.");
+                }
+            }
+        }
+
         private void OnEnable() {
-            _viewLayerChannel.Subscribe(OnViewLayerChanged);
+            _viewLayerChannel?.Subscribe(OnViewLayerChanged);
             EnsureOverlayHidden();
         }
 
         private void OnDisable() {
-            _viewLayerChannel.Unsubscribe(OnViewLayerChanged);
+            _viewLayerChannel?.Unsubscribe(OnViewLayerChanged);
         }
 
         // ─── Event Handler ─────────────────────────────────

@@ -1,23 +1,25 @@
 %YAML 1.1
---- !u!114 &1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cee5bba09f24b34db8c4d8e7e5a3d2c, type: 3}
+  m_Script: {fileID: 11500000, guid: e2ed169d879ef884cab6933d03a6db7f, type: 3}
   m_Name: Hull_Fighter
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: Game::Game.Data.HullBlueprint
   HullType: 0
-  SlotConfiguration:
-  - 0
-  - 1
-  - 2
-  BaseSpeed: 8
-  BaseHull: 80
-  BaseWeaponDamage: 10
-  BaseShield: 20
+  SlotConfiguration: 
+  BaseSpeed: 0
+  ThrustPower: 15
+  TurnSpeed: 120
+  BaseHull: 100
+  BaseWeaponDamage: 0
+  BaseShield: 0
   BaseCargo: 0
+  CarrierInstanceId: 
   Prefab3D: {fileID: 0}

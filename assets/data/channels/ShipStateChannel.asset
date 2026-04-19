@@ -9,6 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: PLACEHOLDER_GUID, type: 3}
+  m_Script: {fileID: 11500000, guid: 7e164451f48d69d46ad7a743ffd33fa2, type: 3}
   m_Name: ShipStateChannel
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: Game::Game.Channels.ShipStateChannel

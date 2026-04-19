@@ -4,15 +4,15 @@
 
 **垂直切片（Vertical Slice）**: 让星图 → 进入驾驶舱 → 战斗 → 结算的完整核心循环可玩。
 
-> "我能在手机上完成一次完整的"指挥舰队 → 进入驾驶舱 → 亲自战斗 → 返回星图"的体验。"
+> "我能在手机上完成一次完整的'指挥舰队 → 进入驾驶舱 → 亲自战斗 → 返回星图'的体验。"
 
 ---
 
 ## Capacity
 
-- **总天数**: 12 天（2 周）
-- **Buffer（20%）**: 2.4 天（预留未预见的阻塞和重构）
-- **可用**: 约 9.6 天
+- Total days: 12
+- Buffer (20%): 2.4 days reserved for unplanned work
+- Available: 9.6 days
 
 **假设**: 单人开发 + AI 辅助，每日有效开发时间约 4-6 小时。
 
@@ -20,8 +20,7 @@
 
 ## Tasks
 
-### Must Have（Critical Path — 必须完成才能达到目标）
-
+### Must Have（Critical Path）
 | ID | Task | Story | Agent | Est. Days | 依赖 | Acceptance Criteria |
 |----|------|-------|-------|-----------|------|-------------------|
 | M1 | StarMapData 初始化 | Story 002 | programmer | 0.5d | — | 初始星图有 ≥3 个节点（HOME + 2 STANDARD），HOME 已被探索 |
@@ -42,8 +41,7 @@
 
 ---
 
-### Should Have（提升体验，Buffer 内完成）
-
+### Should Have
 | ID | Task | Story | Agent | Est. Days | 依赖 | Acceptance Criteria |
 |----|------|-------|-------|-----------|------|-------------------|
 | S1 | SimClock Core | Story 008 | programmer | 1d | — | 时间累加，Pause/Resume，可变倍率 |
@@ -56,8 +54,7 @@
 
 ---
 
-### Nice to Have（Buffer 充裕时）
-
+### Nice to Have
 | ID | Task | Story | Agent | Est. Days | 依赖 |
 |----|------|-------|-------|-----------|------|
 | N1 | 软锁定系统 | Story 021 | programmer | 1d | M10 |
@@ -73,7 +70,6 @@
 ---
 
 ## Risks
-
 | Risk | Probability | Impact | Mitigation |
 |------|------------|--------|------------|
 | 敌方 AI PHYSICS.Raycast 在 Android 性能差 | 中 | 高 | 使用 RaycastNonAlloc 预分配，Profiler 验证 |
@@ -84,7 +80,6 @@
 ---
 
 ## Dependencies on External Factors
-
 - **Unity 编辑器**: 所有实现依赖本地 Unity 6.3 LTS 环境
 - **ADR 契约**: M5/M10/M12 依赖 ADR-0013/ADR-0014/ADR-0015/ADR-0018 定义的接口
 - **触屏设备**: 双摇杆手感需在真机验证，编辑器模拟不充分
@@ -92,19 +87,12 @@
 ---
 
 ## Definition of Done for this Sprint
-
-- [ ] 所有 Must Have 任务完成，Acceptance Criteria 全部通过
-- [ ] 垂直切片构建可运行（星图→驾驶舱→战斗→结算，完整循环）
-- [ ] 所有 Logic 类型故事有单元测试并通过（tests/unit/）
-- [ ] 代码已审查并合并到 main 分支
-- [ ] Smoke check: 核心循环在 Unity 编辑器内可演示
-- [ ] **QA Plan 已存在**（`production/qa/qa-plan-sprint-001.md`）
-- [ ] 无 S1/S2 级 Bug 遗留
-
----
-
-## QA Plan
-
-**当前状态**: 尚无 QA Plan。
-
-> ⚠️ **No QA Plan**: 本冲刺没有 QA Plan。请在实现开始前运行 `/qa-plan sprint`，为每个故事定义测试用例需求。
+- [ ] All Must Have tasks completed
+- [ ] All tasks pass acceptance criteria
+- [ ] QA plan exists (`production/qa/qa-plan-sprint-001.md`)
+- [ ] All Logic/Integration stories have passing unit/integration tests
+- [ ] Smoke check passed (`/smoke-check sprint`)
+- [ ] QA sign-off report: APPROVED or APPROVED WITH CONDITIONS (`/team-qa sprint`)
+- [ ] No S1 or S2 bugs in delivered features
+- [ ] Design documents updated for any deviations
+- [ ] Code reviewed and merged
