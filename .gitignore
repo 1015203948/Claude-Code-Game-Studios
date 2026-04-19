@@ -2,6 +2,7 @@
 .vs/
 .vscode/settings.json
 .idea/
+.cc-connect/
 *.swp
 *.swo
 *~
@@ -37,6 +38,9 @@ dist/
 *.so
 *.dylib
 *.app
+# Exception: Roslyn compiler plugins used by MCP execute_code
+!assets/Plugins/Roslyn/
+!assets/Plugins/Roslyn/*.dll
 
 # === Engine: Godot ===
 .godot/
@@ -53,6 +57,8 @@ export_presets.cfg
 [Bb]uilds/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
+Packages/com.coplaydev.unity-mcp/
+Packages/com.unity.inputsystem/
 *.csproj
 *.unityproj
 *.sln
