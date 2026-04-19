@@ -10,6 +10,8 @@ jobs:
   test-editmode:
     name: Run Edit Mode Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -37,6 +39,8 @@ jobs:
   test-playmode:
     name: Run Play Mode Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
