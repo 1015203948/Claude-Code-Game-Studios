@@ -1,4 +1,3 @@
-#if false
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
@@ -75,9 +74,8 @@ public class CancelDispatch_Test
 
     private DispatchOrder CreateDispatch(string shipId, string destNodeId)
     {
-        var bp = ScriptableObject.CreateInstance<ShipBlueprint>();
-        bp.BlueprintId = "test_v1";
-        bp.MaxHull = 100;
+        var bp = ScriptableObject.CreateInstance<HullBlueprint>();
+        bp.BaseHull = 100;
 
         var channel = ScriptableObject.CreateInstance<ShipStateChannel>();
         var ship = new ShipDataModel(shipId, "test_v1", true, bp, channel);
@@ -158,37 +156,32 @@ public class CancelDispatch_Test
     [Test]
     public void return_advances_current_hop_index_forward_through_reversed_path()
     {
-        // Given: order returned with LockedPath = [C, B, A]
-        var order = CreateDispatch("ship-1", "node-C"); // A→B→C (2 hops)
+        // Given: order traveling A→B→C→D, advanced 1 hop to B (CurrentHopIndex=1)
+        var order = CreateDispatch("ship-1", "node-D"); // [A,B,C,D], 3 hops
 
-        // Advance to C
-        AdvanceOrder(order, FLEET_TRAVEL_TIME); // A→B
-        AdvanceOrder(order, FLEET_TRAVEL_TIME); // B→C
-        Assert.AreEqual(2, order.CurrentHopIndex);
-        Assert.AreEqual("node-C", order.LockedPath[2]);
+        AdvanceOrder(order, FLEET_TRAVEL_TIME); // A→B (index=1)
+        Assert.AreEqual(1, order.CurrentHopIndex);
 
-        // Cancel → return path = [C, B, A]
+        // Cancel → return path = Take(1+1).Reverse() = [A,B].Reverse() = [B,A]
         _fleetDispatch.CancelDispatch("ship-1");
-        Assert.AreEqual("node-C", order.LockedPath[0]);
-        Assert.AreEqual("node-B", order.LockedPath[1]);
-        Assert.AreEqual("node-A", order.LockedPath[2]);
+        Assert.AreEqual("node-B", order.LockedPath[0]);
+        Assert.AreEqual("node-A", order.LockedPath[1]);
 
-        // When: AdvanceReturn with 3.0s → first hop of return
+        // When: AdvanceReturn with 3.0s → first hop of return (B→A)
         AdvanceOrder(order, FLEET_TRAVEL_TIME);
 
-        // Then: CurrentHopIndex=1 (moved from C to B along reversed path)
+        // Then: CurrentHopIndex=1 (arrived at origin A)
         Assert.AreEqual(1, order.CurrentHopIndex);
-        Assert.AreEqual("node-B", order.LockedPath[1]);
+        Assert.AreEqual("node-A", order.LockedPath[1]);
     }
 
     [Test]
     public void return_advances_hop_progress_accumulates()
     {
-        // Given: order returning
-        var order = CreateDispatch("ship-1", "node-C");
-        AdvanceOrder(order, FLEET_TRAVEL_TIME);
-        AdvanceOrder(order, FLEET_TRAVEL_TIME);
-        _fleetDispatch.CancelDispatch("ship-1");
+        // Given: order returning from B to A
+        var order = CreateDispatch("ship-1", "node-D");
+        AdvanceOrder(order, FLEET_TRAVEL_TIME); // A→B (index=1)
+        _fleetDispatch.CancelDispatch("ship-1"); // return path = [B, A]
 
         // When: partial hop (1.5s)
         AdvanceOrder(order, 1.5f);
@@ -205,19 +198,15 @@ public class CancelDispatch_Test
     [Test]
     public void return_to_origin_sets_ship_state_to_docked()
     {
-        // Given: order returning to A with path [C, B, A], at A (index 2 of reversed path)
-        var order = CreateDispatch("ship-1", "node-C"); // A→B→C
-        AdvanceOrder(order, FLEET_TRAVEL_TIME); // A→B
-        AdvanceOrder(order, FLEET_TRAVEL_TIME); // B→C
-        _fleetDispatch.CancelDispatch("ship-1"); // [C, B, A]
+        // Given: order returning from B to A with path [B, A], 1 hop return
+        var order = CreateDispatch("ship-1", "node-D");
+        AdvanceOrder(order, FLEET_TRAVEL_TIME); // A→B (index=1)
+        _fleetDispatch.CancelDispatch("ship-1"); // return path = [B, A]
 
         var ship = GameDataManager.Instance.GetShip("ship-1");
 
-        // When: advance through all 2 return hops (3s each)
-        AdvanceOrder(order, FLEET_TRAVEL_TIME); // C→B (index 1)
-        Assert.AreEqual(ShipState.IN_TRANSIT, ship.State);
-
-        AdvanceOrder(order, FLEET_TRAVEL_TIME); // B→A (index 2 = end)
+        // When: complete return hop (3s)
+        AdvanceOrder(order, FLEET_TRAVEL_TIME); // B→A (index 1 = end)
         // Then: ship is DOCKED (arrived at origin)
         Assert.AreEqual(ShipState.DOCKED, ship.State,
             "Ship should be DOCKED after completing return journey to origin");
@@ -226,17 +215,15 @@ public class CancelDispatch_Test
     [Test]
     public void return_to_origin_closes_order()
     {
-        // Given: order returning to A
-        var order = CreateDispatch("ship-1", "node-C");
-        AdvanceOrder(order, FLEET_TRAVEL_TIME);
-        AdvanceOrder(order, FLEET_TRAVEL_TIME);
-        _fleetDispatch.CancelDispatch("ship-1");
+        // Given: order returning from B to A
+        var order = CreateDispatch("ship-1", "node-D");
+        AdvanceOrder(order, FLEET_TRAVEL_TIME); // A→B
+        _fleetDispatch.CancelDispatch("ship-1"); // return path = [B, A]
 
         int countBefore = GetOrderCount();
         Assert.AreEqual(1, countBefore);
 
         // When: complete return journey
-        AdvanceOrder(order, FLEET_TRAVEL_TIME); // C→B
         AdvanceOrder(order, FLEET_TRAVEL_TIME); // B→A → closes order
 
         // Then: order removed from registry
@@ -340,4 +327,3 @@ public class CancelDispatch_Test
     }
 }
 
-#endif

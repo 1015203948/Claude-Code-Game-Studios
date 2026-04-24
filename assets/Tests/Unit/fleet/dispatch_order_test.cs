@@ -1,4 +1,3 @@
-#if false
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
@@ -20,7 +19,7 @@ public class DispatchOrder_Test
     private GameObject _fleetDispatchGo;
     private GameDataManager _gameDataManager;
     private ShipDataModel _ship;
-    private ShipBlueprint _blueprint;
+    private HullBlueprint _blueprint;
     private ShipStateChannel _stateChannel;
     private StarMapData _starMap;
 
@@ -50,12 +49,10 @@ public class DispatchOrder_Test
         _gameDataManager.SetStarMapData(_starMap);
 
         // Player ship blueprint
-        _blueprint = ScriptableObject.CreateInstance<ShipBlueprint>();
-        _blueprint.BlueprintId = "test_v1";
-        _blueprint.MaxHull = 100;
+        _blueprint = ScriptableObject.CreateInstance<HullBlueprint>();
+        _blueprint.BaseHull = 100;
         _blueprint.ThrustPower = 50f;
         _blueprint.TurnSpeed = 90f;
-        _blueprint.WeaponSlots = 2;
 
         _stateChannel = ScriptableObject.CreateInstance<ShipStateChannel>();
         _ship = new ShipDataModel(
@@ -191,18 +188,23 @@ public class DispatchOrder_Test
         var order = _fleetDispatch.RequestDispatch("ship-1", "node-C");
         Assert.IsNotNull(order);
 
-        var originalPath = new List<string>(order.LockedPath); // snapshot
+        var originalPath = new List<string>(order.LockedPath); // external snapshot
+        var originalListRef = order.LockedPath; // save reference to the list object
 
-        // When: StarMapData changes (add new connection)
-        // (In real scenario, nodes might be added/removed — we can't easily simulate
-        // this without modifying the star map, but we verify the list is a copy)
-        order.LockedPath.Clear(); // mutate the internal list
+        // When: mutate the order's LockedPath directly
+        order.LockedPath.Clear();
 
-        // Then: original path snapshot is unaffected (it's a copy)
-        Assert.AreEqual(originalPath.Count, order.LockedPath.Count,
-            "After clearing, LockedPath should be empty — proving it was stored as reference (this test verifies the implementation stores a copy)");
+        // Then: original snapshot is unaffected (proves the list is a separate instance)
+        Assert.AreEqual(3, originalPath.Count,
+            "External snapshot should still have 3 nodes after clearing the order's list");
+        Assert.AreEqual(0, order.LockedPath.Count,
+            "Order's LockedPath should be empty after Clear()");
+        Assert.AreSame(originalListRef, order.LockedPath,
+            "LockedPath is the same list object — Clear() mutated it directly");
 
-        // More precisely: verify it's a NEW list, not the same reference
+        // Now verify a second dispatch gets its own list
+        _ship.SetState(ShipState.DOCKED);
+        _ship.DockedNodeId = "node-A";
         var order2 = _fleetDispatch.RequestDispatch("ship-1", "node-B");
         Assert.AreNotSame(order.LockedPath, order2.LockedPath,
             "Each order should have its own LockedPath list instance");
@@ -220,12 +222,10 @@ public class DispatchOrder_Test
         Assert.IsNotNull(order1);
 
         // Register another ship
-        var ship2Blueprint = ScriptableObject.CreateInstance<ShipBlueprint>();
-        ship2Blueprint.BlueprintId = "test_v1";
-        ship2Blueprint.MaxHull = 100;
+        var ship2Blueprint = ScriptableObject.CreateInstance<HullBlueprint>();
+        ship2Blueprint.BaseHull = 100;
         ship2Blueprint.ThrustPower = 50f;
         ship2Blueprint.TurnSpeed = 90f;
-        ship2Blueprint.WeaponSlots = 2;
         var stateChannel2 = ScriptableObject.CreateInstance<ShipStateChannel>();
         var ship2 = new ShipDataModel("ship-2", "test_v1", false, ship2Blueprint, stateChannel2);
         ship2.DockedNodeId = "node-B";
@@ -270,4 +270,3 @@ public class DispatchOrder_Test
     }
 }
 
-#endif
