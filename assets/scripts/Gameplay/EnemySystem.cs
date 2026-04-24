@@ -26,6 +26,9 @@ namespace Game.Gameplay {
 
         private const float SPAWN_RADIUS = 150f; // m
 
+        [Tooltip("EnemyShip prefab with model and collider. Falls back to cube if null.")]
+        public GameObject EnemyShipPrefab;
+
         // ─────────────────────────────────────────────────────────────────
         // Singleton
         // ─────────────────────────────────────────────────────────────────
@@ -188,18 +191,31 @@ namespace Game.Gameplay {
         // ─────────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Creates an enemy GameObject with a collider.
-        /// TODO (Story 010): Replace CreatePrimitive with EnemyShipPrefab (asset not yet created).
+        /// Creates an enemy GameObject from prefab, or falls back to a primitive cube.
         /// </summary>
         private GameObject CreateEnemyGameObject(Vector3 position) {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.transform.position = position;
-            go.transform.localScale = new Vector3(3f, 3f, 5f); // approximate ship size
+            GameObject go;
+
+            if (EnemyShipPrefab != null) {
+                go = Instantiate(EnemyShipPrefab, position, Quaternion.identity);
+            } else {
+                // Fallback: basic cube for prototyping when prefab is not assigned
+                go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                go.transform.position = position;
+                go.transform.localScale = new Vector3(3f, 3f, 5f);
+                Debug.LogWarning("[EnemySystem] EnemyShipPrefab not assigned — using fallback cube.");
+            }
+
             go.tag = "EnemyShip";
 
             // Ensure EnemyAIController is attached
             if (go.GetComponent<EnemyAIController>() == null) {
                 go.AddComponent<EnemyAIController>();
+            }
+
+            // Ensure a collider exists for CombatSystem raycast hit resolution
+            if (go.GetComponent<Collider>() == null) {
+                go.AddComponent<BoxCollider>();
             }
 
             return go;

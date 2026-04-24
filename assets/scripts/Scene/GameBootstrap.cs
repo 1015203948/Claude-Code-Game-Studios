@@ -62,12 +62,31 @@ namespace Game.Scene
 
         private async void LoadStarMapSceneAdditive() {
             try {
+                // 等一帧让 SceneManager 注册编辑器预加载的场景
+                await Task.Yield();
+
+                // 跳过已在 Editor 中预加载的场景，避免重复
+                if (SceneManager.GetSceneByName("StarMapScene").isLoaded) {
+                    Debug.Log("[GameBootstrap] StarMapScene already loaded, skipping additive load.");
+                    return;
+                }
+
                 var op = SceneManager.LoadSceneAsync("StarMapScene", LoadSceneMode.Additive);
                 if (op != null) {
                     while (!op.isDone) {
                         await Task.Yield();
                     }
                     Debug.Log("[GameBootstrap] StarMapScene loaded additively.");
+
+                    // Disable duplicate cameras from StarMapScene — MasterScene already has them
+                    var starMapScene = SceneManager.GetSceneByName("StarMapScene");
+                    foreach (var root in starMapScene.GetRootGameObjects()) {
+                        foreach (var cam in root.GetComponentsInChildren<Camera>()) {
+                            if (cam.CompareTag("MainCamera")) continue; // Don't disable cockpit camera
+                            cam.enabled = false;
+                            Debug.Log($"[GameBootstrap] Disabled duplicate camera: {cam.name}");
+                        }
+                    }
                 }
             }
             catch (Exception ex) {
@@ -181,6 +200,22 @@ namespace Game.Scene
                 field.SetValue(target, value);
             else
                 Debug.LogWarning($"[GameBootstrap] Field '{fieldName}' not found on {target.GetType().Name}.");
+        }
+
+        /// <summary>
+        /// Wires CockpitScene components with channel references.
+        /// Called by ViewLayerManager after CockpitScene is loaded.
+        /// </summary>
+        public void WireCockpitComponents(ShipControlSystem scs)
+        {
+            if (scs == null) return;
+
+            if (_shipStateChannel != null)
+                SetField(scs, "_shipStateChannel", _shipStateChannel);
+            if (_viewLayerChannel != null)
+                SetField(scs, "_viewLayerChannel", _viewLayerChannel);
+
+            Debug.Log("[GameBootstrap] Cockpit ShipControlSystem channels wired.");
         }
     }
 }

@@ -76,10 +76,10 @@ namespace Game.Data {
         public static StarMapData CreateMvpDiamond() {
             var nodes = new List<StarNode> {
                 new StarNode("home_base", "HOME_BASE", new Vector2(0, 0), NodeType.HOME_BASE),
-                new StarNode("rich_a", "RICH-A", new Vector2(0, 1), NodeType.RICH),
-                new StarNode("standard_b", "STANDARD-B", new Vector2(1, 0), NodeType.STANDARD),
-                new StarNode("standard_c", "STANDARD-C", new Vector2(0, -1), NodeType.STANDARD),
-                new StarNode("rich_d", "RICH-D", new Vector2(0, -2), NodeType.RICH),
+                new StarNode("rich_a", "RICH-A", new Vector2(0, 200), NodeType.RICH),
+                new StarNode("standard_b", "STANDARD-B", new Vector2(200, 0), NodeType.STANDARD),
+                new StarNode("standard_c", "STANDARD-C", new Vector2(0, -200), NodeType.STANDARD),
+                new StarNode("rich_d", "RICH-D", new Vector2(0, -400), NodeType.RICH),
             };
             var edges = new List<StarEdge> {
                 new StarEdge("home_base", "rich_a"),

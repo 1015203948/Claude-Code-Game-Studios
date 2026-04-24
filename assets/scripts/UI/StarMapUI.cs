@@ -47,6 +47,7 @@ namespace Game.UI {
         private static readonly Color COLOR_NEUTRAL     = new Color(0.533f, 0.533f, 0.533f);     // #888888
         private static readonly Color COLOR_EDGE        = new Color(0.267f, 0.267f, 0.4f);        // #444466
         private static readonly Color COLOR_FLEET_PATH  = new Color(0.267f, 0.533f, 1.0f);       // #4488FF
+        private static readonly Color COLOR_SELECTED    = new Color(1.0f, 0.9f, 0.2f);           // #FFE633
 
         // Zoom bounds
         private const float ZOOM_MIN = 0.5f;
@@ -59,6 +60,7 @@ namespace Game.UI {
         private Label _oreLabel;
         private Label _energyLabel;
         private Label _simRateLabel;
+        private Label _cockpitHintLabel;
 
         private StarMapData _mapData;
         private Dictionary<string, VisualElement> _fleetIcons = new Dictionary<string, VisualElement>();
@@ -75,11 +77,35 @@ namespace Game.UI {
         private Vector2 _panOffset = Vector2.zero;
         private Vector2 _lastTouchPos;
         private bool _isPanning;
+        private bool _isPointerDown;
 
         // ─── Unity Lifecycle ───────────────────────────────────────────
 
         private void OnEnable()
         {
+            // Auto-create UIDocument if missing (e.g. scene reference lost)
+            if (_uiDocument == null) {
+                _uiDocument = GetComponent<UIDocument>();
+                if (_uiDocument == null) {
+                    _uiDocument = gameObject.AddComponent<UIDocument>();
+                    Debug.Log("[StarMapUI] Auto-added UIDocument component.");
+                }
+            }
+
+            // Ensure PanelSettings is assigned (required for UI Toolkit rendering & input)
+#if UNITY_EDITOR
+            if (_uiDocument != null && _uiDocument.panelSettings == null) {
+                var ps = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(
+                    "Assets/data/ui/StarMapOverlay_ScreenOverlay.asset");
+                if (ps != null) {
+                    _uiDocument.panelSettings = ps;
+                    Debug.Log("[StarMapUI] Auto-assigned PanelSettings.");
+                } else {
+                    Debug.LogWarning("[StarMapUI] PanelSettings not found at Assets/data/ui/StarMapOverlay_ScreenOverlay.asset");
+                }
+            }
+#endif
+
             _viewLayerChannel.Subscribe(OnViewLayerChanged);
             _shipStateChannel.Subscribe(OnShipStateChanged);
 
@@ -93,6 +119,7 @@ namespace Game.UI {
 
             _mapData = GameDataManager.Instance?.GetStarMapData();
             BuildUI();
+            CenterMapOnScreen();
         }
 
         private void OnDisable()
@@ -106,6 +133,18 @@ namespace Game.UI {
             }
             if (_resourcesChannel != null) {
                 _resourcesChannel.Unsubscribe(OnResourcesUpdated);
+            }
+
+            if (_viewport != null) {
+                _viewport.generateVisualContent -= OnGenerateVisualContent;
+                _viewport.UnregisterCallback<PointerDownEvent>(OnPointerDown);
+                _viewport.UnregisterCallback<PointerMoveEvent>(OnPointerMove);
+                _viewport.UnregisterCallback<PointerUpEvent>(OnPointerUp);
+                _viewport.UnregisterCallback<WheelEvent>(OnWheel);
+                _viewport.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
+            }
+            if (_cockpitHintLabel != null) {
+                _cockpitHintLabel.UnregisterCallback<PointerDownEvent>(OnHintLabelPointerDown);
             }
         }
 
@@ -121,6 +160,19 @@ namespace Game.UI {
             if (_uiDocument == null) return;
 
             var root = _uiDocument.rootVisualElement;
+
+            // ── Cleanup previously dynamically-added elements to avoid duplicates ──
+            var oldHint = root.Q<Label>("cockpit-hint-label");
+            oldHint?.RemoveFromHierarchy();
+            var oldFleetRoot = root.Q<VisualElement>("fleet-icon-root");
+            if (oldFleetRoot != null && oldFleetRoot != _fleetIconRoot) {
+                oldFleetRoot.RemoveFromHierarchy();
+            }
+            var oldViewport = root.Q<VisualElement>("starmap-viewport");
+            if (oldViewport != null && oldViewport != _viewport) {
+                oldViewport.RemoveFromHierarchy();
+            }
+
             _viewport        = root.Q<VisualElement>("starmap-viewport");
             _fleetIconRoot  = root.Q<VisualElement>("fleet-icon-root");
             _resourceCorner = root.Q<VisualElement>("resource-corner");
@@ -128,15 +180,62 @@ namespace Game.UI {
             _energyLabel    = root.Q<Label>("energy-label");
             _simRateLabel   = root.Q<Label>("simrate-label");
 
-            // Painter2D rendering on viewport
-            if (_viewport != null) {
-                _viewport.generateVisualContent += OnGenerateVisualContent;
-                _viewport.RegisterCallback<PointerDownEvent>(OnPointerDown);
-                _viewport.RegisterCallback<PointerMoveEvent>(OnPointerMove);
-                _viewport.RegisterCallback<PointerUpEvent>(OnPointerUp);
-                _viewport.RegisterCallback<WheelEvent>(OnWheel);
-                _viewport.pickingMode = PickingMode.Position;
+            // 如果没有 UXML，动态创建最小 viewport
+            if (_viewport == null) {
+                _viewport = new VisualElement();
+                _viewport.name = "starmap-viewport";
+                _viewport.style.position = Position.Absolute;
+                _viewport.style.left = 0;
+                _viewport.style.top = 0;
+                _viewport.style.right = 0;
+                _viewport.style.bottom = 0;
+                _viewport.style.backgroundColor = new Color(0.02f, 0.02f, 0.06f);
+                root.Add(_viewport);
             }
+            if (_fleetIconRoot == null) {
+                _fleetIconRoot = new VisualElement();
+                _fleetIconRoot.name = "fleet-icon-root";
+                _fleetIconRoot.style.position = Position.Absolute;
+                _fleetIconRoot.style.left = 0;
+                _fleetIconRoot.style.top = 0;
+                _fleetIconRoot.style.width = Length.Percent(100);
+                _fleetIconRoot.style.height = Length.Percent(100);
+                _fleetIconRoot.pickingMode = PickingMode.Ignore;
+                root.Add(_fleetIconRoot);
+            }
+
+            // 创建"进入驾驶舱"提示标签（动态创建，不依赖 UXML）
+            _cockpitHintLabel = new Label("再点一次进入驾驶舱");
+            _cockpitHintLabel.name = "cockpit-hint-label";
+            _cockpitHintLabel.style.position = Position.Absolute;
+            _cockpitHintLabel.style.bottom = 80;
+            _cockpitHintLabel.style.left = 0;
+            _cockpitHintLabel.style.width = Length.Percent(100);
+            _cockpitHintLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _cockpitHintLabel.style.fontSize = 16;
+            _cockpitHintLabel.style.color = COLOR_SELECTED;
+            _cockpitHintLabel.style.display = DisplayStyle.None;
+            // CRITICAL: Ignore picking so it never blocks viewport pointer events.
+            // We add our own click handler on the label for users who tap the hint text.
+            _cockpitHintLabel.pickingMode = PickingMode.Ignore;
+            _cockpitHintLabel.RegisterCallback<PointerDownEvent>(OnHintLabelPointerDown);
+            root.Add(_cockpitHintLabel);
+
+            // Painter2D rendering on viewport
+            _viewport.generateVisualContent -= OnGenerateVisualContent; // avoid duplicate
+            _viewport.generateVisualContent += OnGenerateVisualContent;
+            _viewport.UnregisterCallback<PointerDownEvent>(OnPointerDown);
+            _viewport.UnregisterCallback<PointerMoveEvent>(OnPointerMove);
+            _viewport.UnregisterCallback<PointerUpEvent>(OnPointerUp);
+            _viewport.UnregisterCallback<WheelEvent>(OnWheel);
+            _viewport.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
+            _viewport.RegisterCallback<PointerDownEvent>(OnPointerDown);
+            _viewport.RegisterCallback<PointerMoveEvent>(OnPointerMove);
+            _viewport.RegisterCallback<PointerUpEvent>(OnPointerUp);
+            _viewport.RegisterCallback<WheelEvent>(OnWheel);
+            // Fallback: also capture mouse move for editor Game-view compatibility
+            _viewport.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+            _viewport.pickingMode = PickingMode.Position;
         }
 
         // ─── Painter2D Rendering ─────────────────────────────────────────
@@ -161,6 +260,17 @@ namespace Game.UI {
 
                 if (node.FogState == FogState.EXPLORED) {
                     color.a = 0.5f;
+                }
+
+                // 选中高亮
+                bool isSelected = (node.Id == _selectedNodeId);
+                if (isSelected) {
+                    // 绘制外圈光环
+                    painter.strokeColor = COLOR_SELECTED;
+                    painter.lineWidth = 3f;
+                    painter.BeginPath();
+                    painter.Arc(pos, size + 8f, Angle.Degrees(0f), Angle.Degrees(360f));
+                    painter.Stroke();
                 }
 
                 switch (node.NodeType) {
@@ -283,6 +393,31 @@ namespace Game.UI {
         private Vector2 ScreenToWorld(Vector2 screenPosition)
             => (screenPosition - _panOffset) / _zoomScale;
 
+        /// <summary>Centers the starmap content in the viewport on first load.</summary>
+        private void CenterMapOnScreen()
+        {
+            if (_mapData == null || _viewport == null) return;
+
+            // Compute bounding box of all visible nodes
+            Vector2 min = Vector2.positiveInfinity;
+            Vector2 max = Vector2.negativeInfinity;
+            bool hasVisible = false;
+            foreach (var node in _mapData.Nodes) {
+                if (node.FogState == FogState.UNEXPLORED) continue;
+                min = Vector2.Min(min, node.Position);
+                max = Vector2.Max(max, node.Position);
+                hasVisible = true;
+            }
+            if (!hasVisible) return;
+
+            Vector2 contentCenter = (min + max) * 0.5f;
+            // Panel center (UI Toolkit panel space: origin top-left)
+            Vector2 panelCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            _panOffset = panelCenter - contentCenter * _zoomScale;
+            _viewport.MarkDirtyRepaint();
+            Debug.Log($"[StarMapUI] Centered map: contentCenter={contentCenter}, panOffset={_panOffset}");
+        }
+
         // ─── Node Helpers ─────────────────────────────────────────────
 
         private float GetNodeSize(NodeType type) => type switch {
@@ -309,9 +444,15 @@ namespace Game.UI {
         {
             _lastTouchPos = evt.position;
             _isPanning = false;
+            _isPointerDown = true;
+
+            // Capture pointer so PointerMoveEvent fires continuously during drag
+            _viewport?.CapturePointer(evt.pointerId);
 
             Vector2 worldPos = ScreenToWorld(evt.position);
             string hitId = HitTestNode(worldPos);
+
+            Debug.Log($"[StarMapUI] PointerDown at {evt.position}, worldPos={worldPos}, hit={hitId ?? "bg"}, state={_state}");
 
             if (!string.IsNullOrEmpty(hitId)) {
                 HandleNodeTap(hitId);
@@ -322,20 +463,26 @@ namespace Game.UI {
 
         private void OnPointerMove(PointerMoveEvent evt)
         {
-            if (evt.pressedButtons == 1) {
+            Debug.Log($"[StarMapUI] PointerMove at {evt.position}, isPointerDown={_isPointerDown}");
+            if (_isPointerDown) {
                 Vector2 delta = (Vector2)evt.position - _lastTouchPos;
                 if (delta.magnitude > 2f) _isPanning = true;
                 if (_isPanning) {
                     _panOffset += delta;
                     _lastTouchPos = evt.position;
                     _viewport?.MarkDirtyRepaint();
+                    Debug.Log($"[StarMapUI] Panning: delta={delta}, panOffset={_panOffset}");
                 }
             }
         }
 
         private void OnPointerUp(PointerUpEvent evt)
         {
+            _isPointerDown = false;
             _isPanning = false;
+            if (_viewport != null) {
+                _viewport.ReleasePointer(evt.pointerId);
+            }
         }
 
         private void OnWheel(WheelEvent evt)
@@ -343,6 +490,21 @@ namespace Game.UI {
             float factor = evt.delta.y > 0 ? 1.1f : 0.9f;
             _zoomScale = Mathf.Clamp(_zoomScale * factor, ZOOM_MIN, ZOOM_MAX);
             _viewport?.MarkDirtyRepaint();
+        }
+
+        private void OnMouseMove(MouseMoveEvent evt)
+        {
+            // Fallback for editor Game-view where PointerMoveEvent may not fire
+            if (_isPointerDown) {
+                Vector2 delta = (Vector2)evt.mousePosition - _lastTouchPos;
+                if (delta.magnitude > 2f) _isPanning = true;
+                if (_isPanning) {
+                    _panOffset += delta;
+                    _lastTouchPos = evt.mousePosition;
+                    _viewport?.MarkDirtyRepaint();
+                    Debug.Log($"[StarMapUI] MousePan: delta={delta}, panOffset={_panOffset}");
+                }
+            }
         }
 
         private string HitTestNode(Vector2 worldPos)
@@ -362,18 +524,22 @@ namespace Game.UI {
 
         private void HandleNodeTap(string nodeId)
         {
+            Debug.Log($"[StarMapUI] HandleNodeTap: nodeId={nodeId}, currentState={_state}");
             switch (_state) {
                 case InteractionState.IDLE:
                     _selectedNodeId = nodeId;
                     _state = InteractionState.NODE_SELECTED;
+                    _viewport?.MarkDirtyRepaint();
                     break;
 
                 case InteractionState.NODE_SELECTED:
                     if (nodeId == _selectedNodeId) {
                         // Find first player ship docked at this node
                         _selectedShipId = FindPlayerShipAtNode(nodeId);
+                        Debug.Log($"[StarMapUI] FindPlayerShipAtNode({nodeId}) = {_selectedShipId ?? "null"}");
                         if (!string.IsNullOrEmpty(_selectedShipId)) {
                             _state = InteractionState.SHIP_SELECTED;
+                            ShowCockpitHint(true);
                         } else {
                             _state = InteractionState.IDLE;
                             ClearSelection();
@@ -381,19 +547,26 @@ namespace Game.UI {
                     } else {
                         _selectedNodeId = nodeId;
                     }
+                    _viewport?.MarkDirtyRepaint();
                     break;
 
                 case InteractionState.SHIP_SELECTED:
-                    if (IsValidDispatchTarget(nodeId)) {
+                    if (nodeId == _selectedNodeId) {
+                        // 点击同一节点 → 进入驾驶舱
+                        Debug.Log("[StarMapUI] Third tap on same node → EnterCockpit()");
+                        EnterCockpit();
+                    } else if (IsValidDispatchTarget(nodeId)) {
                         _dispatchTargetNodeId = nodeId;
                         _state = InteractionState.DISPATCH_CONFIRM;
                         ShowDispatchConfirm(_selectedShipId, nodeId);
                     }
+                    _viewport?.MarkDirtyRepaint();
                     break;
 
                 case InteractionState.DISPATCH_CONFIRM:
                     _state = InteractionState.IDLE;
                     ClearSelection();
+                    _viewport?.MarkDirtyRepaint();
                     break;
             }
         }
@@ -409,7 +582,26 @@ namespace Game.UI {
             _selectedNodeId     = null;
             _selectedShipId     = null;
             _dispatchTargetNodeId = null;
+            ShowCockpitHint(false);
             _viewport?.MarkDirtyRepaint();
+        }
+
+        private void ShowCockpitHint(bool show)
+        {
+            if (_cockpitHintLabel != null) {
+                _cockpitHintLabel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
+        /// <summary>
+        /// Allows the user to tap the hint label itself to enter cockpit.
+        /// The label has pickingMode=Ignore so it does not block viewport events,
+        /// but we register this callback for users who naturally tap the hint text.
+        /// </summary>
+        private void OnHintLabelPointerDown(PointerDownEvent evt)
+        {
+            Debug.Log("[StarMapUI] Hint label tapped → EnterCockpit()");
+            EnterCockpit();
         }
 
         private bool IsValidDispatchTarget(string nodeId)
@@ -532,6 +724,27 @@ namespace Game.UI {
         private void OnDispatchCancel(VisualElement card)
         {
             card.RemoveFromHierarchy();
+            _state = InteractionState.IDLE;
+            ClearSelection();
+        }
+
+        // ─── Enter Cockpit ──────────────────────────────────────────────
+
+        private void EnterCockpit()
+        {
+            Debug.Log($"[StarMapUI] EnterCockpit called for shipId={_selectedShipId}");
+            if (string.IsNullOrEmpty(_selectedShipId)) return;
+
+            ShowCockpitHint(false);
+
+            // 调用 ViewLayerManager 进入驾驶舱
+            if (ViewLayerManager.Instance != null) {
+                Debug.Log($"[StarMapUI] Calling ViewLayerManager.RequestEnterCockpit({_selectedShipId})");
+                ViewLayerManager.Instance.RequestEnterCockpit(_selectedShipId);
+            } else {
+                Debug.LogWarning("[StarMapUI] ViewLayerManager.Instance is null — cannot enter cockpit.");
+            }
+
             _state = InteractionState.IDLE;
             ClearSelection();
         }

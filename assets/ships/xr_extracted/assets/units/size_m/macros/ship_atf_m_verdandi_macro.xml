@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<macros>
+	<macro name="ship_atf_m_verdandi_macro" class="ship_m">
+		<component ref="ship_atf_m_verdandi"/>
+		<properties>
+			<identification name="{444760,1}" basename="{444760,1}" description="{444760,3}" icon="ship_m_fight_01"/>
+			<software>
+				<software ware="software_dockmk2" compatible="1"/>
+				<software ware="software_flightassistmk1" default="1"/>
+				<software ware="software_scannerlongrangemk1" default="1"/>
+				<software ware="software_scannerlongrangemk2" compatible="1"/>
+				<software ware="software_scannerobjectmk1" default="1"/>
+				<software ware="software_scannerobjectmk2" compatible="1"/>
+				<software ware="software_targetmk1" default="1"/>
+				<software ware="software_trademk1" compatible="1"/>
+			</software>
+			<storage missile="100"/>
+			<hull max="7200"/>
+			<secrecy level="2"/>
+			<purpose primary="fight"/>
+			<people capacity="2"/>
+			<sounds>
+				<shipdetail ref="shipdetail_ship_03"/>
+			</sounds>
+			<physics mass="14.256">
+				<inertia pitch="2.1" yaw="2.1" roll="2"/>
+				<drag forward="3.1" reverse="17.32" horizontal="4" vertical="4" pitch="4" yaw="4" roll="4"/>
+			</physics>
+			<thruster tags="small"/>
+			<ship type="heavyfighter"/>
+			<sound_occlusion inside="0.5"/>
+		</properties>
+		<connections>
+			<connection ref="con_cockpit">
+				<macro ref="cockpit_gen_virtual_01_macro" connection="ship"/>
+			</connection>
+			<connection ref="con_dock_xs">
+				<macro ref="dock_xs_hidden_macro" connection="Connection_component"/>
+			</connection>
+			<connection ref="con_shipstorage_xs_01">
+				<macro ref="shipstorage_gen_xs_01_macro" connection="object"/>
+			</connection>
+		</connections>
+	</macro>
+</macros>

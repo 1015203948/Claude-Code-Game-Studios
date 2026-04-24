@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Game.Channels;
 using Game.Data;
+using Game.Gameplay;
+using Game.Inputs;
 
 namespace Game.Scene {
     /// <summary>
@@ -72,12 +74,14 @@ namespace Game.Scene {
         public void RequestEnterCockpit(string shipId) {
             if (_isSwitching) return;
             if (string.IsNullOrEmpty(shipId)) return;
+            if (_cts == null) _cts = new CancellationTokenSource();
             _ = SWITCHING_IN_SequenceAsync(shipId, _cts.Token);
         }
 
         /// <summary>Request to return to star map from cockpit. Triggers SWITCHING_OUT.</summary>
         public void RequestReturnToStarMap() {
             if (_isSwitching) return;
+            if (_cts == null) _cts = new CancellationTokenSource();
             _ = SWITCHING_OUT_SequenceAsync(_cts.Token);
         }
 
@@ -88,18 +92,21 @@ namespace Game.Scene {
         public void RequestSwitchShip(string targetShipId) {
             if (_isSwitching) return;
             if (string.IsNullOrEmpty(targetShipId)) return;
+            if (_cts == null) _cts = new CancellationTokenSource();
             _ = SWITCHING_SHIP_SequenceAsync(targetShipId, _cts.Token);
         }
 
         /// <summary>Request to open star map overlay on top of cockpit. Triggers OPENING_OVERLAY.</summary>
         public void RequestOpenOverlay() {
             if (_isSwitching) return;
+            if (_cts == null) _cts = new CancellationTokenSource();
             _ = OPENING_OVERLAY_SequenceAsync(_cts.Token);
         }
 
         /// <summary>Request to close star map overlay. Triggers CLOSING_OVERLAY.</summary>
         public void RequestCloseOverlay() {
             if (_isSwitching) return;
+            if (_cts == null) _cts = new CancellationTokenSource();
             _ = CLOSING_OVERLAY_SequenceAsync(_cts.Token);
         }
 
@@ -143,26 +150,51 @@ namespace Game.Scene {
                 }
 
                 // Step 5: Load CockpitScene (Additive)
-                AsyncOperation loadOp = SceneManager.LoadSceneAsync(
-                    "CockpitScene",
-                    LoadSceneMode.Additive
-                );
-                loadOp.allowSceneActivation = false;
+                // 先检查场景是否已在 Editor 中预加载
+                var existingCockpit = SceneManager.GetSceneByName("CockpitScene");
+                AsyncOperation loadOp;
+                bool needsLoad;
+
+                if (existingCockpit.isLoaded) {
+                    loadOp = null;
+                    needsLoad = false;
+                    Debug.Log("[ViewLayerManager] CockpitScene already loaded, reusing.");
+                } else {
+                    loadOp = SceneManager.LoadSceneAsync("CockpitScene", LoadSceneMode.Additive);
+                    loadOp.allowSceneActivation = false;
+                    needsLoad = true;
+                }
 
                 // Step 6: ShipState → IN_COCKPIT
                 shipData.SetState(ShipState.IN_COCKPIT);
 
-                // Step 8: allowSceneActivation = true; wait progress >= 0.9f
-                loadOp.allowSceneActivation = true;
-                await WaitForSceneLoadProgressAsync(loadOp, 0.9f, ct);
+                // Step 8: allowSceneActivation = true; wait for scene fully activated
+                if (needsLoad && loadOp != null) {
+                    loadOp.allowSceneActivation = true;
+                    await WaitUntil(() => loadOp.isDone, ct);
+                }
 
                 // Step 9: ViewLayer → COCKPIT; broadcast
                 CurrentViewLayer = ViewLayer.COCKPIT;
                 _viewLayerChannel?.Raise(ViewLayer.COCKPIT);
 
-                // Step 10: Camera switch; mask FadeOut
+                // Step 10: Auto-find cockpit camera if not bound (CockpitScene loaded dynamically)
+                if (_cockpitCamera == null) {
+                    var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
+                    if (mainCam != null) _cockpitCamera = mainCam.GetComponent<Camera>();
+                }
+
+                // Camera switch
                 if (_starMapCamera != null) _starMapCamera.enabled = false;
                 if (_cockpitCamera != null) _cockpitCamera.enabled = true;
+
+                // Wire CockpitScene components (loaded dynamically, not available at bootstrap)
+                WireCockpitScene();
+
+                // Trigger combat encounter
+                CombatSystem.Instance?.BeginCombat(_activeShipId, "combat_node");
+
+                // Mask FadeOut
                 if (_transitionMask != null) {
                     await _transitionMask.FadeOutAsync(0.3f, ct);
                 }
@@ -191,6 +223,9 @@ namespace Game.Scene {
             _isSwitching = true;
 
             try {
+                // 清理战斗状态和敌人（必须在卸载场景前执行）
+                CombatSystem.Instance?.EndCombat();
+
                 // Step 2: Mask FadeIn 300ms
                 if (_transitionMask != null) {
                     await _transitionMask.FadeInAsync(0.3f, ct);
@@ -293,9 +328,9 @@ namespace Game.Scene {
                 );
                 loadOp.allowSceneActivation = false;
 
-                // Step 10: Wait progress >= 0.9f
+                // Step 10: Wait for scene fully activated
                 loadOp.allowSceneActivation = true;
-                await WaitForSceneLoadProgressAsync(loadOp, 0.9f, ct);
+                await WaitUntil(() => loadOp.isDone, ct);
 
                 // Step 12: ViewLayer stays COCKPIT; Mask FadeOut
                 // Note: NO OnViewLayerChanged broadcast (layer unchanged)
@@ -355,22 +390,121 @@ namespace Game.Scene {
         }
 
         // ─── Helpers ───────────────────────────────────────────────────────────
-        private async Task WaitForSceneLoadProgressAsync(
-            AsyncOperation operation,
-            float targetProgress,
-            CancellationToken ct
-        ) {
-            while (operation.progress < targetProgress) {
-                ct.ThrowIfCancellationRequested();
-                await Task.Yield();
-            }
-        }
-
         private async Task WaitUntil(Func<bool> condition, CancellationToken ct) {
             while (!condition()) {
                 ct.ThrowIfCancellationRequested();
                 await Task.Yield();
             }
+        }
+
+        /// <summary>
+        /// Wires CockpitScene components after scene load.
+        /// Injects channels and cross-references that can't be set at bootstrap time.
+        /// </summary>
+        private void WireCockpitScene() {
+            var scs = ShipControlSystem.Instance;
+            if (scs == null) {
+                // Domain reload 后静态 Instance 被重置，但 Awake 不会重新调用 — 通过场景搜索恢复
+                scs = UnityEngine.Object.FindAnyObjectByType<ShipControlSystem>();
+                if (scs != null) {
+                    var prop = typeof(ShipControlSystem).GetProperty("Instance",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    prop?.SetValue(null, scs);
+                    Debug.Log("[ViewLayerManager] WireCockpitScene: Recovered ShipControlSystem.Instance after domain reload.");
+                }
+            }
+            if (scs == null) {
+                Debug.LogError("[ViewLayerManager] WireCockpitScene: ShipControlSystem not found in scene!");
+                return;
+            }
+            Debug.Log($"[ViewLayerManager] WireCockpitScene: scs={scs.name}, _activeShipId={_activeShipId}");
+
+            // Wire DualJoystickInput
+            var joystick = scs.GetComponent<DualJoystickInput>();
+            if (joystick == null) {
+                joystick = scs.gameObject.AddComponent<DualJoystickInput>();
+                Debug.Log($"[ViewLayerManager] Added DualJoystickInput to {scs.name}");
+            } else {
+                Debug.Log($"[ViewLayerManager] Found existing DualJoystickInput on {scs.name}");
+            }
+            SetField(scs, "_dualJoystick", joystick);
+
+            // 注入 channel 到 DualJoystickInput（AddComponent 后立即注入，避免 OnEnable NRE）
+            if (_viewLayerChannel != null) {
+                SetField(joystick, "_viewLayerChannel", _viewLayerChannel);
+            }
+            // 手动设置 _isInCockpit = true（OnEnable 时 channel 为 null 导致订阅失败，需直接设置）
+            SetField(joystick, "_isInCockpit", true);
+
+            // 查找 ShipInputChannel 并注入
+            var inputChannel = UnityEngine.Object.FindAnyObjectByType<ShipInputChannel>();
+            if (inputChannel != null) {
+                SetField(joystick, "_shipInputChannel", inputChannel);
+            }
+
+            // Wire CameraRig
+            var rig = UnityEngine.Object.FindAnyObjectByType<CameraRig>();
+            if (rig != null) {
+                SetField(scs, "_cameraRig", rig);
+
+                // 配置 CameraRig 引用（CockpitScene 中 Inspector 未设置）
+                var mainCam = GameObject.FindGameObjectWithTag("MainCamera");
+                if (mainCam != null) {
+                    SetField(rig, "_camera", mainCam.GetComponent<Camera>());
+                }
+                SetField(rig, "_targetShip", scs.transform);
+
+                // 动态创建 CockpitAnchor（CockpitScene 中不存在）
+                var anchor = scs.transform.Find("CockpitAnchor");
+                if (anchor == null) {
+                    var anchorGO = new GameObject("CockpitAnchor");
+                    anchorGO.transform.SetParent(scs.transform, false);
+                    anchorGO.transform.localPosition = new Vector3(0f, 2f, 0f);
+                    anchor = anchorGO.transform;
+                }
+                SetField(rig, "_cockpitAnchor", anchor);
+
+                Debug.Log($"[ViewLayerManager] CameraRig wired: camera={(mainCam != null ? mainCam.name : "null")}, target={scs.name}, anchor={anchor.name}");
+            }
+
+            // Wire channels from GameBootstrap
+            var bootstrap = UnityEngine.Object.FindAnyObjectByType<GameBootstrap>();
+            if (bootstrap != null) {
+                bootstrap.WireCockpitComponents(scs);
+            }
+
+            // 手动启用 ShipControlSystem 输入（OnEnable 时 channel 为 null 导致订阅失败）
+            SetField(scs, "_inputEnabled", true);
+            SetField(scs, "_activeShipId", _activeShipId);
+
+            // 缓存飞船参数
+            var shipData = GameDataManager.Instance?.GetShip(_activeShipId);
+            if (shipData != null) {
+                SetField(scs, "_cachedThrustPower", shipData.GetThrustPower());
+                SetField(scs, "_cachedTurnSpeed", shipData.GetTurnSpeed());
+            }
+
+            // CameraRig → THIRD_PERSON
+            if (rig != null) {
+                rig.SwitchMode(CameraRig.CameraMode.THIRD_PERSON);
+            }
+
+            // 强制重新激活 Rigidbody（防止之前 DESTROYED 状态遗留 kinematic）
+            var rb = scs.GetComponent<Rigidbody>();
+            if (rb != null) {
+                rb.isKinematic = false;
+                rb.constraints = RigidbodyConstraints.None;
+                Debug.Log($"[ViewLayerManager] Rigidbody reset: isKinematic={rb.isKinematic}, constraints={rb.constraints}");
+            }
+
+            Debug.Log("[ViewLayerManager] CockpitScene components wired.");
+        }
+
+        private static void SetField(object target, string fieldName, object value) {
+            var field = target.GetType().GetField(fieldName,
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Instance);
+            if (field != null) field.SetValue(target, value);
         }
     }
 }

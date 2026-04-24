@@ -6,12 +6,13 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: "Assets/scenes/MasterScene.unity"
+    path: Assets/scenes/MasterScene.unity
     guid: ad946e411f1cbc243a582bb242956e14
   - enabled: 1
-    path: "Assets/scenes/StarMapScene.unity"
+    path: Assets/scenes/StarMapScene.unity
     guid: ef8a3e00b039f954897355fb319c4a6a
   - enabled: 1
-    path: "Assets/scenes/CockpitScene.unity"
+    path: Assets/scenes/CockpitScene.unity
     guid: 55c1004bb8f2ca046a4c0f2631a0f376
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

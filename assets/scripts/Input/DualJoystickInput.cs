@@ -46,11 +46,15 @@ namespace Game.Inputs {
 
         // ─── Lifecycle ──────────────────────────────────────────────────────
         private void OnEnable() {
-            _viewLayerChannel.Subscribe(OnViewLayerChanged);
+            if (_viewLayerChannel != null) {
+                _viewLayerChannel.Subscribe(OnViewLayerChanged);
+            }
         }
 
         private void OnDisable() {
-            _viewLayerChannel.Unsubscribe(OnViewLayerChanged);
+            if (_viewLayerChannel != null) {
+                _viewLayerChannel.Unsubscribe(OnViewLayerChanged);
+            }
             ResetAllInputs();
         }
 
@@ -64,7 +68,36 @@ namespace Game.Inputs {
         private void Update() {
             if (!_isInCockpit) return;
 
+#if UNITY_EDITOR || UNITY_STANDALONE
+            // 始终读取键盘输入（作为触摸的补充）
+            float kbH = (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) ? 1f : 0f)
+                      + (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow) ? -1f : 0f);
+            float kbV = (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) ? 1f : 0f)
+                      + (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) ? -1f : 0f);
+
+            if (Input.touchCount == 0) {
+                // 无触摸：完全使用键盘
+                ThrustInput = Vector2.up * Mathf.Abs(kbV);
+                RawLeftStickX = kbH;
+                AimInput = new Vector2(kbH, kbV);
+                _shipInputChannel?.RaiseThrust(ThrustInput.magnitude);
+                _shipInputChannel?.RaiseAim(AimInput);
+                return;
+            }
+#endif
+
             ProcessTouches();
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+            // 有触摸时，键盘输入作为补充（只在对应轴无触摸输入时生效）
+            if (Mathf.Abs(kbV) > 0.01f && ThrustInput.magnitude < 0.01f) {
+                ThrustInput = Vector2.up * Mathf.Abs(kbV);
+            }
+            if (Mathf.Abs(kbH) > 0.01f && Mathf.Abs(AimInput.x) < 0.01f) {
+                RawLeftStickX = kbH;
+                AimInput = new Vector2(kbH, AimInput.y);
+            }
+#endif
 
             // Broadcast current state
             _shipInputChannel?.RaiseThrust(ThrustInput.magnitude);
