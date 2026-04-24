@@ -34,6 +34,10 @@ namespace Game.Data
         public float BaseHull;
         /// <summary>基础武器伤害（无武器加成）</summary>
         public float BaseWeaponDamage;
+        /// <summary>基础武器射速 (shots/sec)</summary>
+        public float BaseFireRate = 1f;
+        /// <summary>基础武器射程 (meters)</summary>
+        public float BaseRange = 200f;
         /// <summary>基础护盾容量</summary>
         public float BaseShield;
         /// <summary>基础货舱容量</summary>

@@ -1,8 +1,11 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Game.Data;
 using Game.Channels;
 using Game.Gameplay;
+using Gameplay;
 
 /// <summary>
 /// 驾驶舱战斗系统 — 管理战斗状态机、胜负判定。
@@ -19,19 +22,10 @@ public class CombatSystem : MonoBehaviour
     public static CombatSystem Instance { get; private set; }
 
     // ─────────────────────────────────────────────────────────────────
-    // Fire Rate Timer
+    // Weapon System
     // ─────────────────────────────────────────────────────────────────
 
-    /// <summary>Time accumulator for fire rate limiting. Frame-rate independent.</summary>
-    private float _fireTimer = 0f;
-
-    private const float FIRE_ANGLE_THRESHOLD = 15f;   // degrees
-    private const float WEAPON_FIRE_RATE = 1.0f;     // shots/sec
-    private const float WEAPON_RANGE = 200f;         // meters
-    private const float BASE_DAMAGE = 8f;            // HP per hit
-
-    /// <summary>Pre-allocated RaycastNonAlloc buffer — zero GC in combat loop.</summary>
-    private readonly RaycastHit[] _hits = new RaycastHit[1];
+    private WeaponSystem _weaponSystem;
 
     /// <summary>Maps enemy colliders to their instance IDs for hit resolution.</summary>
     private readonly Dictionary<Collider, string> _enemyColliders = new Dictionary<Collider, string>();
@@ -83,15 +77,19 @@ public class CombatSystem : MonoBehaviour
 
     /// <summary>
     /// Handler for ShipControlSystem.FireRequested (Story 021).
-    /// Fires weapon if cooldown elapsed.
+    /// Delegates to WeaponSystem for cooldown and firing.
     /// </summary>
     private void OnFireRequested()
     {
         if (_state != CombatState.COMBAT_ACTIVE) return;
-        if (_fireTimer < (1f / WEAPON_FIRE_RATE)) return;
+        if (_weaponSystem == null) return;
 
-        FireWeapon();
-        _fireTimer = 0f;
+        Transform playerTransform = ShipControlSystem.Instance != null
+            ? ShipControlSystem.Instance.transform
+            : transform;
+
+        Vector3 fireOrigin = playerTransform.position + playerTransform.forward * 1f;
+        _weaponSystem.TryFire(fireOrigin, playerTransform.forward, _enemyColliders);
     }
 
     private void Update()
@@ -99,44 +97,7 @@ public class CombatSystem : MonoBehaviour
         if (_state != CombatState.COMBAT_ACTIVE) return;
 
         // AC-2: Frame-rate independent timer via Time.deltaTime accumulation
-        _fireTimer += Time.deltaTime;
-    }
-
-    // ─────────────────────────────────────────────────────────────────
-    // Fire Weapon
-    // ─────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Fires the player's weapon. Handles fire rate cooldown and Raycast hit detection.
-    /// Zero GC: uses pre-allocated RaycastHit[1] buffer.
-    /// </summary>
-    private void FireWeapon()
-    {
-        Vector3 fireOrigin = transform.position + transform.forward * 1f;
-        int count = Physics.RaycastNonAlloc(
-            fireOrigin,
-            transform.forward,
-            _hits,
-            WEAPON_RANGE);
-
-        if (count > 0 && _enemyColliders.TryGetValue(_hits[0].collider, out var enemyId)) {
-            HealthSystem.Instance?.ApplyDamage(enemyId, BASE_DAMAGE, DamageType.Physical);
-            Debug.Log($"[CombatSystem] Hit {enemyId} — applied {BASE_DAMAGE} damage.");
-        }
-    }
-
-    /// <summary>
-    /// Returns true if the current aim angle is within the fire threshold.
-    /// Uses ShipControlSystem aim direction when available (Story 021).
-    /// </summary>
-    private bool IsAimAngleWithinThreshold()
-    {
-        // Story 021 will provide a FireRequested event.
-        // Until then, use ShipControlSystem aim magnitude as a proxy.
-        if (ShipControlSystem.Instance != null) {
-            return ShipControlSystem.Instance.GetAimDirection().magnitude > 0.9f;
-        }
-        return false;
+        _weaponSystem?.Tick(Time.deltaTime);
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -146,7 +107,7 @@ public class CombatSystem : MonoBehaviour
     /// <summary>
     /// Fire cooldown progress [0..1]: 0 = just fired, 1 = fully recharged.
     /// </summary>
-    public float FireCooldownProgress => Mathf.Min(_fireTimer / (1f / WEAPON_FIRE_RATE), 1f);
+    public float FireCooldownProgress => _weaponSystem?.CooldownProgress ?? 0f;
 
     /// <summary>
     /// 开始战斗。
@@ -162,7 +123,25 @@ public class CombatSystem : MonoBehaviour
         _state = CombatState.COMBAT_ACTIVE;
         _playerShipId = shipId;
         _nodeId = nodeId;
-        _fireTimer = 0f;
+
+        // Resolve player ship weapon config
+        var ship = GameDataManager.Instance?.GetShip(shipId);
+        float fireRate = ship?.TotalFireRate ?? 1f;
+        float range = ship?.TotalRange ?? 200f;
+        float damage = ship?.TotalWeaponDamage ?? 8f;
+        DamageType damageType = DamageType.Physical;
+        var equippedWeapons = ship?.EquippedWeapons;
+        if (equippedWeapons != null) {
+            foreach (var module in equippedWeapons) {
+                damageType = module.DamageType;
+                break;
+            }
+        }
+
+        _weaponSystem = new WeaponSystem(
+            fireRate, range, damage, damageType,
+            new UnityPhysicsQuery(),
+            new HealthSystemAdapter());
 
         // 生成 2 个敌方实例
         _enemyIds.Clear();
@@ -206,7 +185,7 @@ public class CombatSystem : MonoBehaviour
         _state = CombatState.IDLE;
         _playerShipId = null;
         _nodeId = null;
-        _fireTimer = 0f;
+        _weaponSystem = null;
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -238,25 +217,35 @@ public class CombatSystem : MonoBehaviour
         if (IsPlayerShip(instanceId)) {
             // 玩家死亡 → 败
             _state = CombatState.COMBAT_DEFEAT;
-            // U-4 路径：绕过 HealthSystem，直接 DestroyShip
             GameDataManager.Instance.GetShip(_playerShipId)?.Destroy();
             CombatChannel.Instance.RaiseDefeat(_nodeId);
             Debug.Log($"[CombatSystem] Combat DEFEAT at node {_nodeId}.");
+
+            EndCombat();
+            StartCoroutine(ReturnToStarMapDelayed(3f));
         } else if (_enemyIds.Contains(instanceId)) {
             // 敌方死亡 → 检查是否全灭
             _enemyIds.Remove(instanceId);
             if (_enemyIds.Count == 0) {
                 // 胜利
                 _state = CombatState.COMBAT_VICTORY;
-                // 状态恢复为 IN_COCKPIT
                 GameDataManager.Instance.GetShip(_playerShipId)?.SetState(ShipState.IN_COCKPIT);
                 CombatChannel.Instance.RaiseVictory(_nodeId);
                 Debug.Log($"[CombatSystem] Combat VICTORY at node {_nodeId}.");
+
+                EndCombat();
+                StartCoroutine(ReturnToStarMapDelayed(2f));
             }
         }
+    }
 
-        // 无论胜负，战斗都结束
-        EndCombat();
+    /// <summary>
+    /// Returns to star map after a delay, allowing victory/defeat UI to display.
+    /// </summary>
+    private IEnumerator ReturnToStarMapDelayed(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Game.Scene.ViewLayerManager.Instance?.RequestReturnToStarMap();
     }
 
     // ─────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Game.Gameplay;
 
 namespace Gameplay
 {
@@ -16,6 +17,12 @@ namespace Gameplay
         [Header("Attributes")]
         [Tooltip("武器伤害加成")]
         public float Damage;
+        [Tooltip("武器射速 (shots/sec)")]
+        public float FireRate = 1f;
+        [Tooltip("武器射程 (meters)")]
+        public float Range = 200f;
+        [Tooltip("伤害类型")]
+        public DamageType DamageType = DamageType.Physical;
         [Tooltip("引擎速度加成")]
         public float Speed;
         [Tooltip("护盾容量加成")]

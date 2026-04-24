@@ -39,7 +39,7 @@ public class PhysicsCore_Test
         GameDataManager.ResetInstanceForTest();
 
         // Disable auto simulation so Physics.Simulate works in EditMode
-        Physics.autoSimulation = false;
+        Physics.simulationMode = SimulationMode.Script;
 
         // Create ScriptableObject channels
         _shipStateChannel = ScriptableObject.CreateInstance<ShipStateChannel>();
@@ -67,7 +67,6 @@ public class PhysicsCore_Test
 
         // Set _inputEnabled=true directly (bypass channel subscription which has type issues)
         SetField(_scs, "_inputEnabled", true);
-        SetField(_scs, "_weaponCooldown", 0f);
     }
 
     [TearDown]
@@ -81,7 +80,7 @@ public class PhysicsCore_Test
         GameDataManager.ResetInstanceForTest();
 
         // Restore auto simulation
-        Physics.autoSimulation = true;
+        Physics.simulationMode = SimulationMode.FixedUpdate;
     }
 
     // ─────────────────────────────────────────────────────────────────

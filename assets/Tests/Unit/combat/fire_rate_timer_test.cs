@@ -1,146 +1,48 @@
-#if false
 using Game.Gameplay;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
-using System.Collections;
-using System.Reflection;
-using Object = UnityEngine.Object;
+using System.Collections.Generic;
 
 /// <summary>
-/// CombatSystem 武器射速计时器单元测试。
-/// 覆盖 Story 005 所有验收标准（AC-1 ~ AC-5）。
+/// WeaponSystem 射速计时器单元测试。
+/// 覆盖 Story 005 所有验收标准（AC-1 ~ AC-5），通过 WeaponSystem API 直接验证。
 /// </summary>
 [TestFixture]
 public class FireRateTimer_Test
 {
     // ─────────────────────────────────────────────────────────────────
-    // Test Subject
+    // Mock dependencies
     // ─────────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Testable subclass of CombatSystem that exposes private members for testing.
-    /// </summary>
-    private class TestableCombatSystem : CombatSystem
+    private class MockPhysicsQuery : IPhysicsQuery
     {
-        private float _testFireTimer;
-        private bool _testIsAiming;
-        private int _fireWeaponCallCount;
-
-        public void SetFireTimer(float value) => _testFireTimer = value;
-        public float GetFireTimer() => _testFireTimer;
-        public void SetAiming(bool aiming) => _testIsAiming = aiming;
-        public int FireWeaponCallCount => _fireWeaponCallCount;
-
-        // Override IsAimAngleWithinThreshold to use test-controlled value
-        private new bool IsAimAngleWithinThreshold() => _testIsAiming;
-
-        // Override Update to use test timer instead of real Time.deltaTime
-        // (only for testing purposes — uses reflection to call real Update logic)
-        public void SimulateUpdate(float deltaTime)
+        public int Raycast(Vector3 origin, Vector3 direction, RaycastHit[] buffer, float maxDistance)
         {
-            // Manually advance the fire timer logic that lives in Update()
-            _testFireTimer += deltaTime;
-            if (_testFireTimer >= (1f / WEAPON_FIRE_RATE) && IsAimAngleWithinThreshold()) {
-                _fireWeaponCallCount++;
-                _testFireTimer = 0f;
-            }
+            return 0; // never hit — timer tests don't need hit detection
         }
+    }
 
-        public void ResetFireWeaponCallCount() => _fireWeaponCallCount = 0;
+    private class MockHealthSystem : IHealthSystem
+    {
+        public void ApplyDamage(string instanceId, float amount, DamageType damageType) { }
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // Dependencies
+    // Test Subject
     // ─────────────────────────────────────────────────────────────────
 
-    private TestableCombatSystem _combatSystem;
-    private GameObject _combatGo;
-    private CombatChannel _combatChannel;
-    private GameDataManager _gameDataManager;
-    private ShipDataModel _playerShip;
-    private ShipBlueprint _playerBlueprint;
-    private ShipStateChannel _playerStateChannel;
-    private ShipControlSystem _shipControlSystem;
-    private GameObject _shipControlGo;
-    private HealthSystem _healthSystem;
-    private GameObject _healthGo;
-
-    // ─────────────────────────────────────────────────────────────────
-    // Constants (from GDD)
-    // ─────────────────────────────────────────────────────────────────
-
-    private const float FIRE_ANGLE_THRESHOLD = 15f;
-    private const float WEAPON_FIRE_RATE = 1.0f;
-
-    // ─────────────────────────────────────────────────────────────────
-    // SetUp / TearDown
-    // ─────────────────────────────────────────────────────────────────
+    private WeaponSystem _weaponSystem;
 
     [SetUp]
     public void SetUp()
     {
-        // Reset singletons
-        GameDataManager.ResetInstanceForTest();
-        HealthSystem.ResetInstanceForTest();
-        CombatSystem.ResetInstanceForTest();
-        CombatChannel.ResetInstanceForTest();
-        // Clean up scene-resident ShipControlSystem
-        if (ShipControlSystem.Instance != null)
-            Object.DestroyImmediate(ShipControlSystem.Instance.gameObject);
-        ShipControlSystem.ResetInstanceForTest();
-
-        // GameDataManager
-        _gameDataManager = new GameDataManager();
-
-        // Player ship
-        _playerBlueprint = ScriptableObject.CreateInstance<ShipBlueprint>();
-        _playerBlueprint.BlueprintId = "test_v1";
-        _playerBlueprint.MaxHull = 100;
-        _playerBlueprint.ThrustPower = 50f;
-        _playerBlueprint.TurnSpeed = 90f;
-        _playerBlueprint.WeaponSlots = 2;
-
-        _playerStateChannel = ScriptableObject.CreateInstance<ShipStateChannel>();
-        _playerShip = new ShipDataModel(
-            "player-ship-1", "test_v1",
-            isPlayerControlled: true,
-            _playerBlueprint,
-            _playerStateChannel);
-        _gameDataManager.RegisterShip(_playerShip);
-
-        // CombatChannel
-        _combatChannel = ScriptableObject.CreateInstance<CombatChannel>();
-        CombatChannel.Instance = _combatChannel;
-
-        // HealthSystem
-        _healthGo = new GameObject("HealthSystem");
-        _healthSystem = _healthGo.AddComponent<HealthSystem>();
-
-        // ShipControlSystem (for aim direction)
-        _shipControlGo = new GameObject("ShipControlSystem");
-        _shipControlSystem = _shipControlGo.AddComponent<ShipControlSystem>();
-
-        // CombatSystem (as GameObject component so Update() is called by Unity)
-        _combatGo = new GameObject("CombatSystem");
-        _combatSystem = _combatGo.AddComponent<TestableCombatSystem>();
-    }
-
-    [TearDown]
-    public void TearDown()
-    {
-        if (_combatGo != null) Object.DestroyImmediate(_combatGo);
-        if (_healthGo != null) Object.DestroyImmediate(_healthGo);
-        if (_shipControlGo != null) Object.DestroyImmediate(_shipControlGo);
-        if (_playerBlueprint != null) Object.DestroyImmediate(_playerBlueprint);
-        if (_playerStateChannel != null) Object.DestroyImmediate(_playerStateChannel);
-        if (_combatChannel != null) Object.DestroyImmediate(_combatChannel);
-
-        GameDataManager.ResetInstanceForTest();
-        HealthSystem.ResetInstanceForTest();
-        CombatSystem.ResetInstanceForTest();
-        CombatChannel.ResetInstanceForTest();
-        ShipControlSystem.ResetInstanceForTest();
+        _weaponSystem = new WeaponSystem(
+            fireRate: 1.0f,  // 1 shot/sec = 1.0s cooldown
+            range: 200f,
+            damage: 8f,
+            damageType: DamageType.Physical,
+            physics: new MockPhysicsQuery(),
+            health: new MockHealthSystem());
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -150,8 +52,8 @@ public class FireRateTimer_Test
     [Test]
     public void fireTimer_initial_value_is_zero()
     {
-        Assert.AreEqual(0f, _combatSystem.GetFireTimer(),
-            "_fireTimer should initialize to 0f");
+        Assert.AreEqual(0f, _weaponSystem.CooldownProgress, 0.001f,
+            "CooldownProgress should start at 0 (weapon ready to fire)");
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -162,162 +64,120 @@ public class FireRateTimer_Test
     public void fireTimer_accumulates_with_deltaTime()
     {
         // Given: timer starts at 0
-        _combatSystem.SetFireTimer(0f);
-
         // When: multiple frames pass at 60fps (each ≈ 0.0167s)
-        _combatSystem.SimulateUpdate(0.0167f);
-        _combatSystem.SimulateUpdate(0.0167f);
-        _combatSystem.SimulateUpdate(0.0167f);
+        _weaponSystem.Tick(0.0167f);
+        _weaponSystem.Tick(0.0167f);
+        _weaponSystem.Tick(0.0167f);
 
-        // Then: timer accumulated correctly
-        Assert.That(_combatSystem.GetFireTimer(), Is.EqualTo(0.0501f).Within(0.0001f),
+        // Then: timer accumulated correctly (3 × 0.0167 = 0.0501)
+        Assert.That(_weaponSystem.CooldownProgress, Is.EqualTo(0.0501f).Within(0.0001f),
             "Timer should accumulate deltaTime each frame");
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // AC-3: aimAngle ≤ 15° 且 _fireTimer ≥ 1/WEAPON_FIRE_RATE 时 FireWeapon()
+    // AC-3: timer ≥ 1/WEAPON_FIRE_RATE 时 TryFire 成功
     // ─────────────────────────────────────────────────────────────────
 
     [Test]
-    public void fire_triggers_when_timer_ready_and_aiming()
+    public void fire_triggers_when_timer_ready()
     {
-        // Given: timer just below threshold, player is aiming
-        _combatSystem.SetFireTimer(0.95f); // almost at 1.0
-        _combatSystem.SetAiming(true);
-        _combatSystem.ResetFireWeaponCallCount();
+        // Given: weapon cooldown filled
+        _weaponSystem.Tick(1f); // fill full 1.0s cooldown for 1fps
+        var targetMap = new Dictionary<Collider, string>();
 
-        // When: one frame passes
-        _combatSystem.SimulateUpdate(0.0167f); // total = 0.9667
+        // When: fire
+        bool fired = _weaponSystem.TryFire(Vector3.zero, Vector3.forward, targetMap);
 
-        // Then: fire triggers because accumulated >= 1.0
-        Assert.AreEqual(1, _combatSystem.FireWeaponCallCount,
-            "FireWeapon should trigger when timer >= 1.0 and aiming");
-        Assert.AreEqual(0f, _combatSystem.GetFireTimer(),
-            "Timer should reset to 0 after firing");
+        // Then: fire succeeds
+        Assert.IsTrue(fired, "TryFire should succeed when cooldown is ready");
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // AC-2: aimAngle > 15° 时 FireWeapon() 不执行（即使 timer 已就绪）
+    // AC-2: timer < cooldown 时 TryFire 不执行
     // ─────────────────────────────────────────────────────────────────
 
     [Test]
-    public void fire_blocked_when_aimAngle_above_threshold()
+    public void fire_blocked_when_cooldown_not_ready()
     {
-        // Given: timer is ready (>= 1.0), but player NOT aiming
-        _combatSystem.SetFireTimer(1.5f);
-        _combatSystem.SetAiming(false); // aimAngle > threshold
-        _combatSystem.ResetFireWeaponCallCount();
+        // Given: just fired, timer reset to 0
+        var targetMap = new Dictionary<Collider, string>();
+        _weaponSystem.TryFire(Vector3.zero, Vector3.forward, targetMap);
 
-        // When: many frames pass
-        _combatSystem.SimulateUpdate(0.0167f);
-        _combatSystem.SimulateUpdate(0.0167f);
-        _combatSystem.SimulateUpdate(0.0167f);
+        // When: try to fire again immediately
+        bool fired = _weaponSystem.TryFire(Vector3.zero, Vector3.forward, targetMap);
 
-        // Then: no fire because not aiming
-        Assert.AreEqual(0, _combatSystem.FireWeaponCallCount,
-            "FireWeapon should NOT trigger when not aiming");
-        Assert.AreEqual(1.55f, _combatSystem.GetFireTimer(), 0.001f,
-            "Timer should keep accumulating even when not aiming");
+        // Then: blocked
+        Assert.IsFalse(fired, "TryFire should fail when cooldown is not ready");
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // AC-4: _fireTimer 累积超过 2× 时最多一次开火（不能"充能"）
+    // AC-4: timer 累积超过 2× 时最多一次开火（不能"充能"）
     // ─────────────────────────────────────────────────────────────────
 
     [Test]
     public void no_overfire_from_accumulated_timer()
     {
-        // Given: timer accumulated for 2 seconds (timer = 2.0)
-        _combatSystem.SetFireTimer(2.0f);
-        _combatSystem.SetAiming(true);
-        _combatSystem.ResetFireWeaponCallCount();
+        // Given: timer accumulated for 2 seconds (progress would be 2.0)
+        _weaponSystem.Tick(2.0f);
 
-        // When: fire condition is checked once
-        _combatSystem.SimulateUpdate(0f); // no time passes
+        // When: fire once
+        var targetMap = new Dictionary<Collider, string>();
+        bool fired1 = _weaponSystem.TryFire(Vector3.zero, Vector3.forward, targetMap);
 
         // Then: exactly ONE fire, timer reset
-        Assert.AreEqual(1, _combatSystem.FireWeaponCallCount,
-            "FireWeapon should trigger exactly once per fire condition check");
-        Assert.AreEqual(0f, _combatSystem.GetFireTimer(),
-            "Timer should reset after firing — no credit for extra time");
+        Assert.IsTrue(fired1, "Should fire once when cooldown is ready");
+        Assert.IsFalse(_weaponSystem.CanFire, "Should not be ready immediately after firing");
 
-        // When: next frame
-        _combatSystem.SimulateUpdate(0.0167f);
+        // When: try again immediately
+        bool fired2 = _weaponSystem.TryFire(Vector3.zero, Vector3.forward, targetMap);
 
-        // Then: timer accumulates but doesn't fire again until next full cycle
-        Assert.AreEqual(1, _combatSystem.FireWeaponCallCount,
-            "Second frame should not fire again (timer needs to rebuild to 1.0)");
+        // Then: blocked — no credit for extra time
+        Assert.IsFalse(fired2, "Second fire should be blocked — no overfire");
     }
 
     // ─────────────────────────────────────────────────────────────────
     // AC-5: 60fps 下 1 秒恰好触发 1 次开火（WEAPON_FIRE_RATE = 1.0）
     // ─────────────────────────────────────────────────────────────────
 
-    [UnityTest]
-    public IEnumerator fire_once_per_second_at_60fps()
+    [Test]
+    public void fire_once_per_second_at_60fps()
     {
-        _combatSystem.SetFireTimer(0f);
-        _combatSystem.SetAiming(true);
-        _combatSystem.ResetFireWeaponCallCount();
-
-        float elapsed = 0f;
+        int fireCount = 0;
         float delta = 1f / 60f; // ~0.0167s per frame
+        var targetMap = new Dictionary<Collider, string>();
 
-        // Simulate 1 second = 60 frames
-        for (int i = 0; i < 60; i++) {
-            _combatSystem.SimulateUpdate(delta);
-            elapsed += delta;
+        // Simulate 1 second = 60 frames (plus 1 extra to cross the threshold)
+        for (int i = 0; i < 61; i++)
+        {
+            _weaponSystem.Tick(delta);
+            if (_weaponSystem.TryFire(Vector3.zero, Vector3.forward, targetMap))
+                fireCount++;
         }
 
-        Assert.AreEqual(1, _combatSystem.FireWeaponCallCount,
-            $"At 60fps for 1 second, exactly 1 fire should occur. Got {_combatSystem.FireWeaponCallCount}");
-        Assert.That(_combatSystem.GetFireTimer(), Is.LessThan(0.02f),
-            "Timer should be near 0 after exactly 1 fire in 1 second");
-
-        yield return null;
+        Assert.AreEqual(1, fireCount,
+            $"At 60fps for ~1 second, exactly 1 fire should occur. Got {fireCount}");
     }
 
     // ─────────────────────────────────────────────────────────────────
     // AC-5: 帧率独立：30fps 下 1 秒恰好 1 次开火
     // ─────────────────────────────────────────────────────────────────
 
-    [UnityTest]
-    public IEnumerator frame_rate_independence_at_30fps()
+    [Test]
+    public void frame_rate_independence_at_30fps()
     {
-        _combatSystem.SetFireTimer(0f);
-        _combatSystem.SetAiming(true);
-        _combatSystem.ResetFireWeaponCallCount();
-
+        int fireCount = 0;
         float delta = 1f / 30f; // ~0.0333s per frame
+        var targetMap = new Dictionary<Collider, string>();
 
-        // Simulate 1 second = 30 frames
-        for (int i = 0; i < 30; i++) {
-            _combatSystem.SimulateUpdate(delta);
+        // Simulate 1 second = 30 frames (plus 1 extra to cross the threshold)
+        for (int i = 0; i < 31; i++)
+        {
+            _weaponSystem.Tick(delta);
+            if (_weaponSystem.TryFire(Vector3.zero, Vector3.forward, targetMap))
+                fireCount++;
         }
 
-        Assert.AreEqual(1, _combatSystem.FireWeaponCallCount,
-            $"At 30fps for 1 second, exactly 1 fire should occur (frame-rate independent). Got {_combatSystem.FireWeaponCallCount}");
-
-        yield return null;
-    }
-
-    // ─────────────────────────────────────────────────────────────────
-    // Additional: aim threshold exactly at boundary (15°)
-    // ─────────────────────────────────────────────────────────────────
-
-    [Test]
-    public void fire_blocked_when_aimAngle_just_above_15_degrees()
-    {
-        // Given: aim magnitude just above threshold (simulating 16°)
-        _combatSystem.SetFireTimer(1.5f);
-        _combatSystem.SetAiming(false); // magnitude <= 0.9 = aimAngle > 15°
-        _combatSystem.ResetFireWeaponCallCount();
-
-        _combatSystem.SimulateUpdate(0f);
-
-        Assert.AreEqual(0, _combatSystem.FireWeaponCallCount,
-            "Fire should be blocked when aim magnitude <= 0.9 (aimAngle > 15°)");
+        Assert.AreEqual(1, fireCount,
+            $"At 30fps for ~1 second, exactly 1 fire should occur (frame-rate independent). Got {fireCount}");
     }
 }
-
-#endif

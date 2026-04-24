@@ -37,7 +37,7 @@ public class InputProcessing_Test
         ShipControlSystem.ResetInstanceForTest();
 
         // Disable auto simulation so Physics.Simulate works in EditMode
-        Physics.autoSimulation = false;
+        Physics.simulationMode = SimulationMode.Script;
 
         _shipStateChannel = ScriptableObject.CreateInstance<ShipStateChannel>();
         _viewLayerChannel = ScriptableObject.CreateInstance<ViewLayerChannel>();
@@ -74,7 +74,7 @@ public class InputProcessing_Test
         ShipControlSystem.ResetInstanceForTest();
 
         // Restore auto simulation
-        Physics.autoSimulation = true;
+        Physics.simulationMode = SimulationMode.FixedUpdate;
     }
 
     // ─────────────────────────────────────────────────────────────────

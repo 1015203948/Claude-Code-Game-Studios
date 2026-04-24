@@ -278,11 +278,28 @@ namespace Game.Data {
         // Equipment system
         // =====================================================================
 
+        /// <summary>All equipped weapon modules.</summary>
+        public IEnumerable<EquipmentModule> EquippedWeapons => _equippedModules.Values
+            .Where(m => m != null && m.SlotType == SlotType.Weapon);
+
         /// <summary>Total weapon damage = base + all equipped weapon modules.</summary>
         public float TotalWeaponDamage => (_blueprint?.BaseWeaponDamage ?? 0f)
-            + _equippedModules.Values
-                .Where(m => m != null && m.SlotType == SlotType.Weapon)
-                .Sum(m => m.Damage);
+            + EquippedWeapons.Sum(m => m.Damage);
+
+        /// <summary>Total weapon fire rate = base + all equipped weapon modules.</summary>
+        public float TotalFireRate => (_blueprint?.BaseFireRate ?? 1f)
+            + EquippedWeapons.Sum(m => m.FireRate);
+
+        /// <summary>Total weapon range = max of all equipped weapon modules (or hull base if none).</summary>
+        public float TotalRange
+        {
+            get
+            {
+                var weapons = EquippedWeapons.ToList();
+                if (weapons.Count == 0) return _blueprint?.BaseRange ?? 200f;
+                return weapons.Max(m => m.Range);
+            }
+        }
 
         /// <summary>Total speed = base + all equipped engine modules.</summary>
         public float TotalSpeed => (_blueprint?.BaseSpeed ?? 0f)

@@ -47,9 +47,8 @@ namespace Game.Gameplay {
         [SerializeField] private float _thrustPower = 15f;  // m/s²
         [SerializeField] private float _turnSpeed   = 120f; // deg/s
 
-        [Header("Soft-lock stub")]
+        [Header("Soft-lock")]
         [SerializeField] private float _fireAngleThreshold = 15f; // degrees — L-3: fire threshold
-        [SerializeField] private float _fireRate           = 1f;  // seconds
 
         // ─── Physics Constants (Story 019) ─────────────────
         private const float SHIP_MAX_SPEED  = 12f; // m/s
@@ -65,7 +64,6 @@ namespace Game.Gameplay {
 
         // ─── Public Output ──────────────────────────────────
         public Transform SoftLockTarget => _softLockTarget;
-        public float    WeaponCooldown => _weaponCooldown;
 
         /// <summary>Fired when aim angle enters the fire threshold. CombatSystem subscribes.</summary>
         public event System.Action FireRequested;
@@ -79,7 +77,6 @@ namespace Game.Gameplay {
         // ─── Private State ─────────────────────────────────
         private Rigidbody _rb;
         private Transform _softLockTarget;
-        private float    _weaponCooldown;
         private float    _aimAngle;
         private bool     _inputEnabled;
         private Vector2  _lastThrustInput;
@@ -97,6 +94,7 @@ namespace Game.Gameplay {
             Instance = this;
             _rb = GetComponent<Rigidbody>();
             Debug.Assert(_rb != null, "[ShipControlSystem] Rigidbody required on same GameObject");
+            Debug.Log("[ShipControlSystem] Awake: Instance set.");
         }
 
         private void OnDestroy() {
@@ -137,7 +135,6 @@ namespace Game.Gameplay {
                 }
                 _softLockTarget = null;
                 _aimAngle = 360f;
-                _weaponCooldown = 0f;
                 EnableInputListening();
 
                 // S-1: Camera → THIRD_PERSON
@@ -199,13 +196,31 @@ namespace Game.Gameplay {
         // ─── Physics Update (Story 019: P-1~P-6) ───────────
 
         private void FixedUpdate() {
-            if (!_inputEnabled || _rb == null || _dualJoystick == null) return;
+            if (!_inputEnabled || _rb == null) return;
 
             // P-5: Zero angular velocity at start of frame
             _rb.angularVelocity = Vector3.zero;
 
-            _lastThrustInput = _dualJoystick.ThrustInput;
-            _lastAimInput    = _dualJoystick.AimInput;
+            // 优先从 DualJoystickInput 读取（包含 Editor/Standalone 键盘 fallback）
+            if (_dualJoystick != null) {
+                _lastThrustInput = _dualJoystick.ThrustInput;
+                _lastAimInput    = _dualJoystick.AimInput;
+            }
+
+            // 兜底：分别判断每个轴，避免 A/D 检测阻断 W/S fallback
+            bool needThrustFallback = _lastThrustInput.magnitude < 0.01f;
+            bool needAimFallback    = Mathf.Abs(_lastAimInput.x) < 0.01f;
+            if (_dualJoystick == null || needThrustFallback || needAimFallback) {
+#if UNITY_EDITOR || UNITY_STANDALONE
+                float h = (UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow) ? 1f : 0f)
+                        + (UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow) ? -1f : 0f);
+                float v = (UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow) ? 1f : 0f)
+                        + (UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow) ? -1f : 0f);
+
+                if (needThrustFallback) _lastThrustInput = Vector2.up * Mathf.Abs(v);
+                if (needAimFallback)    _lastAimInput    = new Vector2(h, _lastAimInput.y);
+#endif
+            }
 
             // P-1: Apply thrust in forward direction
             ApplyThrust();
@@ -222,9 +237,8 @@ namespace Game.Gameplay {
             // P-1: AddForce in transform.forward
             float thrustPower = _cachedThrustPower > 0f ? _cachedThrustPower : _thrustPower;
             if (_lastThrustInput.magnitude > 0f) {
-                _rb.AddForce(
-                    transform.forward * thrustPower * _lastThrustInput.magnitude,
-                    ForceMode.Force);
+                Vector3 force = transform.forward * thrustPower * _lastThrustInput.magnitude;
+                _rb.AddForce(force, ForceMode.Force);
             }
         }
 
@@ -243,7 +257,9 @@ namespace Game.Gameplay {
 
         private void ApplyTurn() {
             // C-4: Aim assist blend — steer_total = steer_left + AIM_ASSIST_COEFF * steer_right
-            float steerLeft  = ApplyDeadZone(_dualJoystick.RawLeftStickX);
+            float steerLeft  = (_dualJoystick != null)
+                ? ApplyDeadZone(_dualJoystick.RawLeftStickX)
+                : 0f;
             float steerRight = ApplyDeadZone(_lastAimInput.x);
             float steer = steerLeft + AIM_ASSIST_COEFF * steerRight;
 
@@ -287,11 +303,6 @@ namespace Game.Gameplay {
         private void Update() {
             if (!_inputEnabled) return;
 
-            // Weapon cooldown countdown
-            if (_weaponCooldown > 0f) {
-                _weaponCooldown -= Time.deltaTime;
-            }
-
             // L-1/L-2: Update soft-lock target (stability rule)
             UpdateSoftLock();
 
@@ -303,9 +314,6 @@ namespace Game.Gameplay {
             if (_aimAngle <= _fireAngleThreshold) {
                 FireRequested?.Invoke();
             }
-
-            // Auto-fire stub
-            TryAutoFireStub();
         }
 
         private void UpdateSoftLock() {
@@ -335,14 +343,6 @@ namespace Game.Gameplay {
             if (_softLockTarget == null) return 360f;
             Vector3 toEnemy = (_softLockTarget.position - _rb.position).normalized;
             return Vector3.Angle(transform.forward, toEnemy);
-        }
-
-        private void TryAutoFireStub() {
-            // STUB: auto-fire only if soft-lock target exists
-            if (_softLockTarget == null || _weaponCooldown > 0f) return;
-
-            // Fire! (stub — no real combat system yet)
-            _weaponCooldown = _fireRate;
         }
 
         // ─── Public API (for HUD consumers) ───────────────
