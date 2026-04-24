@@ -10,6 +10,8 @@ namespace Game.Scene {
     /// - V-2: FIRST_PERSON — hard bind to CockpitAnchor (no smoothing)
     /// - V-3: Switch animation duration 0.3s
     /// - V-4: Input uninterrupted during transition
+    ///
+    /// Sprint 2: Added camera shake for combat feedback.
     /// </summary>
     public class CameraRig : MonoBehaviour
     {
@@ -33,6 +35,13 @@ namespace Game.Scene {
         private const float POSITION_SMOOTH_TIME  = 0.1f;
         private const float ROTATION_SMOOTH_TIME  = 0.15f;
 
+        // ─── Shake Parameters ────────────────────────────────────
+        [Header("Shake")]
+        private float _shakeIntensity;
+        private float _shakeDuration;
+        private float _shakeTimer;
+        private float _shakeSeed;
+
         // ─── Private State ────────────────────────────────────────
         private CameraMode _mode = CameraMode.FIRST_PERSON;
         private CameraMode _targetMode;
@@ -54,16 +63,19 @@ namespace Game.Scene {
         /// </summary>
         public void Tick(float dt)
         {
+            // Shake always runs (stacks with movement)
+            Vector3 shakeOffset = UpdateShake(dt);
+
             if (_isTransitioning) {
                 UpdateTransition(dt);
                 return;
             }
 
             if (_mode == CameraMode.THIRD_PERSON) {
-                UpdateThirdPerson(dt);
+                UpdateThirdPerson(dt, shakeOffset);
             } else {
                 // V-2: hard bind to cockpit anchor every frame
-                ApplyFirstPerson();
+                ApplyFirstPerson(shakeOffset);
             }
         }
 
@@ -81,9 +93,37 @@ namespace Game.Scene {
             _isTransitioning = true;
         }
 
+        /// <summary>
+        /// Adds a camera shake effect. Stacks with existing shake.
+        /// </summary>
+        public void AddShake(float intensity, float duration)
+        {
+            _shakeIntensity = Mathf.Max(_shakeIntensity, intensity);
+            _shakeDuration = Mathf.Max(_shakeDuration, duration);
+            _shakeTimer = _shakeDuration;
+            _shakeSeed = Random.value * 100f;
+        }
+
+        // ─── Shake System ──────────────────────────────────────
+
+        private Vector3 UpdateShake(float dt)
+        {
+            if (_shakeTimer <= 0f) return Vector3.zero;
+
+            _shakeTimer -= dt;
+            float progress = 1f - Mathf.Clamp01(_shakeTimer / _shakeDuration);
+            float decay = Mathf.Exp(-progress * 5f);
+            float currentIntensity = _shakeIntensity * decay;
+
+            float offsetX = (Mathf.PerlinNoise(_shakeSeed, 0f) - 0.5f) * 2f * currentIntensity;
+            float offsetY = (Mathf.PerlinNoise(0f, _shakeSeed) - 0.5f) * 2f * currentIntensity;
+
+            return new Vector3(offsetX, offsetY, 0f);
+        }
+
         // ─── Third-Person Update ────────────────────────────────
 
-        private void UpdateThirdPerson(float dt)
+        private void UpdateThirdPerson(float dt, Vector3 shakeOffset)
         {
             if (_targetShip == null) return;
             if (_camera == null) return;
@@ -105,17 +145,19 @@ namespace Game.Scene {
                 _camera.transform.rotation,
                 targetRot,
                 rotationFactor);
+
+            _camera.transform.position += shakeOffset;
         }
 
         // ─── First-Person Hard Bind ─────────────────────────────
 
-        private void ApplyFirstPerson()
+        private void ApplyFirstPerson(Vector3 shakeOffset)
         {
             if (_cockpitAnchor == null) return;
             if (_camera == null) return;
 
             // V-2: hard bind — no smoothing, direct copy
-            _camera.transform.position = _cockpitAnchor.position;
+            _camera.transform.position = _cockpitAnchor.position + shakeOffset;
             _camera.transform.rotation = _cockpitAnchor.rotation;
         }
 
@@ -135,7 +177,7 @@ namespace Game.Scene {
 
                 // Snap to target mode immediately on completion
                 if (_mode == CameraMode.FIRST_PERSON) {
-                    ApplyFirstPerson();
+                    ApplyFirstPerson(UpdateShake(0f));
                 }
                 return;
             }

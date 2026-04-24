@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Game.Channels;
 
 namespace Game.Gameplay
 {
@@ -89,6 +90,7 @@ namespace Game.Gameplay
         /// <summary>
         /// Attempts to fire the weapon.
         /// Returns true if a shot was actually fired (cooldown was ready).
+        /// Broadcasts WeaponFiredPayload via WeaponFiredChannel.
         /// </summary>
         /// <param name="origin">World-space fire origin.</param>
         /// <param name="direction">World-space fire direction (should be normalized).</param>
@@ -101,13 +103,21 @@ namespace Game.Gameplay
 
             _fireTimer = 0f;
 
+            Vector3? hitPoint = null;
+            bool hit = false;
+            string targetId = null;
+
             int count = _physics.Raycast(origin, direction, _hits, _range);
             if (count > 0 && targetMap.TryGetValue(_hits[0].collider, out var enemyId))
             {
+                hit = true;
+                hitPoint = _hits[0].point;
+                targetId = enemyId;
                 _health.ApplyDamage(enemyId, _damage, _damageType);
                 Debug.Log($"[WeaponSystem] Hit {enemyId} — applied {_damage} {_damageType} damage.");
             }
 
+            WeaponFiredChannel.Instance?.Raise(new WeaponFiredPayload(origin, direction, hitPoint, hit, targetId, _damage));
             return true;
         }
 

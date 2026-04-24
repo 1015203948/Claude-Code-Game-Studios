@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.IO;
 using Game.Channels;
 using Game.Data;
 using GameplayBuildings = Game.Gameplay;
@@ -222,6 +223,94 @@ namespace Gameplay {
             EnergyCurrent = Mathf.Max(0, EnergyCurrent - energy);
             BroadcastResources(-ore, -energy);
         }
+
+        /// <summary>
+        /// Adds resources to the colony (e.g., from combat rewards).
+        /// Clamps ore to [0, ORE_CAP]. No upper cap on energy.
+        /// Broadcasts resource update via channel.
+        /// </summary>
+        public void AddResources(int ore, int energy)
+        {
+            OreCurrent = Mathf.Clamp(OreCurrent + ore, 0, GetOreCap());
+            EnergyCurrent = Mathf.Max(0, EnergyCurrent + energy);
+            BroadcastResources(ore, energy);
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // Persistence (Phase 3)
+        // ─────────────────────────────────────────────────────────────────
+
+        private const string SAVE_FILE = "resources.json";
+
+        /// <summary>
+        /// Saves colony resources and node ownership to a JSON file.
+        /// </summary>
+        public void Save()
+        {
+            try {
+                var data = new ColonySaveData(OreCurrent, EnergyCurrent);
+                var map = GameDataManager.Instance?.GetStarMapData();
+                if (map != null) {
+                    var entries = new System.Collections.Generic.List<NodeOwnershipEntry>();
+                    foreach (var node in map.Nodes) {
+                        entries.Add(new NodeOwnershipEntry(node.Id, node.Ownership.ToString()));
+                    }
+                    data.NodeOwnershipEntries = entries.ToArray();
+                }
+
+                string json = JsonUtility.ToJson(data, true);
+                string path = Path.Combine(Application.persistentDataPath, SAVE_FILE);
+                File.WriteAllText(path, json);
+                Debug.Log($"[ColonyManager] Saved: ore={OreCurrent}, energy={EnergyCurrent} to {path}");
+            } catch (System.Exception e) {
+                Debug.LogError($"[ColonyManager] Save failed: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Loads colony resources and node ownership from JSON file.
+        /// Returns true if a save file was found and loaded.
+        /// </summary>
+        public bool Load()
+        {
+            try {
+                string path = Path.Combine(Application.persistentDataPath, SAVE_FILE);
+                if (!File.Exists(path)) {
+                    Debug.Log("[ColonyManager] No save file found — using defaults.");
+                    return false;
+                }
+
+                string json = File.ReadAllText(path);
+                var data = JsonUtility.FromJson<ColonySaveData>(json);
+                if (data == null) return false;
+
+                OreCurrent = data.OreCurrent;
+                EnergyCurrent = data.EnergyCurrent;
+
+                // Restore node ownership
+                var map = GameDataManager.Instance?.GetStarMapData();
+                if (map != null && data.NodeOwnershipEntries != null) {
+                    foreach (var entry in data.NodeOwnershipEntries) {
+                        if (string.IsNullOrEmpty(entry.NodeId)) continue;
+                        foreach (var node in map.Nodes) {
+                            if (node.Id == entry.NodeId) {
+                                if (System.Enum.TryParse<OwnershipState>(entry.Ownership, out var state)) {
+                                    node.Ownership = state;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                BroadcastResources(0, 0);
+                Debug.Log($"[ColonyManager] Loaded: ore={OreCurrent}, energy={EnergyCurrent} from {path}");
+                return true;
+            } catch (System.Exception e) {
+                Debug.LogError($"[ColonyManager] Load failed: {e.Message}");
+                return false;
+            }
+        }
     }
 
     /// <summary>
@@ -241,5 +330,48 @@ namespace Gameplay {
         }
 
         public static BuildShipResult Failure(string reason) => new BuildShipResult(false, null, reason);
+    }
+
+    /// <summary>
+    /// JSON-serializable save data for colony resources and node ownership.
+    /// </summary>
+    [System.Serializable]
+    internal class ColonySaveData
+    {
+        public int OreCurrent;
+        public int EnergyCurrent;
+        public NodeOwnershipEntry[] NodeOwnershipEntries;
+
+        // Runtime helper — not serialized
+        [System.NonSerialized]
+        public System.Collections.Generic.Dictionary<string, string> NodeOwnership =
+            new System.Collections.Generic.Dictionary<string, string>();
+
+        public ColonySaveData() { }
+
+        public ColonySaveData(int ore, int energy)
+        {
+            OreCurrent = ore;
+            EnergyCurrent = energy;
+            NodeOwnershipEntries = new NodeOwnershipEntry[0];
+        }
+    }
+
+    /// <summary>
+    /// Serializable node ownership entry for JSON.
+    /// </summary>
+    [System.Serializable]
+    internal class NodeOwnershipEntry
+    {
+        public string NodeId;
+        public string Ownership;
+
+        public NodeOwnershipEntry() { }
+
+        public NodeOwnershipEntry(string nodeId, string ownership)
+        {
+            NodeId = nodeId;
+            Ownership = ownership;
+        }
     }
 }

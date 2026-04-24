@@ -9,6 +9,7 @@ using Game.Data;
 using Game.Channels;
 using Game.Gameplay;
 using Game.UI;
+using Gameplay;
 
 namespace Game.Scene
 {
@@ -98,6 +99,14 @@ namespace Game.Scene
         {
             // Wire channel references after all OnEnable have fired
             WireChannelReferences();
+
+            // Load persisted colony resources (after StarMapScene is loaded)
+            var colony = ColonyManager.Instance;
+            if (colony != null) {
+                if (!colony.Load()) {
+                    colony.Initialize(100, 50);
+                }
+            }
         }
 
         // ─── Star Map Initialization (Sprint 1 Task M1) ──────────────────

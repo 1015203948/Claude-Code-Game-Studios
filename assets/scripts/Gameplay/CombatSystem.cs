@@ -40,6 +40,7 @@ public class CombatSystem : MonoBehaviour
     private string _playerShipId;
     private string _nodeId;
     private List<string> _enemyIds = new List<string>();
+    private int _initialEnemyCount;
 
     // ─────────────────────────────────────────────────────────────────
     // Unity Lifecycle
@@ -151,6 +152,7 @@ public class CombatSystem : MonoBehaviour
             _enemyIds.Add(EnemySystem.Instance.SpawnEnemy("generic_v1", playerPos, 0));
             _enemyIds.Add(EnemySystem.Instance.SpawnEnemy("generic_v1", playerPos, 1));
         }
+        _initialEnemyCount = _enemyIds.Count;
 
         // 订阅 HealthSystem.OnShipDying
         if (HealthSystem.Instance != null) {
@@ -230,6 +232,13 @@ public class CombatSystem : MonoBehaviour
                 // 胜利
                 _state = CombatState.COMBAT_VICTORY;
                 GameDataManager.Instance.GetShip(_playerShipId)?.SetState(ShipState.IN_COCKPIT);
+
+                // Grant combat rewards
+                GrantVictoryRewards();
+
+                // Conquer node — set ownership to PLAYER
+                ConquerNode();
+
                 CombatChannel.Instance.RaiseVictory(_nodeId);
                 Debug.Log($"[CombatSystem] Combat VICTORY at node {_nodeId}.");
 
@@ -246,6 +255,56 @@ public class CombatSystem : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         Game.Scene.ViewLayerManager.Instance?.RequestReturnToStarMap();
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Victory Rewards & Node Conquest
+    // ─────────────────────────────────────────────────────────────────
+
+    private const int BASE_ORE_REWARD  = 50;
+    private const int BASE_ENERGY_REWARD = 20;
+
+    private void GrantVictoryRewards()
+    {
+        var colony = ColonyManager.Instance;
+        if (colony == null) return;
+
+        int oreReward = _initialEnemyCount * BASE_ORE_REWARD;
+        int energyReward = _initialEnemyCount * BASE_ENERGY_REWARD;
+
+        // NodeType multiplier
+        var node = GetCombatNode();
+        if (node != null && node.NodeType == NodeType.RICH) {
+            oreReward *= 2;
+            energyReward *= 2;
+        }
+
+        colony.AddResources(oreReward, energyReward);
+        colony.Save();
+        Debug.Log($"[CombatSystem] Reward: +{oreReward} Ore, +{energyReward} Energy from victory at node {_nodeId}");
+
+        // Broadcast reward notification
+        LootNotificationChannel.Instance?.Raise($"+{oreReward} Ore  +{energyReward} Energy");
+    }
+
+    private void ConquerNode()
+    {
+        var node = GetCombatNode();
+        if (node == null) return;
+
+        var previousOwnership = node.Ownership;
+        node.Ownership = OwnershipState.PLAYER;
+        Debug.Log($"[CombatSystem] Node {_nodeId} conquered: {previousOwnership} → PLAYER");
+    }
+
+    private StarNode GetCombatNode()
+    {
+        var map = GameDataManager.Instance?.GetStarMapData();
+        if (map == null) return null;
+        foreach (var node in map.Nodes) {
+            if (node.Id == _nodeId) return node;
+        }
+        return null;
     }
 
     // ─────────────────────────────────────────────────────────────────
