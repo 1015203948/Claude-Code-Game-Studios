@@ -139,6 +139,7 @@ namespace Game.Effects {
             // Particle system — simple burst
             var ps = go.AddComponent<ParticleSystem>();
             var main = ps.main;
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             main.duration = 0.5f;
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1.5f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 15f);

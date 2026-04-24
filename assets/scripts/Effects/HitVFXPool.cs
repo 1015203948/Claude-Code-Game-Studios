@@ -105,6 +105,7 @@ namespace Game.Effects {
             go.transform.SetParent(transform);
 
             var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main;
             main.duration = 0.2f;
             main.startLifetime = 0.2f;
