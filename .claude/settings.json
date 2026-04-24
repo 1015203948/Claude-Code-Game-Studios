@@ -15,8 +15,11 @@
       "Bash(dir *)",
       "Bash(python -m json.tool*)",
       "Bash(python -m pytest*)",
-	  "Bash(npx claude-code-statusline-pro-aicodeditor@latest --preset PMBTUS --theme powerline)",
-      "Bash(py -m pytest*)"
+      "Bash(npx claude-code-statusline-pro-aicodeditor@latest --preset PMBTUS --theme powerline)",
+      "Bash(py -m pytest*)",
+      "mcp__UnityMCP__read_console",
+      "mcp__UnityMCP__find_gameobjects",
+      "Bash(tasklist *)"
     ],
     "deny": [
       "Bash(rm -rf *)",
