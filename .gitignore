@@ -28,6 +28,10 @@ docs/consistency-failures.md
 
 # === Build Output ===
 build/
+
+# === Large Model Files (>100MB, use local storage or asset server) ===
+assets/Models/Ships/*.glb
+assets/Models/Ships/*.dae
 builds/
 bin/
 obj/
